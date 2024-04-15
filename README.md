@@ -2,4 +2,4 @@
 
 ## Overview
 
-This repository contains dots configurations for Linux.
+This repository contains dots configurations for Linux. 
