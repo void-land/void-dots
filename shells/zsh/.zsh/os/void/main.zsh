@@ -40,12 +40,14 @@ svdisable() {
     sudo rm -rf "/var/service/$1"
 }
 
-alias rmhyprland="vrm hyprland hyprland-protocols hyprlang xdg-desktop-portal-hyprland"
+uninstallhyprland() {
+    sudo xbps-remove -R hyprland hyprland-protocols hyprlang xdg-desktop-portal-hyprland hyprlock hyprpaper
+}
 
 installhyprland() {
     if [ -z "$1" ]; then
         echo "Error: Please provide the path of packages"
         return 1
     fi
-    sudo xbps-install -R $1 hyprland hyprland-protocols hyprlang xdg-desktop-portal-hyprland
+    sudo xbps-install -R $1 hyprland hyprland-protocols hyprlang xdg-desktop-portal-hyprland hyprlock hyprpaper
 }
