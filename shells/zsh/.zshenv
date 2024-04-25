@@ -35,3 +35,12 @@ if [ -d "/home/$USER/.nvm" ]; then
     export NVM_DIR="$([ -z "${XDG_CONFIG_HOME-}" ] && printf %s "${HOME}/.nvm" || printf %s "${XDG_CONFIG_HOME}/nvm")"
     [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
 fi
+
+if [ -d "/home/$USER/.local/share/pnpm" ]; then
+    export PNPM_HOME="/home/$USER/.local/share/pnpm"
+fi
+
+case ":$PATH:" in
+*":$PNPM_HOME:"*) ;;
+*) export PATH="$PNPM_HOME:$PATH" ;;
+esac
