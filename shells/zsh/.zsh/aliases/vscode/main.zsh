@@ -3,7 +3,7 @@ CODE_DOWNLOAD_PATH="/tmp/vscode.tar.gz"
 CODE_TMP_FOLDER="/tmp/VSCode-linux-x64"
 
 alias code="$CODE_PATH --no-sandbox"
-alias codeupdate="curl -o $CODE_DOWNLOAD_PATH -L --retry 3 $CODE_DOWNLOAD_URL"
+alias codeupdate="wget -q --show-progress -c -O $CODE_DOWNLOAD_PATH $CODE_DOWNLOAD_URL"
 
 codeup() {
     codeupdate
