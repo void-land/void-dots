@@ -40,6 +40,10 @@ if [ -d "/home/$USER/.local/share/pnpm" ]; then
     export PNPM_HOME="/home/$USER/.local/share/pnpm"
 fi
 
+if [ -f '/home/hesam/google-cloud-sdk/path.zsh.inc' ]; then . '/home/hesam/google-cloud-sdk/path.zsh.inc'; fi
+
+if [ -f '/home/hesam/google-cloud-sdk/completion.zsh.inc' ]; then . '/home/hesam/google-cloud-sdk/completion.zsh.inc'; fi
+
 case ":$PATH:" in
 *":$PNPM_HOME:"*) ;;
 *) export PATH="$PNPM_HOME:$PATH" ;;
