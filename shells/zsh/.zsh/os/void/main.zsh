@@ -6,8 +6,6 @@ alias vpkgf="xbps-query -f"
 alias vpkg="sudo xbps-install -S"
 alias vup="sudo xbps-install -Su"
 alias vrm="sudo xbps-remove -R"
-alias vcp="sudo xbps-remove -O"
-alias vch="sudo rm /var/cache/xbps/*"
 alias vsearch="xbps-query -Rs"
 alias vinfo="xbps-query -S"
 alias vlocate="xbps-query -f"
@@ -17,6 +15,12 @@ alias vhold="sudo xbps-pkgdb -m hold"
 alias vunhold="sudo xbps-pkgdb -m unhold"
 alias vmirror="sudo xmirror"
 alias killall="pkill -f"
+
+alias vcp="sudo xbps-remove -O"
+vch() {
+    echo "Clean: all chache packages"
+    sudo rm /var/cache/xbps/*
+}
 
 alias svservices="ls /etc/sv/"
 alias svlist="ls -la /var/service/"
