@@ -10,3 +10,7 @@ PS1='[\u@\h \W]\$ '
 
 [[ -f ~/.bash-preexec.sh ]] && source ~/.bash-preexec.sh
 eval "$(atuin init bash)"
+
+# change default shell :
+# chsh -s $(which fish)
+# chsh -s $(which zsh)
