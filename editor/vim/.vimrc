@@ -8,14 +8,12 @@ Plug 'dracula/vim', { 'as': 'dracula' }
 
 call plug#end()
 
+let g:yuck_align_multiline_strings = 1
+let g:yuck_align_subforms = 0
+let g:yuck_align_keywords = 0
+let g:yuck_lisp_indentation = 0
+
 set encoding=UTF-8
-set tabstop=2
-set softtabstop=2
-set shiftwidth=2
-set autoindent
-set smartindent
-set smarttab
-set expandtab
 set nowrap
 set list
 set listchars=eol:.,tab:>-,trail:~,extends:>,precedes:<
@@ -23,7 +21,6 @@ set listchars=eol:.,tab:>-,trail:~,extends:>,precedes:<
 set cursorline
 set number
 set relativenumber
-set scrolloff=8
 set signcolumn=yes
 set showcmd
 set noshowmode
