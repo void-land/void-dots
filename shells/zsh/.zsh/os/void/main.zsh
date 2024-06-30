@@ -17,10 +17,7 @@ alias vmirror="sudo xmirror"
 alias killall="pkill -f"
 
 alias vcp="sudo xbps-remove -O"
-vch() {
-    echo "Clean: all chache packages"
-    sudo rm /var/cache/xbps/*
-}
+alias vch="echo 'Clean: all chache packages' && sudo rm /var/cache/xbps/*"
 
 alias svservices="ls /etc/sv/"
 alias svlist="ls -la /var/service/"
