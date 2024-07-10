@@ -2,8 +2,9 @@ ZSH_THEME="nebirhos"
 plugins=(zsh-syntax-highlighting zsh-autosuggestions git themes jsontools)
 source $ZSH/oh-my-zsh.sh
 
-source ~/.zsh/functions/main.zsh
+source ~/.zsh/_keybinds.zsh
+source ~/.zsh/functions/init.zsh
 source ~/.zsh/aliases/export.zsh
-source ~/.zsh/os/export.zsh
+source ~/.zsh/os/init.zsh
 
 eval "$(atuin init zsh --disable-up-arrow)"
