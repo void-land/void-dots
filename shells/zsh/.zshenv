@@ -10,6 +10,8 @@ export DNS_CHANGER=$HOME/.scripts/dns-changer/main.sh
 export STEAM_OS=$HOME/.steam-os/main.sh
 export SPEEDTEST_DOWNLOAD_URL="http://185.239.106.174/assets/12mb.png"
 
+export PATH=$HOME/.local/bin:$PATH
+
 if [ -d "/home/$USER/platform-tools" ]; then
     export PATH="$HOME/platform-tools:$PATH"
 fi
