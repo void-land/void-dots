@@ -5,14 +5,11 @@ import = [
 
 live_config_reload = false
 
-[shell]
-program = "zsh"
-
 [terminal]
 osc52 = "CopyPaste"
 
 [font]
-size = 12
+size = 16
 
 [window]
 dynamic_title = true
