@@ -10,7 +10,11 @@ SETUVAR _fisher_patrickf1_2F_fzf_2E_fish_files:\x7e/\x2econfig/fish/plugins/func
 SETUVAR _fisher_plugins:jorgebucaran/fisher\x1eyo\x2dgoto/ggl\x2efish\x1epatrickf1/fzf\x2efish\x1ejorgebucaran/spark\x2efish\x1ejorgebucaran/hydro\x1ejorgebucaran/nvm\x2efish
 SETUVAR _fisher_upgraded_to_4_4:\x1d
 SETUVAR _fisher_yo_2D_goto_2F_ggl_2E_fish_files:\x7e/\x2econfig/fish/plugins/functions/fin\x2efish\x1e\x7e/\x2econfig/fish/plugins/functions/ggl\x2efish\x1e\x7e/\x2econfig/fish/plugins/conf\x2ed/ggl\x2efish\x1e\x7e/\x2econfig/fish/plugins/completions/fin\x2efish\x1e\x7e/\x2econfig/fish/plugins/completions/ggl\x2efish
-SETUVAR _hydro_git_1518:main\u2022\x20
+SETUVAR _hydro_git_16631:main\u2022\x20
+SETUVAR _hydro_git_18744:main\u2022\x20
+SETUVAR _hydro_git_21132:main\u2022\x20
+SETUVAR _hydro_git_23271:main\u2022\x20
+SETUVAR _hydro_git_25838:main\u2022\x20
 SETUVAR fish_color_autosuggestion:brblack
 SETUVAR fish_color_cancel:\x2dr
 SETUVAR fish_color_command:blue
