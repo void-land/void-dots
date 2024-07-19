@@ -1,5 +1,12 @@
 set -U fish_greeting
-set -x ZELLIJ_START false
+
+set -x ZELLIJ_AUTO_START false
+set -x ZELLIJ_AUTO_ATTACH true
+set -x ZELLIJ_AUTO_EXIT false
+
+set -x STARSHIP_AUTO_START false
+set -x STARSHIP_CONFIG $HOME/.config/starship/text_prompt.toml
+
 set -x OS_ID (grep -i -w 'ID=' /etc/os-release | awk -F= '{print $2}')
 set -x OS (grep -i -w "ID=" /etc/os-release | grep -oP '(?<=")[^"]*')
 set -x NEKORAY_PATH /opt/nekoray/nekoray
