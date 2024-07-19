@@ -1,4 +1,5 @@
 source ~/.config/fish/_env.fish
+source ~/.config/fish/_keybinds.fish
 
 load_files ~/.config/fish/aliases
 load_files ~/.config/fish/attach
