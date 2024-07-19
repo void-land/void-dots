@@ -1,3 +1,4 @@
+set -U fish_greeting
 set -x ZELLIJ_START false
 set -x OS_ID (grep -i -w 'ID=' /etc/os-release | awk -F= '{print $2}')
 set -x OS (grep -i -w "ID=" /etc/os-release | grep -oP '(?<=")[^"]*')
