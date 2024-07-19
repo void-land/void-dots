@@ -1,5 +1,5 @@
 import = [
-    "~/.config/alacritty/themes/github.toml",
+    "~/.config/alacritty/themes/afterglow.toml",
     "~/.config/alacritty/keybinds.toml",
 ]
 
