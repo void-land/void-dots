@@ -1,4 +1,4 @@
-function wget_speed --description 'Perform a speed test using wget'
+function ws --description 'Perform a speed test using wget'
     check_command wget
 
     echo "WGET Speedtest"
