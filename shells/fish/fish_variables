@@ -3,9 +3,10 @@
 SETUVAR --export STARSHIP_AUTO_START:false
 SETUVAR __fish_initialized:3400
 SETUVAR _fisher_jorgebucaran_2F_fisher_files:\x7e/\x2econfig/fish/functions/fisher\x2efish\x1e\x7e/\x2econfig/fish/completions/fisher\x2efish
-SETUVAR _fisher_jorgebucaran_2F_nvm_2E_fish_files:\x7e/\x2econfig/fish/functions/_nvm_index_update\x2efish\x1e\x7e/\x2econfig/fish/functions/_nvm_list\x2efish\x1e\x7e/\x2econfig/fish/functions/_nvm_version_activate\x2efish\x1e\x7e/\x2econfig/fish/functions/_nvm_version_deactivate\x2efish\x1e\x7e/\x2econfig/fish/functions/nvm\x2efish\x1e\x7e/\x2econfig/fish/conf\x2ed/nvm\x2efish\x1e\x7e/\x2econfig/fish/completions/nvm\x2efish
-SETUVAR _fisher_plugins:jorgebucaran/fisher\x1ejorgebucaran/nvm\x2efish
+SETUVAR _fisher_jorgebucaran_2F_nvm_2E_fish_files:\x7e/\x2econfig/fish/plugins/functions/_nvm_index_update\x2efish\x1e\x7e/\x2econfig/fish/plugins/functions/_nvm_list\x2efish\x1e\x7e/\x2econfig/fish/plugins/functions/_nvm_version_activate\x2efish\x1e\x7e/\x2econfig/fish/plugins/functions/_nvm_version_deactivate\x2efish\x1e\x7e/\x2econfig/fish/plugins/functions/nvm\x2efish\x1e\x7e/\x2econfig/fish/plugins/conf\x2ed/nvm\x2efish\x1e\x7e/\x2econfig/fish/plugins/completions/nvm\x2efish
+SETUVAR _fisher_plugins:jorgebucaran/fisher\x1ejorgebucaran/nvm\x2efish\x1eyo\x2dgoto/ggl\x2efish
 SETUVAR _fisher_upgraded_to_4_4:\x1d
+SETUVAR _fisher_yo_2D_goto_2F_ggl_2E_fish_files:\x7e/\x2econfig/fish/plugins/functions/fin\x2efish\x1e\x7e/\x2econfig/fish/plugins/functions/ggl\x2efish\x1e\x7e/\x2econfig/fish/plugins/conf\x2ed/ggl\x2efish\x1e\x7e/\x2econfig/fish/plugins/completions/fin\x2efish\x1e\x7e/\x2econfig/fish/plugins/completions/ggl\x2efish
 SETUVAR fish_color_autosuggestion:brblack
 SETUVAR fish_color_cancel:\x2dr
 SETUVAR fish_color_command:blue
@@ -36,3 +37,4 @@ SETUVAR fish_pager_color_prefix:normal\x1e\x2d\x2dbold\x1e\x2d\x2dunderline
 SETUVAR fish_pager_color_progress:brwhite\x1e\x2d\x2dbackground\x3dcyan
 SETUVAR fish_pager_color_selected_background:\x2dr
 SETUVAR fish_user_paths:\x2e
+SETUVAR --export fisher_path:/home/hesam/\x2econfig/fish/plugins

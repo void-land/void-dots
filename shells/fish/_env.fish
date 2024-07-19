@@ -1,3 +1,5 @@
+set fisher_path $__fish_config_dir/plugins
+
 set -U fish_greeting
 
 set -x ZELLIJ_AUTO_START false
