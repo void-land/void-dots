@@ -19,13 +19,13 @@ set -x DNS_CHANGER $HOME/.scripts/dns-changer/main.sh
 set -x STEAM_OS $HOME/.steam-os/main.sh
 set -x SPEEDTEST_DOWNLOAD_URL "http://185.239.106.174/assets/12mb.png"
 
-# set -x BUN_INSTALL $HOME/.bun
+set -x BUN_INSTALL $HOME/.bun
 set -x DENO_INSTALL $HOME/.deno
 set -x PNPM_HOME $HOME/.local/share/pnpm
 
-# fish_add_path $HOME/.local/bin
+fish_add_path $HOME/.local/bin
 fish_add_path $HOME/platform-tools
 
-# fish_add_path $BUN_INSTALL/bin
+fish_add_path $BUN_INSTALL/bin
 fish_add_path $DENO_INSTALL/bin
 fish_add_path $PNPM_HOME
