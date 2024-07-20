@@ -13,6 +13,7 @@ complete -c xbps -n __fish_use_subcommand -a reboot -f -d "Reboot the system imm
 complete -c xbps -n __fish_use_subcommand -a repos -f -d "List XBPS repositories"
 complete -c xbps -n __fish_use_subcommand -a pkgf -f -d "Find which package owns a file"
 complete -c xbps -n __fish_use_subcommand -a install -f -d "Install or update packages"
+complete -c xbps -n __fish_use_subcommand -a sync -f -d "Sync all repos"
 complete -c xbps -n __fish_use_subcommand -a update -f -d "Update the system and installed packages"
 complete -c xbps -n __fish_use_subcommand -a remove -f -d "Remove packages and their dependencies"
 complete -c xbps -n __fish_use_subcommand -a search -f -d "Search for packages"
