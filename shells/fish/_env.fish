@@ -1,5 +1,4 @@
 set -U fish_greeting
-# set fisher_path $__fish_config_dir/plugins
 
 set hydro_multiline false
 
