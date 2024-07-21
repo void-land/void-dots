@@ -2,6 +2,8 @@ set -U fish_greeting
 
 set hydro_multiline false
 
+set --universal nvm_default_version latest
+
 set -x ZELLIJ_AUTO_START false
 set -x ZELLIJ_AUTO_ATTACH true
 set -x ZELLIJ_AUTO_EXIT false
