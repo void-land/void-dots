@@ -19,7 +19,6 @@ set -x DOTFILES $HOME/.dots
 set -x VOID_PACKAGES_PATH $HOME/.local/pkgs/void-packages
 set -x DNS_CHANGER $HOME/.scripts/dns-changer/main.sh
 set -x STEAM_OS $HOME/.steam-os/main.sh
-set -x SPEEDTEST_DOWNLOAD_URL "http://185.239.106.174/assets/12mb.png"
 
 set -x BUN_INSTALL $HOME/.bun
 set -x DENO_INSTALL $HOME/.deno
