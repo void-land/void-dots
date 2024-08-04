@@ -12,6 +12,7 @@ function xbps --argument-names sub_command -d "Short and friendly command wrappe
         echo "  install          Install or update packages"
         echo "  sync             Sync all repos"
         echo "  update           Update the system and installed packages"
+        echo "  upgrade          Upgrade all installed pacakges"
         echo "  remove           Remove packages and their dependencies"
         echo "  search           Search for packages"
         echo "  info             Show package information"
@@ -54,8 +55,11 @@ function xbps --argument-names sub_command -d "Short and friendly command wrappe
         case sync
             sudo xbps-install -S
 
-        case update
+        case upgrade
             sudo xbps-install -Su
+
+        case update
+            sudo xbps-install -Su $argv[2..-1]
 
         case remove
             sudo xbps-remove -R $argv[2..-1]

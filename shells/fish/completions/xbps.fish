@@ -15,6 +15,7 @@ complete -c xbps -n __fish_use_subcommand -a pkgf -f -d "Find which package owns
 complete -c xbps -n __fish_use_subcommand -a install -f -d "Install or update packages"
 complete -c xbps -n __fish_use_subcommand -a sync -f -d "Sync all repos"
 complete -c xbps -n __fish_use_subcommand -a update -f -d "Update the system and installed packages"
+complete -c xbps -n __fish_use_subcommand -a upgrade -f -d "Upgrade all installed pacakges"
 complete -c xbps -n __fish_use_subcommand -a remove -f -d "Remove packages and their dependencies"
 complete -c xbps -n __fish_use_subcommand -a search -f -d "Search for packages"
 complete -c xbps -n __fish_use_subcommand -a info -f -d "Show package information"
