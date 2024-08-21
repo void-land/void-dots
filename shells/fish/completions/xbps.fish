@@ -13,6 +13,7 @@ complete -c xbps -n __fish_use_subcommand -a reboot -f -d "Reboot the system imm
 complete -c xbps -n __fish_use_subcommand -a repos -f -d "List XBPS repositories"
 complete -c xbps -n __fish_use_subcommand -a pkgf -f -d "Find which package owns a file"
 complete -c xbps -n __fish_use_subcommand -a install -f -d "Install or update packages"
+complete -c xbps -n __fish_use_subcommand -a add -f -d "Install package without sync"
 complete -c xbps -n __fish_use_subcommand -a sync -f -d "Sync all repos"
 complete -c xbps -n __fish_use_subcommand -a update -f -d "Update the system and installed packages"
 complete -c xbps -n __fish_use_subcommand -a upgrade -f -d "Upgrade all installed pacakges"
@@ -28,6 +29,7 @@ complete -c xbps -n __fish_use_subcommand -a kill -f -d "Kill all processes matc
 complete -c xbps -n __fish_use_subcommand -a clean-cache -f -d "Remove cached packages"
 complete -c xbps -n __fish_use_subcommand -a clear-cache -f -d "Clean all cached packages"
 complete -c xbps -n "__fish_seen_subcommand_from install" -a "(__fish_print_packages)" -f
+complete -c xbps -n "__fish_seen_subcommand_from add" -a "(__fish_print_packages)" -f
 complete -c xbps -n "__fish_seen_subcommand_from update" -a "(__fish_print_packages)" -f
 complete -c xbps -n "__fish_seen_subcommand_from remove" -a "(__fish_print_xbps_packages -i)" -f
 complete -c xbps -n "__fish_seen_subcommand_from search" -a "(__fish_print_packages)" -f

@@ -9,7 +9,8 @@ function xbps --argument-names sub_command -d "Short and friendly command wrappe
         echo "  reboot           Reboot the system immediately"
         echo "  repos            List XBPS repositories"
         echo "  pkgf             Find which package owns a file"
-        echo "  install          Install or update packages"
+        echo "  install          Install and sync or update packages"
+        echo "  add              Install package without sync"
         echo "  sync             Sync all repos"
         echo "  update           Update the system and installed packages"
         echo "  upgrade          Upgrade all installed pacakges"
@@ -51,6 +52,9 @@ function xbps --argument-names sub_command -d "Short and friendly command wrappe
 
         case install
             sudo xbps-install -S $argv[2..-1]
+
+        case add
+            sudo xbps-install $argv[2..-1]
 
         case sync
             sudo xbps-install -S
