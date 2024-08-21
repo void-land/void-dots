@@ -1,5 +1,5 @@
 import = [
-    "~/.config/alacritty/themes/afterglow.toml",
+    "~/.config/alacritty/themes/github_dark_high_contrast.toml",
     "~/.config/alacritty/keybinds.toml",
 ]
 
@@ -14,16 +14,16 @@ size = 14
 [window]
 dynamic_title = true
 blur = true
-opacity = 0.8
+opacity = 0.2
 dimensions = { columns = 90, lines = 30 }
-padding = { x = 10, y = 10 }
+padding = { x = 6, y = 2 }
 startup_mode = "Windowed"
-decorations = "full"
+decorations = "transparent"
 # dynamic_padding = true
 
 [cursor]
-style = { blinking = "Always", shape = "Beam" }
-thickness = 0.8
+style = { blinking = "Always", shape = "Block" }
+thickness = 0.2
 
 [scrolling]
 history = 100000
