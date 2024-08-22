@@ -1,12 +1,20 @@
 #!/bin/bash
 
 declare -A dns_servers=(
+    ["Electro"]="78.157.42.100,78.157.42.101"
     ["403"]="10.202.10.202,10.202.10.102"
     ["Shecan"]="178.22.122.100,185.51.200.2"
     ["Begzar"]="185.55.225.25,185.55.226.26"
     ["Google"]="8.8.8.8,8.8.4.4"
     ["Cloudflare"]="1.1.1.1"
 )
+
+check_sudo() {
+    if [ "$(id -u)" -ne 0 ]; then
+        echo "Error: Please run the script with sudo."
+        exit 1
+    fi
+}
 
 display_dns_list() {
     echo "Available DNS Servers:"
@@ -49,6 +57,7 @@ update_resolv_conf() {
     echo "Updated /etc/resolv.conf with DNS servers: $1"
 }
 
+check_sudo
 display_dns_list
 select_dns
 update_resolv_conf "$selected_dns"
