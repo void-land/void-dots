@@ -99,7 +99,7 @@ function xbps --argument-names sub_command -d "Short and friendly command wrappe
             echo 'Clean: all cache packages' && sudo rm /var/cache/xbps/*
 
         case services
-            ls -a /etc/sv/
+            ls -la /etc/sv/
 
         case active-services
             ls -la /var/service/
@@ -123,7 +123,9 @@ function xbps --argument-names sub_command -d "Short and friendly command wrappe
                 return 1
             end
 
-            sudo ln -s /etc/sv/$argv[2] /var/service
+            for service in $argv[2..-1]
+                sudo ln -s /etc/sv/$service /var/service
+            end
 
         case disable
             if not set -q argv[2]
@@ -132,7 +134,10 @@ function xbps --argument-names sub_command -d "Short and friendly command wrappe
                 return 1
             end
 
-            sudo rm -rf "/var/service/$argv[2]"
+            for service in $argv[2..-1]
+                sudo rm -rf /var/service/$service
+            end
+
 
         case '*'
             echo "Unknown command: $argv[1]"
