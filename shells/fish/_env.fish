@@ -31,3 +31,7 @@ fish_add_path $HOME/platform-tools
 fish_add_path $BUN_INSTALL/bin
 fish_add_path $DENO_INSTALL/bin
 fish_add_path $PNPM_HOME
+
+fish_add_path $HOME/.spicetify
+
+fish_add_path $HOME/.nix-profile/bin
