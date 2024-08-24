@@ -15,8 +15,9 @@ function nix_setup --description 'First time setup nix on void linux'
         echo "Symlink for nix-daemon service already exists."
     end
 
-    if not nix-channel --list | grep -q nixpkgs-unstable
-        nix-channel --add http://nixos.org/channels/nixpkgs-unstable nixpkgs-unstable
+    if not nix-channel --list | grep -q nixpkgs
+        nix-channel --add http://nixos.org/channels/nixpkgs-unstable nixpkgs
+        nix-channel --add https://nixos.org/channels/nixos-24.05 nixos
     else
         echo "nixpkgs-unstable channel already added."
     end
