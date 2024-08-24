@@ -8,5 +8,16 @@
         spotify
       ];
     };
+
+    drivers = pkgs.buildEnv {
+      name = "drivers";
+      paths = [
+        vulkan-loader
+        vulkan-tools
+        amdvlk
+        libdrm
+        mesa
+      ];
+    };
   };
 }
