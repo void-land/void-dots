@@ -1,4 +1,4 @@
-function extract_file --description "Expand or extract bundled & compressed files"
+function extract --description "Expand or extract bundled & compressed files"
     if not set -q argv[1]
         echo "Usage: extract_file <file1> <file2> ... <fileN>"
         return 1
