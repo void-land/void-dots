@@ -35,3 +35,4 @@ fish_add_path $PNPM_HOME
 fish_add_path $HOME/.spicetify
 
 fish_add_path $HOME/.nix-profile/bin
+fish_add_path $HOME/Tinygo/usr/local/bin
