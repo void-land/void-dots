@@ -36,3 +36,4 @@ fish_add_path $HOME/.spicetify
 
 fish_add_path $HOME/.nix-profile/bin
 fish_add_path $HOME/Tinygo/usr/local/bin
+fish_add_path $HOME/.dotnet
