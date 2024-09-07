@@ -1,32 +1,60 @@
 #!/usr/bin/env sh
 
+arch="$(uname -m)"
+platform="$(uname -s)"
+channel="${VSCODE_BUILD:-stable}"
+
 name="code"
 display_name="Visual Studio Code"
 
 local_bin_path="$HOME/.local/bin"
 local_application_path="$HOME/.local/share/applications"
-app_installation_directory="$HOME/.local/vscode-stable"
+app_installation_path="$HOME/.local/vscode-stable"
 
-executable_path="$app_installation_directory/code"
-desktop_local_application="$local_application_path/$name.desktop"
-desktop_icon_path="$app_installation_directory/resources/app/resources/linux/code.png"
+executable_path="$app_installation_path/code/code"
+desktop_icon_path="$app_installation_path/pixmaps/vscode.png"
 
-# download_location=$(mktemp -d /tmp/vscode-XXXXXX)
 download_location=/tmp/vscode
+download_file="$download_location/code.deb"
 
 set -eu
 
+log() {
+	local color_reset="\033[0m"
+	local color_green="\033[32m"
+	local color_yellow="\033[33m"
+	local color_red="\033[31m"
+	local color_blue="\033[34m"
+
+	case "$1" in
+	success)
+		echo "${color_green}[SUCCESS] ===>${color_reset} $2"
+		;;
+	info)
+		echo "${color_blue}[INFO] ===>${color_reset} $2"
+		;;
+	warning)
+		echo "${color_yellow}[WARNING] ===>${color_reset} $2"
+		;;
+	error)
+		echo "${color_red}[ERROR] ===>${color_reset} $2"
+		;;
+	*)
+		echo "$2"
+		;;
+	esac
+}
+
 main() {
-	arch="$(uname -m)"
-	platform="$(uname -s)"
-	channel="${ZED_CHANNEL:-stable}"
+	log info "Detected platform: $platform"
+	log info "Detected architecture: $arch"
 
 	if [ "$platform" = "Darwin" ]; then
 		platform="macos"
 	elif [ "$platform" = "Linux" ]; then
 		platform="linux"
 	else
-		echo "Unsupported platform $platform"
+		log error "Unsupported platform $platform"
 
 		exit 1
 	fi
@@ -45,88 +73,62 @@ main() {
 		arch="armhf"
 		;;
 	*)
-		echo "Unsupported architecture: $arch"
-
+		log error "Unsupported architecture: $arch"
 		exit 1
 		;;
 	esac
 
-	# Run platform functions
+	log info "Installing $display_name for $platform-$arch"
 
-	$platform "$@"
+	do_fetch
+	do_install
 
-	# if [ "$(which "zed")" = "$HOME/.local/bin/zed" ]; then
-	# 	echo "Zed has been installed. Run with 'zed'"
-	# else
-	# 	echo "To run Zed from your terminal, you must add ~/.local/bin to your PATH"
-	# 	echo "Run:"
+	log success "$display_name installation completed."
 
-	# 	case "$SHELL" in
-	# 	*zsh)
-	# 		echo "   echo 'export PATH=\$HOME/.local/bin:\$PATH' >> ~/.zshrc"
-	# 		echo "   source ~/.zshrc"
-	# 		;;
-	# 	*fish)
-	# 		echo "   fish_add_path -U $HOME/.local/bin"
-	# 		;;
-	# 	*)
-	# 		echo "   echo 'export PATH=\$HOME/.local/bin:\$PATH' >> ~/.bashrc"
-	# 		echo "   source ~/.bashrc"
-	# 		;;
-	# 	esac
-
-	# 	echo "To run Zed now, '~/.local/bin/zed'"
-	# fi
+	# Display instructions for adding ~/.local/bin to PATH
+	# display_path_instructions
 }
 
-download() {
-	if command -v curl >/dev/null 2>&1; then
-		curl -fL "$@"
-	elif command -v wget >/dev/null 2>&1; then
-		wget -O- "$@"
+do_fetch() {
+	local download_url="https://code.visualstudio.com/sha/download?build=stable&os=linux-deb-$arch"
+
+	mkdir -p "$download_location"
+
+	log info "Downloading Visual Studio Code..."
+	curl --progress-bar -fLC - "$download_url" -o "$download_file"
+}
+
+do_install() {
+	log info "Setting up installation directories"
+	rm -rf "$app_installation_path"
+	mkdir -p "$local_bin_path" "$local_application_path" "$app_installation_path"
+
+	log info "Extracting Vscode from the package"
+	cd "$download_location"
+	ar xv "$download_file"
+	tar xfv "$download_location/data.tar.xz" -C "$download_location"
+	mv "$download_location/usr/share/"* "$app_installation_path"
+
+	if [ -f "$executable_path" ]; then
+		ln -sf "$executable_path" "$local_bin_path"
+
+		log success "Linked binary to $local_bin_path"
 	else
-		echo "Could not find 'curl' or 'wget' in your path"
+		log error "Failed to link vscode binary"
 
 		exit 1
 	fi
-}
 
-linux() {
-	# if [ -n "${ZED_BUNDLE_PATH:-}" ]; then
-	# 	cp "$ZED_BUNDLE_PATH" "$temp/zed-linux-$arch.tar.gz"
-	# else
-	# 	echo "Downloading Vscode into $download_location \n"
+	log info "Updating .desktop file with executable and icon paths"
 
-	# 	download "https://code.visualstudio.com/sha/download?build=stable&os=$platform-deb-$arch" >$download_location/code.deb
-	# fi
+	for file in "$app_installation_path/applications/"*.desktop; do
+		sed -i "s|/usr/share/code/code|$executable_path|g" "$file"
+		sed -i "s|Icon=vscode|Icon=$desktop_icon_path|g" "$file"
+	done
 
-	# Setup ~/.local directories
-	mkdir -p "$local_bin_path" "$local_application_path"
-	mkdir -p "$app_installation_directory"
+	cp "$app_installation_path/applications/"*.desktop "$local_application_path"
 
-	# Remove older version
-	rm -rf "$app_installation_directory"
-
-	echo $download_location
-
-	# Unpack .deb package
-	ar xv "$download_location/code.deb"
-	tar -xzf "$download_location/data.tar.xz" -C "$download_location"
-	mv * "$download_location/usr/share" "$app_installation_directory"
-
-	# Link the binary
-	# if [ -f "$HOME/.local/zed$suffix.app/bin/zed" ]; then
-	# 	ln -sf "$HOME/.local/zed$suffix.app/bin/zed" "$HOME/.local/bin/zed"
-	# else
-	# 	# support for versions before 0.139.x.
-	# 	ln -sf "$HOME/.local/zed$suffix.app/bin/cli" "$HOME/.local/bin/zed"
-	# fi
-
-	# Copy .desktop file
-	# desktop_file_path="$HOME/.local/share/applications/${appid}.desktop"
-	# cp "$HOME/.local/zed$suffix.app/share/applications/zed$suffix.desktop" "${desktop_file_path}"
-	# sed -i "s|Icon=zed|Icon=$HOME/.local/zed$suffix.app/share/icons/hicolor/512x512/apps/zed.png|g" "${desktop_file_path}"
-	# sed -i "s|Exec=zed|Exec=$HOME/.local/zed$suffix.app/libexec/zed-editor|g" "${desktop_file_path}"
+	log success ".desktop files updated and copied to $local_application_path"
 }
 
 main "$@"

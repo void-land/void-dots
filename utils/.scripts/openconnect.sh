@@ -1,7 +1,7 @@
 #!/bin/bash
 
-# SERVER="iosmtn.apibaz.info"
-SERVER="mci1.apibaz.info"
+SERVER="iosmtn.apibaz.info"
+# SERVER="mci1.apibaz.info"
 USER="vbaz568161"
 PASSWORD="2489"
 
