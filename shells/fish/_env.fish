@@ -25,7 +25,7 @@ set -x DENO_INSTALL $HOME/.deno
 set -x PNPM_HOME $HOME/.local/share/pnpm
 
 fish_add_path $HOME/go/bin
-fish_add_path $HOME/.local/bin
+# fish_add_path $HOME/.local/bin
 fish_add_path $HOME/platform-tools
 
 fish_add_path $BUN_INSTALL/bin
