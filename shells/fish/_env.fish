@@ -2,7 +2,7 @@ set -U fish_greeting
 
 set hydro_multiline false
 
-set --universal nvm_default_version latest
+set --universal nvm_default_version v22.4.0
 
 set -x ZELLIJ_AUTO_START false
 set -x ZELLIJ_AUTO_ATTACH true
@@ -26,6 +26,7 @@ set -x PNPM_HOME $HOME/.local/share/pnpm
 
 fish_add_path $HOME/go/bin
 # fish_add_path $HOME/.local/bin
+fish_add_path $HOME/.scripts
 fish_add_path $HOME/platform-tools
 
 fish_add_path $BUN_INSTALL/bin
