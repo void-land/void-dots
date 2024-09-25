@@ -25,7 +25,7 @@ keymap.set("n", "<A-Up>", "<C-w>k", with_desc("Move to window above"))
 keymap.set("n", "<A-Right>", "<C-w>l", with_desc("Move to right window"))
 
 -- Undo and Redo
-keymap.set({ "n", "i" }, "<C-z>", "<C-o>u", with_desc("Undo"))
+keymap.set({ "n", "i" }, "<C-z>", "u", with_desc("Undo"))
 keymap.set("n", "<C-y>", "<C-r>", with_desc("Redo"))
 
 -- Telescope
@@ -34,3 +34,13 @@ keymap.set("n", "<C-s-f>", ":Telescope live_grep<CR>", with_desc("Search in file
 -- Copy and Paste
 keymap.set("v", "<C-c>", "y", with_desc("Copy selected items"))
 keymap.set("v", "<C-x>", "d", with_desc("Cut selected items"))
+
+-- Move lines up and down
+keymap.set("n", "<A-Up>", ":m .-2<CR>==", with_desc("Move line up"))
+keymap.set("v", "<A-Up>", ":m '<-2<CR>gv=gv", with_desc("Move selection up"))
+keymap.set("n", "<A-Down>", ":m .+1<CR>==", with_desc("Move line down"))
+keymap.set("v", "<A-Down>", ":m '>+1<CR>gv=gv", with_desc("Move selection down"))
+
+-- Buffer or edtior navigation
+keymap.set("n", "<C-Tab>", ":bn<CR>", with_desc("Next buffer"))
+keymap.set("n", "<C-S-Tab>", ":bp<CR>", with_desc("Previous tab"))
