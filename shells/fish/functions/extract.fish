@@ -9,7 +9,7 @@ function extract --description "Expand or extract bundled & compressed files"
             echo -s "Extracting : " (set_color --bold blue) $file (set_color normal) \n
 
             switch $file
-                case "*.tar"
+                case "*.tar" "*.tar.xz"
                     tar -xvf $file
                 case "*.tar.bz2" "*.tbz2"
                     tar --bzip2 -xvf $file
@@ -27,6 +27,9 @@ function extract --description "Expand or extract bundled & compressed files"
                     uncompress $file
                 case "*.pax"
                     pax -r <$file
+                case "*.deb"
+                    ar -xv $file
+                    tar -xvf data.tar.xz
                 case "*.7z"
                     7z x $file -o(basename $file .7z)
                 case '*'
