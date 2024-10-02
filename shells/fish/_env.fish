@@ -8,6 +8,8 @@ set -x ZELLIJ_AUTO_START false
 set -x ZELLIJ_AUTO_ATTACH true
 set -x ZELLIJ_AUTO_EXIT false
 
+set -x PODMAN_IGNORE_CGROUPSV1_WARNING false
+
 set -x STARSHIP_AUTO_START false
 set -x STARSHIP_CONFIG $HOME/.config/starship/text_prompt.toml
 
