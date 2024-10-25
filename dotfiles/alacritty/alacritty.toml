@@ -1,9 +1,11 @@
+[general]
+
+live_config_reload = true
+
 import = [
     "~/.config/alacritty/themes/github_dark_high_contrast.toml",
     "~/.config/alacritty/keybinds.toml",
 ]
-
-live_config_reload = true
 
 [terminal]
 osc52 = "CopyPaste"
@@ -27,3 +29,4 @@ thickness = 0.2
 
 [scrolling]
 history = 100000
+
