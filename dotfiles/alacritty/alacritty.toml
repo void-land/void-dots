@@ -1,11 +1,11 @@
 [general]
+import = [
+    "~/.config/alacritty/themes/github_dark.toml",
+    "~/.config/alacritty/keybinds.toml",
+]
 
 live_config_reload = true
 
-import = [
-    "~/.config/alacritty/themes/github_dark_high_contrast.toml",
-    "~/.config/alacritty/keybinds.toml",
-]
 
 [terminal]
 osc52 = "CopyPaste"
