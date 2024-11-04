@@ -7,6 +7,7 @@ set --universal nvm_default_version v22.4.0
 set -x ZELLIJ_AUTO_START false
 set -x ZELLIJ_AUTO_ATTACH true
 set -x ZELLIJ_AUTO_EXIT false
+set -x DBIN_INSTALL_DIR $HOME/.local/dbin
 
 set -x PODMAN_IGNORE_CGROUPSV1_WARNING false
 
