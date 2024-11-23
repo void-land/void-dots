@@ -16,6 +16,8 @@
   {
     "context": "Editor",
     "bindings": {
+      "ctrl-enter": "editor::Newline",
+      "ctrl-shift-enter": "editor::NewlineBelow"
       // "j k": ["workspace::SendKeystrokes", "escape"]
     }
   }
