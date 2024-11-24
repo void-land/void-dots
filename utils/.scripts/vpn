@@ -9,7 +9,7 @@
 # SERVER="mcis8.apibaz.info"
 # SERVER="mciwin.apibaz.info"
 # SERVER="mciwin.apibaz.info"
-# SERVER="vps-2dbe0949.vps.ovh.net"
+SERVER="vps-2dbe0949.vps.ovh.net"
 SERVER="vps-1b59076c.vps.ovh.net"
 USER="vbaz568161"
 PASSWORD="2489"

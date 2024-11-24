@@ -16,6 +16,42 @@
     "tailwind-syntax": true,
     "docker-compose": false
   },
+  "language": {
+    "javascript": {},
+    "typescript": {}
+  },
+  "languages": {
+    "TypeScript": {
+      // "language_servers": ["typescript-language-server", "!vtsls", "..."]
+    },
+    "TSX": {
+      // "language_servers": ["typescript-language-server", "!vtsls", "..."]
+    },
+    "JavaScript": {
+      // "language_servers": ["typescript-language-server", "!vtsls", "..."]
+    }
+  },
+  "language_servers": [
+    "biome",
+    "..."
+  ],
+  "lsp": {
+    "biome": {
+      "settings": {
+        "config_path": "biome.json",
+        "require_config_file": true
+      }
+    }
+  },
+  "formatter": {
+    "language_server": {
+      "name": "biome"
+    }
+  },
+  "code_actions_on_format": {
+    "source.fixAll.biome": true,
+    "source.organizeImports.biome": true
+  },
   "format_on_save": "on",
   "confirm_quit": true,
   "base_keymap": "VSCode",

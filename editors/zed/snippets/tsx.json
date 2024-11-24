@@ -1,0 +1,80 @@
+{
+  "General React Component": {
+    "prefix": "rct",
+    "body": [
+      "interface Props {}",
+      "",
+      "export default function ${1:Component}({}: Props) {",
+      "  return <div>${1} component</div>;",
+      "}"
+    ],
+    "description": "General React Component"
+  },
+  "Extend Props": {
+    "prefix": "pct",
+    "body": [
+      "import { ComponentPropsWithoutRef } from 'react';",
+      "",
+      "interface Props extends ComponentPropsWithoutRef<${1:ElementType}> {}"
+    ],
+    "description": "Extend Props for a Component"
+  },
+  	"useState Hook": {
+		"prefix": "useStateSnippet",
+		"body": [
+			"const [${1:state}, set${2:State}] = useState();"
+		],
+		"description": "React useState Hook"
+	},
+	"useEffect Hook": {
+		"prefix": "useEffectSnippet",
+		"body": [
+			"useEffect(() => {",
+			"  ${1:/* effect logic */}",
+			"  return () => {",
+			"    ${2:/* cleanup logic */}",
+			"  };",
+			"}, []);"
+		],
+		"description": "React useEffect Hook"
+	},
+	"useCallback Hook": {
+		"prefix": "useCallbackSnippet",
+		"body": [
+			"const ${1:callback} = useCallback(() => {",
+			"  ${2:/* callback logic */}",
+			"}, []);"
+		],
+		"description": "React useCallback Hook"
+	},
+	"useMemo Hook": {
+		"prefix": "useMemoSnippet",
+		"body": [
+			"const ${1:memoizedValue} = useMemo(() => {",
+			"  return ${2:computeValue};",
+			"}, []);"
+		],
+		"description": "React useMemo Hook"
+	},
+	"useRef Hook": {
+		"prefix": "useRefSnippet",
+		"body": [
+			"const ${1:ref} = useRef();"
+		],
+		"description": "React useRef Hook"
+	},
+	"useContext Hook": {
+		"prefix": "useContextSnippet",
+		"body": [
+			"const ${1:contextValue} = useContext();"
+		],
+		"description": "React useContext Hook"
+	},
+	"useReducer Hook": {
+		"prefix": "useReducerSnippet",
+		"body": [
+			"const [${1:state}, ${2:dispatch}] = useReducer(${3:reducer}, ${4:initialState});"
+		],
+		"description": "React useReducer Hook"
+	}
+}
