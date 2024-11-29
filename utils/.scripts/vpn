@@ -1,26 +1,63 @@
 #!/bin/bash
 
-# SERVER="nl25.apibaz.info"
-# SERVER="iosmtn.apibaz.info"
-# SERVER="mci1.apibaz.info"
-# SERVER="newnl.apibaz.info"
-# SERVER="en1.apibaz.info"
-# SERVER="en2.apibaz.info"
-# SERVER="mcis8.apibaz.info"
-# SERVER="mciwin.apibaz.info"
-# SERVER="mciwin.apibaz.info"
-SERVER="vps-2dbe0949.vps.ovh.net"
-SERVER="vps-1b59076c.vps.ovh.net"
 USER="vbaz568161"
 PASSWORD="2489"
 
-main() {
-    echo "Connecting to VPN at $SERVER as $USER..."
+declare -A VPN_SERVERS=(
+    ["iOS MTN"]="iosmtn.apibaz.info"
+    ["MCI 1"]="mci1.apibaz.info"
+    ["NewNl"]="newnl.apibaz.info"
+    ["EN 1"]="en1.apibaz.info"
+    ["EN 2"]="en2.apibaz.info"
+    ["MCIS 8"]="mcis8.apibaz.info"
+    ["MCI Windows"]="mciwin.apibaz.info"
+    ["OVH 1"]="vps-2dbe0949.vps.ovh.net"
+    ["OVH 2"]="vps-1b59076c.vps.ovh.net"
+)
 
-    sudo openconnect --server="$SERVER" --user="$USER" --no-dtls <<END
+display_vpn_list() {
+    echo "Available VPN Servers:"
+    local i=1
+    for vpn_name in "${!VPN_SERVERS[@]}"; do
+        echo -e "$i. $vpn_name: (${VPN_SERVERS[$vpn_name]})"
+        ((i++))
+    done
+}
+
+select_vpn_server() {
+    local input
+    read -p "Select a VPN server (enter the name or number): " input
+
+    if [[ $input =~ ^[0-9]+$ ]]; then
+        local vpn_index=1
+        for vpn_name in "${!VPN_SERVERS[@]}"; do
+            if ((vpn_index == input)); then
+                echo "$vpn_name"
+                return
+            fi
+            ((vpn_index++))
+        done
+    else
+        if [[ -n ${VPN_SERVERS[$input]} ]]; then
+            echo "$input"
+            return
+        fi
+    fi
+
+    echo "Invalid selection. Please try again." >&2
+    select_vpn_server
+}
+
+connect_vpn() {
+    local server="$1"
+    echo "Connecting to VPN at $server as $USER..."
+
+    sudo openconnect --server="$server" --user="$USER" --no-dtls <<END
 yes
 $PASSWORD
 END
 }
 
-main
+display_vpn_list
+selected_name=$(select_vpn_server)
+connect_vpn "${VPN_SERVERS[$selected_name]}"
