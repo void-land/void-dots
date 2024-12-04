@@ -1,7 +1,7 @@
 [general]
 import = [
-    "~/.config/alacritty/themes/github_dark.toml",
     "~/.config/alacritty/keybinds.toml",
+    "~/.config/alacritty/themes/xterm.toml",
 ]
 
 live_config_reload = true
@@ -11,12 +11,12 @@ live_config_reload = true
 osc52 = "CopyPaste"
 
 [font]
-size = 14
+size = 16
 
 [window]
 dynamic_title = true
 blur = true
-opacity = 0.2
+opacity = 1
 dimensions = { columns = 90, lines = 30 }
 padding = { x = 6, y = 2 }
 startup_mode = "Windowed"
