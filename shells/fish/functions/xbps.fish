@@ -71,8 +71,9 @@ function xbps -d "Short and friendly command wrapper for XBPS"
         case clean-cache
             sudo xbps-remove -O
 
-        case clear-cache
-            echo 'Clean: all cache packages' && sudo rm /var/cache/xbps/*
+        case prune-cache
+            echo 'Clean: all cache packages'
+            sudo rm /var/cache/xbps/*
 
         case services
             ls -la /etc/sv/
@@ -108,6 +109,7 @@ end
 function _xbps_display_help
     echo "Usage: xbps COMMAND [OPTIONS] [arg...]"
     echo "Commands:"
+
     set -l commands \
         "pkgs:Change directory to VOID_PACKAGES_PATH" \
         "shutdown:Shutdown the system immediately" \
@@ -128,8 +130,8 @@ function _xbps_display_help
         "unhold:Unhold a package to allow updates" \
         "mirror:Update XBPS mirror list" \
         "kill:Kill all processes matching a pattern" \
-        "clean-cache:Remove cached packages" \
-        "clear-cache:Clean all cached packages" \
+        "clean-cache:Remove cached packages by xbps" \
+        "prune-cache:Remove cached packages folder " \
         "services:List services in /etc/sv/" \
         "active-services:List services in /var/service/" \
         "restart:Restart a service" \
@@ -141,6 +143,7 @@ function _xbps_display_help
 
     for cmd in $commands
         set -l parts (string split ':' $cmd)
+
         printf "  %-15s %s\n" $parts[1] $parts[2]
     end
 end

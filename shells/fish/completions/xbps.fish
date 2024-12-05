@@ -28,8 +28,8 @@ set -l xbps_commands \
     "unhold:Unhold a package to allow updates" \
     "mirror:Update XBPS mirror list" \
     "kill:Kill all processes matching a pattern" \
-    "clean-cache:Remove cached packages" \
-    "clear-cache:Clean all cached packages" \
+    "clean-cache:Remove cached packages by xbps" \
+    "prune-cache:Remove cached packages folder" \
     "services:List services in /etc/sv/" \
     "active-services:List services in /var/service/" \
     "restart:Restart a service" \
@@ -44,7 +44,7 @@ for cmd in $xbps_commands
     complete -c xbps -n __fish_use_subcommand -a $command[1] -f -d "$command[2]"
 end
 
-set -l pkg_commands install add update remove search info locate hold unhold clean-cache clear-cache
+set -l pkg_commands install add update remove search info locate hold unhold
 
 for cmd in $pkg_commands
     complete -c xbps -n "__fish_seen_subcommand_from $cmd" -a "(__fish_print_packages)" -f
@@ -58,4 +58,4 @@ end
 
 complete -c xbps -n "__fish_seen_subcommand_from restart status start stop disable" -xa "(__void_active_services)" -f
 complete -c xbps -n "__fish_seen_subcommand_from enable" -a "(__void_services)" -f
-complete -c xbps -n "__fish_seen_subcommand_from kill" -a "(__fish_print_processes)" -f
+# complete -c xbps -n "__fish_seen_subcommand_from kill" -a "()" -f
