@@ -1,7 +1,7 @@
 [general]
 import = [
     "~/.config/alacritty/keybinds.toml",
-    "~/.config/alacritty/themes/xterm.toml",
+    "~/.config/alacritty/themes/hyper.toml",
 ]
 
 live_config_reload = true
