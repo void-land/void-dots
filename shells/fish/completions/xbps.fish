@@ -6,6 +6,9 @@ function __void_services
     command ls /etc/sv
 end
 
+set -l list_all_packages "(__fish_print_xbps_packages)"
+set -l list_installed_packages "(__fish_print_xbps_packages -i)"
+
 complete -c xbps -n "not __fish_use_subcommand" -s h -l help -d "Show help"
 
 set -l xbps_commands \
@@ -44,16 +47,16 @@ for cmd in $xbps_commands
     complete -c xbps -n __fish_use_subcommand -a $command[1] -f -d "$command[2]"
 end
 
-set -l pkg_commands install add update remove search info locate hold unhold
+set -l pkg_commands install add update search locate
 
 for cmd in $pkg_commands
-    complete -c xbps -n "__fish_seen_subcommand_from $cmd" -a "(__fish_print_packages)" -f
+    complete -c xbps -n "__fish_seen_subcommand_from $cmd" -a "$list_all_packages" -f
 end
 
-set -l installed_pkg_commands remove info locate hold unhold pkgf
+set -l installed_pkg_commands remove locate hold unhold pkgf info
 
 for cmd in $installed_pkg_commands
-    complete -c xbps -n "__fish_seen_subcommand_from $cmd" -a "(__fish_print_xbps_packages -i)" -f
+    complete -c xbps -n "__fish_seen_subcommand_from $cmd" -a "$list_installed_packages" -f
 end
 
 complete -c xbps -n "__fish_seen_subcommand_from restart status start stop disable" -xa "(__void_active_services)" -f
