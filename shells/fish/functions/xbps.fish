@@ -62,6 +62,13 @@ function xbps -d "Short and friendly command wrapper for XBPS"
             _xbps_validate_args $cmd_args && sudo xbps-pkgdb -m unhold $cmd_args
 
         case mirror
+            if not command -v xmirror >/dev/null
+                echo "xmirror is not installed. Installing..."
+                sudo xbps-install -y xmirror
+
+                sudo xmirror
+            end
+
             sudo xmirror
 
         case kill
@@ -72,6 +79,7 @@ function xbps -d "Short and friendly command wrapper for XBPS"
 
         case prune-cache
             echo 'Clean: all cache packages'
+
             sudo rm /var/cache/xbps/*
 
         case services
