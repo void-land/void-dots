@@ -16,7 +16,7 @@ for cmd in $xbps_helper_commands
     complete -c xbps -n __fish_use_subcommand -a $command[1] -f -d "$command[2]"
 end
 
-set -l pkg_commands install add update search locate
+set -l pkg_commands install add update search
 
 for cmd in $pkg_commands
     complete -c xbps -n "__fish_seen_subcommand_from $cmd" -a "$list_all_packages" -f

@@ -4,13 +4,15 @@ USER="vbaz568161"
 PASSWORD="2489"
 
 declare -A VPN_SERVERS=(
-    ["iOS MTN"]="iosmtn.apibaz.info"
     ["MCI 1"]="mci1.apibaz.info"
+    ["MCIS 2"]="mcis2.apibaz.info"
+    ["MCIS 3"]="mcis3.apibaz.info"
+    ["MCIS 8"]="mcis8.apibaz.info"
+    ["MCI Windows"]="mciwin.apibaz.info"
+    ["IOS MTN"]="iosmtn.apibaz.info"
     ["NewNl"]="newnl.apibaz.info"
     ["EN 1"]="en1.apibaz.info"
     ["EN 2"]="en2.apibaz.info"
-    ["MCIS 8"]="mcis8.apibaz.info"
-    ["MCI Windows"]="mciwin.apibaz.info"
     ["OVH 1"]="vps-2dbe0949.vps.ovh.net"
     ["OVH 2"]="vps-1b59076c.vps.ovh.net"
 )
