@@ -18,7 +18,7 @@ dynamic_title = true
 blur = true
 opacity = 1
 dimensions = { columns = 90, lines = 30 }
-padding = { x = 6, y = 2 }
+padding = { x = 16, y = 8 }
 startup_mode = "Windowed"
 decorations = "transparent"
 # dynamic_padding = true
