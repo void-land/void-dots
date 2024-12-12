@@ -13,7 +13,7 @@ info() {
 setup_deps() {
     info "Installing required dependencies..."
 
-    sudo xbps-install -y meson vala valadoc gtk+3-devel gtk-layer-shell-devel gobject-introspection libgirepository-devel
+    sudo xbps-install -y meson wireplumber-devel ncurses-devel iniparser-devel libnma-devel vala valadoc gtk+3-devel gtk-layer-shell-devel gobject-introspection libgirepository-devel
 }
 
 clone_repo() {
@@ -30,9 +30,13 @@ clone_repo() {
 build_and_install() {
     local lib_path=$1
     info "Building and installing $(basename "$lib_path")..."
-    cd "$REPO_DIR/$lib_path"
-    meson setup --prefix /usr build
-    sudo meson install -C build
+
+    if [ -d "$REPO_DIR/$lib_path" ]; then
+        cd "$REPO_DIR/$lib_path"
+        meson setup --prefix /usr build
+        sudo meson install -C build
+    fi
+
 }
 
 clean_up() {
@@ -46,6 +50,20 @@ clone_repo
 build_and_install "lib/astal/io"
 build_and_install "lib/astal/gtk3"
 build_and_install "lang/gjs"
+
+build_and_install "lib/mpris"
+build_and_install "lib/hyprland"
+build_and_install "lib/network"
+build_and_install "lib/powerprofiles"
+build_and_install "lib/wireplumber"
+build_and_install "lib/auth"
+build_and_install "lib/bluetooth"
+build_and_install "lib/cava"
+build_and_install "lib/battery"
+build_and_install "lib/apps"
+build_and_install "lib/river"
+build_and_install "lib/notifd"
+build_and_install "lib/greet"
 
 clean_up
 
