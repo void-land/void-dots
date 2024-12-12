@@ -1,0 +1,52 @@
+#!/bin/bash
+
+# Exit immediately if a command exits with a non-zero status
+set -e
+
+ASTAL_REPO="https://github.com/aylur/astal.git"
+REPO_DIR="/tmp/astal"
+
+info() {
+    echo -e "\033[1;32m[INFO]\033[0m $1"
+}
+
+setup_deps() {
+    info "Installing required dependencies..."
+
+    sudo xbps-install -y meson vala valadoc gtk+3-devel gtk-layer-shell-devel gobject-introspection libgirepository-devel
+}
+
+clone_repo() {
+    info "Cloning the Astal repository..."
+
+    if [ -d "$REPO_DIR" ]; then
+        info "Existing Astal directory found. Removing it..."
+        rm -rf "$REPO_DIR"
+    fi
+
+    git clone "$ASTAL_REPO" "$REPO_DIR" --depth 1
+}
+
+build_and_install() {
+    local lib_path=$1
+    info "Building and installing $(basename "$lib_path")..."
+    cd "$REPO_DIR/$lib_path"
+    meson setup --prefix /usr build
+    sudo meson install -C build
+}
+
+clean_up() {
+    info "Cleaning up..."
+    rm -rf "$REPO_DIR"
+}
+
+setup_deps
+clone_repo
+
+build_and_install "lib/astal/io"
+build_and_install "lib/astal/gtk3"
+build_and_install "lang/gjs"
+
+clean_up
+
+info "Astal installation completed successfully."
