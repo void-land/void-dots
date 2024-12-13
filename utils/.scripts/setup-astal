@@ -13,7 +13,7 @@ info() {
 setup_deps() {
     info "Installing required dependencies..."
 
-    sudo xbps-install -y meson wireplumber-devel ncurses-devel iniparser-devel libnma-devel vala valadoc gtk+3-devel gtk-layer-shell-devel gobject-introspection libgirepository-devel
+    sudo xbps-install -y meson fftw-devel fftw pam pam-devel pipewire-devel pipewire wireplumber wireplumber-devel ncurses-devel iniparser-devel libnma-devel vala valadoc gtk+3-devel gtk-layer-shell-devel gobject-introspection libgirepository-devel
 }
 
 clone_repo() {
@@ -64,6 +64,7 @@ build_and_install "lib/apps"
 build_and_install "lib/river"
 build_and_install "lib/notifd"
 build_and_install "lib/greet"
+build_and_install "lib/tray"
 
 clean_up
 
