@@ -14,6 +14,7 @@ declare -A VPN_SERVERS=(
     ["EN 1"]="en1.apibaz.info"
     ["EN 2"]="en2.apibaz.info"
     ["OVH 1"]="vps-2dbe0949.vps.ovh.net"
+    ["OVH 3"]="vps-5600821d.vps.ovh.net"
     ["OVH 2"]="vps-1b59076c.vps.ovh.net"
 )
 
