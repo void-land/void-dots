@@ -14,7 +14,7 @@ declare -A VPN_SERVERS=(
     ["OVH 1"]="vps-2dbe0949.vps.ovh.net"
     ["OVH 2"]="vps-1b59076c.vps.ovh.net"
     ["OVH 3"]="vps-5600821d.vps.ovh.net"
-
+    ["Emarat"]="emarat.apibaz.info"
 )
 
 display_vpn_list() {
@@ -60,6 +60,10 @@ $PASSWORD
 END
 }
 
-display_vpn_list
-selected_name=$(select_vpn_server)
-connect_vpn "${VPN_SERVERS[$selected_name]}"
+main() {
+    display_vpn_list
+    local selected_name=$(select_vpn_server)
+    connect_vpn "${VPN_SERVERS[$selected_name]}"
+}
+
+main
