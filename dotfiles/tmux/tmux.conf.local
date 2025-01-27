@@ -398,6 +398,12 @@ bind -n M-n split-window -v
 bind -n M-m split-window -h
 bind -n M-c kill-pane
 
+# Resize panes
+bind -n M-[ resize-pane -L 2
+bind -n M-] resize-pane -R 2
+# bind -n K resize-pane -U 2
+# bind -n L resize-pane -D 2
+
 # Move between panes using Alt + Arrow keys
 bind -n M-Left  select-pane -L  # Move to the pane on the left
 bind -n M-Right select-pane -R  # Move to the pane on the right
