@@ -4,17 +4,14 @@ USER="vbaz568161"
 PASSWORD="2489"
 
 declare -A VPN_SERVERS=(
-    ["Germany"]="gr1.apibaz.info"
+    ["Us"]="us.apibaz.info"
+    ["Finland"]="finland.apibaz.info"
+    ["Poland"]="poland.apibaz.info"
     ["Emarat"]="emarat.apibaz.info"
-    ["MCI Windows"]="mciwin.apibaz.info"
-    ["IOS MTN"]="iosmtn.apibaz.info"
+    ["Singapore"]="singapore.apibaz.info"
     ["NewNl"]="newnl.apibaz.info"
     ["EN 1"]="en1.apibaz.info"
     ["EN 2"]="en2.apibaz.info"
-    ["OVH 1"]="vps-2dbe0949.vps.ovh.net"
-    ["OVH 2"]="vps-1b59076c.vps.ovh.net"
-    ["OVH 3"]="vps-5600821d.vps.ovh.net"
-    ["Emarat"]="emarat.apibaz.info"
 )
 
 display_vpn_list() {
