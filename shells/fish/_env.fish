@@ -27,6 +27,7 @@ set -x BUN_INSTALL $HOME/.bun
 set -x DENO_INSTALL $HOME/.deno
 set -x PNPM_HOME $HOME/.local/share/pnpm
 
+fish_add_path $HOME/.cargo/bin
 fish_add_path $HOME/go/bin
 # fish_add_path $HOME/.local/bin
 fish_add_path $HOME/.scripts

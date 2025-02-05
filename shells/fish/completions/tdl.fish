@@ -1,0 +1,1 @@
+tdl completion fish | source
