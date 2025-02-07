@@ -11,12 +11,12 @@ live_config_reload = true
 osc52 = "CopyPaste"
 
 [font]
-size = 18
+size = 13
 
 [window]
 dynamic_title = true
 blur = true
-opacity = 1
+opacity = 0.4
 dimensions = { columns = 90, lines = 30 }
 padding = { x = 16, y = 8 }
 startup_mode = "Windowed"
