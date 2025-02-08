@@ -16,3 +16,5 @@ abbr srm "sudo rm"
 abbr rmf "rm -rf"
 abbr rma "rm -rf *"
 abbr ins "grep -E 'sse3|sse4|avx|avx2' /proc/cpuinfo"
+
+abbr axel "axel -n 16"
