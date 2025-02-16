@@ -16,7 +16,7 @@ for cmd in $xbps_helper_commands
     complete -c xbps -n __fish_use_subcommand -a $command[1] -f -d "$command[2]"
 end
 
-set -l pkg_commands install add update search
+set -l pkg_commands install reinstall add update search
 
 for cmd in $pkg_commands
     complete -c xbps -n "__fish_seen_subcommand_from $cmd" -a "$list_all_packages" -f
@@ -28,6 +28,11 @@ for cmd in $installed_pkg_commands
     complete -c xbps -n "__fish_seen_subcommand_from $cmd" -a "$list_installed_packages" -f
 end
 
-complete -c xbps -n "__fish_seen_subcommand_from restart status start stop disable" -xa "(__void_active_services)" -f
+set -l service_commands restart status start stop disable
+
+for cmd in $service_commands
+    complete -c xbps -n "__fish_seen_subcommand_from $cmd" -xa "(__void_active_services)" -f
+end
+
 complete -c xbps -n "__fish_seen_subcommand_from enable" -a "(__void_services)" -f
 # complete -c xbps -n "__fish_seen_subcommand_from kill" -a "()" -f

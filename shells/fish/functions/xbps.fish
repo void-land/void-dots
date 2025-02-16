@@ -28,6 +28,9 @@ function xbps -d "Short and friendly command wrapper for XBPS"
         case install
             sudo xbps-install -S $cmd_args
 
+        case reinstall
+            sudo xbps-install -f $cmd_args
+
         case add
             sudo xbps-install $cmd_args
 

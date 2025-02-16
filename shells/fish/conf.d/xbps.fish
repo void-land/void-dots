@@ -4,8 +4,9 @@ set --query xbps_helper_commands || set --global xbps_helper_commands \
     "reboot:Reboot the system immediately" \
     "repos:List XBPS repositories" \
     "pkgf:Find which package owns a file" \
-    "install:Install and sync or update packages" \
-    "add:Install package without sync" \
+    "install:Install new package" \
+    "reinstall:Force install package" \
+    "add:Install new package without sync" \
     "sync:Sync all repos" \
     "update:Update the system and installed packages" \
     "upgrade:Upgrade all installed packages" \
