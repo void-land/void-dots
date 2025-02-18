@@ -4,6 +4,7 @@ USER="vbaz568161"
 PASSWORD="2489"
 
 declare -A VPN_SERVERS=(
+    ["FR"]="vps-1b59076c.vps.ovh.net"
     ["Us"]="us.apibaz.info"
     ["Finland"]="finland.apibaz.info"
     ["Poland"]="poland.apibaz.info"
