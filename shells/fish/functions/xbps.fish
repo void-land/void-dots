@@ -81,9 +81,9 @@ function xbps -d "Short and friendly command wrapper for XBPS"
             sudo xbps-remove -O
 
         case prune-cache
-            echo 'Clean: all cache packages'
+            sudo rm -v /var/cache/xbps/*
 
-            sudo rm /var/cache/xbps/*
+            echo 'All cached packages removed'
 
         case services
             ls -la /etc/sv/
