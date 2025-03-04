@@ -3,7 +3,8 @@ abbr jar "java -jar"
 abbr svpn "sudo vpn"
 abbr pg "ping google.com"
 
-abbr killer "pkill -f"
+abbr fkill "pkill -f"
+abbr pkill "pkill -9"
 abbr psfind "ps -aux | grep"
 
 abbr dfl "df -h"
