@@ -68,8 +68,6 @@ function xbps -d "Short and friendly command wrapper for XBPS"
             if not command -v xmirror >/dev/null
                 echo "xmirror is not installed. Installing..."
                 sudo xbps-install -y xmirror
-
-                sudo xmirror
             end
 
             sudo xmirror
