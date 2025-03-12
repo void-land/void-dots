@@ -20,6 +20,9 @@ function pacu -d "Short and friendly command wrapper for Pacman"
             sudo pacman -Rns $cmd_args
 
         case update
+            sudo pacman -Sy $cmd_args
+
+        case upgrade
             sudo pacman -Syu
 
         case search

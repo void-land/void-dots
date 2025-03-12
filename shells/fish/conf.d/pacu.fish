@@ -2,6 +2,7 @@ set --query pacu_helper_commands || set --global pacu_helper_commands \
     "install:Install new package" \
     "reinstall:Reinstall package" \
     "remove:Remove packages and dependencies" \
+    "upgrade:Upgrade all installed packages" \
     "update:Update the system and installed packages" \
     "search:Search for packages" \
     "info:Show package information" \

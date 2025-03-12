@@ -13,13 +13,13 @@ for cmd in $pacu_helper_commands
     complete -c pacu -n __fish_use_subcommand -a $command[1] -f -d "$command[2]"
 end
 
-set -l pkg_commands install reinstall info update search
+set -l pkg_commands install reinstall info search
 
 for cmd in $pkg_commands
     complete -c pacu -n "__fish_seen_subcommand_from $cmd" -xa "(pacman -Slq)" -f
 end
 
-set -l installed_pkg_commands remove
+set -l installed_pkg_commands remove update
 
 for cmd in $installed_pkg_commands
     complete -c pacu -n "__fish_seen_subcommand_from $cmd" -xa "(pacman -Qq)" -f
