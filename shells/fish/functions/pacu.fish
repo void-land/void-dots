@@ -1,4 +1,4 @@
-function pac -d "Short and friendly command wrapper for Pacman"
+function pacu -d "Short and friendly command wrapper for Pacman"
     if begin
             not set -q argv[1]; or contains -- -h $argv; or contains -- --help $argv
         end
@@ -74,11 +74,11 @@ function pac -d "Short and friendly command wrapper for Pacman"
     end
 end
 
-function _pac_display_help
+function _pacu_display_help
     echo "Usage: pac COMMAND [OPTIONS] [arg...]"
     echo "Commands:"
 
-    for cmd in $pac_helper_commands
+    for cmd in $pacu_helper_commands
         set -l parts (string split ':' $cmd)
         printf "  %-15s %s\n" $parts[1] $parts[2]
     end

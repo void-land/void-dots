@@ -1,4 +1,4 @@
-set --query pac_helper_commands || set --global pac_helper_commands \
+set --query pacu_helper_commands || set --global pacu_helper_commands \
     "install:Install new package" \
     "reinstall:Reinstall package" \
     "remove:Remove packages and dependencies" \
