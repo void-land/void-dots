@@ -3,7 +3,7 @@ function __arch_active_services
 end
 
 function __arch_services
-    systemctl list-units --type=service --no-pager --plain --no-legend | awk '{print $1}'
+    systemctl list-unit-files --type=service --no-pager --no-legend | awk '{print $1}'
 end
 
 complete -c pacu -n "not __fish_use_subcommand" -s h -l help -d "Show help"
