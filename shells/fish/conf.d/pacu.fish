@@ -17,5 +17,7 @@ set --query pacu_helper_commands || set --global pacu_helper_commands \
     "status:Show the status of a service" \
     "start:Start a service" \
     "stop:Stop a service" \
-    "enable:Enable a systemd service" \
-    "disable:Disable a systemd service"
+    "enable:Enable a systemd service after reboot" \
+    "disable:Disable a systemd service after reboot" \
+    "enable-now:Enable a systemd service" \
+    "disable-now:Disable a systemd service"

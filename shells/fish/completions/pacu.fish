@@ -25,10 +25,11 @@ for cmd in $installed_pkg_commands
     complete -c pacu -n "__fish_seen_subcommand_from $cmd" -xa "(pacman -Qq)" -f
 end
 
-set -l service_commands restart status start stop disable
+set -l service_commands restart status start stop disable disable-now
 
 for cmd in $service_commands
     complete -c pacu -n "__fish_seen_subcommand_from $cmd" -xa "(__arch_active_services)" -f
 end
 
 complete -c pacu -n "__fish_seen_subcommand_from enable" -xa "(__arch_services)" -f
+complete -c pacu -n "__fish_seen_subcommand_from enable-now" -xa "(__arch_services)" -f

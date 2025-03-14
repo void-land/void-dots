@@ -70,6 +70,12 @@ function pacu -d "Short and friendly command wrapper for Pacman"
         case disable
             sudo systemctl disable $cmd_args
 
+        case enable-now
+            sudo systemctl enable --now $cmd_args
+
+        case disable-now
+            sudo systemctl disable --now $cmd_args
+
         case '*'
             echo "Unknown command: $sub_command"
             echo "Use 'pac --help' to see the list of available commands."
