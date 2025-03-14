@@ -55,6 +55,9 @@ function pacu -d "Short and friendly command wrapper for Pacman"
         case restart
             sudo systemctl restart $cmd_args
 
+        case reload
+            sudo systemctl reload $cmd_args
+
         case status
             systemctl status $cmd_args
 

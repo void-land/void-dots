@@ -14,6 +14,7 @@ set --query pacu_helper_commands || set --global pacu_helper_commands \
     "services:List all systemd services" \
     "active-services:List active systemd services" \
     "restart:Restart a service" \
+    "reload:Restart a service" \
     "status:Show the status of a service" \
     "start:Start a service" \
     "stop:Stop a service" \
