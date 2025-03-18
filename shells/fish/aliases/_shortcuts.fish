@@ -19,3 +19,4 @@ abbr rma "rm -rf *"
 abbr ins "grep -E 'sse3|sse4|avx|avx2' /proc/cpuinfo"
 
 abbr axel "axel -n 16"
+
