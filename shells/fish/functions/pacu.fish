@@ -1,8 +1,8 @@
-function pacu -d "Short and friendly command wrapper for Pacman"
+function pacu -d "Short and friendly command wrapper for Pacman and Systemd"
     if begin
             not set -q argv[1]; or contains -- -h $argv; or contains -- --help $argv
         end
-        _pac_display_help
+        _pacu_display_help
         return 0
     end
 
@@ -47,25 +47,33 @@ function pacu -d "Short and friendly command wrapper for Pacman"
             sudo sed -i "/$cmd_args/d" /etc/pacman.conf
 
         case services
-            systemctl list-units --type=service
+            echo -e "--- System Services ---"
+            systemctl list-units --type=service --no-legend
+
+            echo -e "\n --- User Services ---"
+            systemctl --user list-units --type=service --no-legend
 
         case active-services
-            systemctl list-units --type=service --state=active
+            echo -e "--- System Services ---"
+            systemctl list-units --type=service --state=active --no-legend
+
+            echo -e "\n --- User Services ---"
+            systemctl --user list-units --type=service --state=active --no-legend
+
+        case start
+            sudo systemctl start $cmd_args
+
+        case status
+            systemctl status $cmd_args
+
+        case stop
+            sudo systemctl stop $cmd_args
 
         case restart
             sudo systemctl restart $cmd_args
 
         case reload
             sudo systemctl reload $cmd_args
-
-        case status
-            systemctl status $cmd_args
-
-        case start
-            sudo systemctl start $cmd_args
-
-        case stop
-            sudo systemctl stop $cmd_args
 
         case enable
             sudo systemctl enable $cmd_args
@@ -79,15 +87,42 @@ function pacu -d "Short and friendly command wrapper for Pacman"
         case disable-now
             sudo systemctl disable --now $cmd_args
 
+        case start-user
+            systemctl --user start $cmd_args
+
+        case status-user
+            systemctl --user status $cmd_args
+
+        case stop-user
+            systemctl --user stop $cmd_args
+
+        case restart-user
+            systemctl --user restart $cmd_args
+
+        case reload-user
+            systemctl --user reload $cmd_args
+
+        case enable-user
+            systemctl --user enable $cmd_args
+
+        case disable-user
+            systemctl --user disable $cmd_args
+
+        case enable-now-user
+            systemctl --user enable --now $cmd_args
+
+        case disable-now-user
+            systemctl --user disable --now $cmd_args
+
         case '*'
             echo "Unknown command: $sub_command"
-            echo "Use 'pac --help' to see the list of available commands."
+            echo "Use 'pacu --help' to see the list of available commands."
             return 1
     end
 end
 
 function _pacu_display_help
-    echo "Usage: pac COMMAND [OPTIONS] [arg...]"
+    echo "Usage: pacu COMMAND [OPTIONS] [arg...]"
     echo "Commands:"
 
     for cmd in $pacu_helper_commands

@@ -13,12 +13,21 @@ set --query pacu_helper_commands || set --global pacu_helper_commands \
     "unhold:Unhold a package to allow updates" \
     "services:List all systemd services" \
     "active-services:List active systemd services" \
-    "restart:Restart a service" \
-    "reload:Restart a service" \
-    "status:Show the status of a service" \
-    "start:Start a service" \
-    "stop:Stop a service" \
-    "enable:Enable a systemd service after reboot" \
-    "disable:Disable a systemd service after reboot" \
-    "enable-now:Enable a systemd service" \
-    "disable-now:Disable a systemd service"
+    "restart:Restart a system service" \
+    "restart-user:Restart a user service" \
+    "reload:Reload a system service" \
+    "reload-user:Reload a user service" \
+    "status:Show the status of a system service" \
+    "status-user:Show the status of a user service" \
+    "start:Start a system service" \
+    "start-user:Start a user service" \
+    "stop:Stop a system service" \
+    "stop-user:Stop a user service" \
+    "enable:Enable a system service after reboot" \
+    "enable-user:Enable a user service after reboot" \
+    "disable:Disable a system service after reboot" \
+    "disable-user:Disable a user service after reboot" \
+    "enable-now:Enable and start a system service" \
+    "enable-now-user:Enable and start a user service" \
+    "disable-now:Disable and stop a system service" \
+    "disable-now-user:Disable and stop a user service"
