@@ -30,4 +30,5 @@ set --query pacu_helper_commands || set --global pacu_helper_commands \
     "enable-now:Enable and start a system service" \
     "enable-now-user:Enable and start a user service" \
     "disable-now:Disable and stop a system service" \
-    "disable-now-user:Disable and stop a user service"
+    "disable-now-user:Disable and stop a user service" \
+    "sync:Force database refresh + system update"

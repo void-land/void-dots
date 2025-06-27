@@ -25,6 +25,9 @@ function pacu -d "Short and friendly command wrapper for Pacman and Systemd"
         case upgrade
             sudo pacman -Syu
 
+        case sync
+            sudo pacman -Syyu
+
         case search
             pacman -Ss $cmd_args
 
@@ -48,17 +51,17 @@ function pacu -d "Short and friendly command wrapper for Pacman and Systemd"
 
         case services
             echo -e "--- System Services ---"
-            systemctl list-units --type=service --no-legend
+            systemctl list-unit-files --type=service --no-pager
 
-            echo -e "\n --- User Services ---"
-            systemctl --user list-units --type=service --no-legend
+            echo -e "\n--- User Services ---"
+            systemctl --user list-unit-files --type=service --no-pager
 
         case active-services
             echo -e "--- System Services ---"
-            systemctl list-units --type=service --state=active --no-legend
+            systemctl list-units --type=service --state=active --no-legend --no-pager
 
-            echo -e "\n --- User Services ---"
-            systemctl --user list-units --type=service --state=active --no-legend
+            echo -e "\n--- User Services ---"
+            systemctl --user list-units --type=service --state=active --no-legend --no-pager
 
         case start
             sudo systemctl start $cmd_args
