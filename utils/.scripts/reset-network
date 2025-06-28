@@ -1,0 +1,38 @@
+#!/bin/bash
+# Complete network reset script
+
+echo "Resetting network configuration..."
+
+# Stop network services
+sudo systemctl stop NetworkManager 2>/dev/null
+
+# Flush all interfaces
+for interface in $(ip -o link show | awk -F': ' '{print $2}' | grep -v lo); do
+    echo "Flushing $interface"
+    sudo ip addr flush dev $interface
+    sudo ip link set $interface down
+done
+
+# Flush routing tables
+sudo ip route flush table main
+sudo ip route flush cache
+
+# Remove all TUN/TAP interfaces
+for tun in $(ip link show | grep tun | cut -d: -f2 | tr -d ' '); do
+    sudo ip link delete $tun 2>/dev/null
+done
+
+# Clear iptables rules
+sudo iptables -F
+sudo iptables -t nat -F
+sudo iptables -t mangle -F
+sudo iptables -X
+
+# Restart network services
+sudo systemctl start NetworkManager 2>/dev/null
+
+echo "Network reset complete. Waiting for network to come back up..."
+sleep 5
+
+# Show current status
+ip addr show
