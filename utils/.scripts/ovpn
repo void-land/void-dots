@@ -1,0 +1,88 @@
+#!/bin/bash
+
+# Credentials
+USER="afz2077"
+PASSWORD="6764"
+
+# Configuration directory
+CONFIG_DIR="./ovpn-servers"
+
+# Store .ovpn files in an array
+declare -a OVPN_FILES
+
+# Load .ovpn files into array
+load_ovpn_files() {
+   mapfile -t OVPN_FILES < <(find "$CONFIG_DIR" -maxdepth 1 -type f -name "*.ovpn")
+
+   if [ ${#OVPN_FILES[@]} -eq 0 ]; then
+      echo "No .ovpn files found in $CONFIG_DIR"
+      exit 1
+   fi
+}
+
+# Display available .ovpn configuration files
+display_ovpn_list() {
+   echo "Available OpenVPN configuration files:"
+   local i=1
+   for ovpn_file in "${OVPN_FILES[@]}"; do
+      local filename=$(basename "$ovpn_file")
+      echo "$i) $filename"
+      ((i++))
+   done
+}
+
+# Select .ovpn configuration file by number or name
+select_ovpn_config() {
+   local input
+   while true; do
+      read -rp "Select a config file (enter the number or filename): " input
+
+      # If input is a number
+      if [[ $input =~ ^[0-9]+$ ]]; then
+         if ((input >= 1 && input <= ${#OVPN_FILES[@]})); then
+            echo "${OVPN_FILES[$((input - 1))]}"
+            return 0
+         fi
+      else
+         # If input matches a filename
+         for ovpn_file in "${OVPN_FILES[@]}"; do
+            local filename=$(basename "$ovpn_file")
+            if [[ "$input" == "$filename" ]]; then
+               echo "$ovpn_file"
+               return 0
+            fi
+         done
+      fi
+
+      echo "Invalid selection. Please try again." >&2
+   done
+}
+
+# Connect to VPN using selected .ovpn file
+connect_vpn() {
+   local config_file="$1"
+   local filename=$(basename "$config_file")
+
+   echo "Connecting using $filename as $USER..."
+
+   # Create temporary credentials file
+   local creds_file=$(mktemp)
+   chmod 600 "$creds_file"
+   echo -e "$USER\n$PASSWORD" >"$creds_file"
+
+   # Connect to VPN
+   sudo openvpn --config "$config_file" --auth-user-pass "$creds_file"
+
+   # Clean up credentials file
+   rm -f "$creds_file"
+}
+
+main() {
+   load_ovpn_files
+   display_ovpn_list
+   local selected_config
+   selected_config=$(select_ovpn_config)
+   connect_vpn "$selected_config"
+}
+
+main

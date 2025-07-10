@@ -1,10 +1,11 @@
 #!/bin/bash
 
-USER="vbaz568161"
-PASSWORD="2489"
+USER="afz2077"
+PASSWORD="6764"
 
 declare -A VPN_SERVERS=(
-    ["NL 11"]="nl11.apibaz.info"
+    ["RANDOM"]="i54.apibaz.info:110"
+    ["NL"]="nlwin2.apibaz.info"
     ["Finland"]="finland.apibaz.info"
     ["Poland"]="poland.apibaz.info"
     ["Emarat"]="emarat.apibaz.info"
