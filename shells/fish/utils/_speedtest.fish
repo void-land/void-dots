@@ -51,8 +51,5 @@ function speedtest --description 'Download a file from a given URL with an optio
     end
 end
 
-
 alias ir="speedtest RAM AXEL http://185.239.106.174/assets/12mb.png"
 alias irwget="speedtest RAM WGET http://185.239.106.174/assets/12mb.png"
-alias gr="speedtest RAM AXEL https://nbg1-speed.hetzner.com/100MB.bin"
-alias grwget="speedtest RAM AXEL https://nbg1-speed.hetzner.com/100MB.bin"

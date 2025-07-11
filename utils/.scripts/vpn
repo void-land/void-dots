@@ -5,12 +5,15 @@ PASSWORD="6764"
 
 declare -A VPN_SERVERS=(
     ["RANDOM"]="i54.apibaz.info:110"
-    ["NL"]="nlwin2.apibaz.info"
-    ["Finland"]="finland.apibaz.info"
-    ["Poland"]="poland.apibaz.info"
-    ["Emarat"]="emarat.apibaz.info"
-    ["EN 1"]="en1.apibaz.info"
-    ["ONC"]="onc3.apibaz.info"
+
+    ["Server NL 1"]="nl42.apibaz.info:110"
+    ["Server NL 2"]="nl43.apibaz.info:110"
+    ["Server NL 3"]="nl44.apibaz.info:110"
+    ["Server NL 4"]="nl45.apibaz.info:110"
+    ["Server NL 5"]="nl46.apibaz.info:110"
+    ["Server NL 6"]="nl47.apibaz.info:110"
+    ["Server NL 7"]="nl48.apibaz.info:110"
+    ["Server NL 8"]="nl49.apibaz.info:110"
 )
 
 display_vpn_list() {
