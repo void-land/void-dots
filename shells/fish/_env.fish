@@ -42,3 +42,11 @@ fish_add_path $HOME/.spicetify
 fish_add_path $HOME/.nix-profile/bin
 fish_add_path $HOME/Tinygo/usr/local/bin
 fish_add_path $HOME/.dotnet
+
+set -x ANDROID_HOME /opt/android-sdk
+# set -x JAVA_HOME /usr/lib/jvm/java-8-openjdk
+
+fish_add_path $ANDROID_HOME/tools/bin
+fish_add_path $ANDROID_HOME/cmdline-tools/latest/bin
+fish_add_path $ANDROID_HOME/platform-tools
+fish_add_path $ANDROID_HOME/emulator

@@ -1,4 +1,4 @@
-function speedtest --description 'Download a file from a given URL with an option to store it in RAM or disk using wget or axel'
+function speedtest-fish --description 'Download a file from a given URL with an option to store it in RAM or disk using wget or axel'
     if test (count $argv) -lt 3
         echo "Usage: speedtest <RAM|DISK> <WGET|AXEL> <URL>"
         return 1
@@ -51,5 +51,5 @@ function speedtest --description 'Download a file from a given URL with an optio
     end
 end
 
-alias ir="speedtest RAM AXEL http://185.239.106.174/assets/12mb.png"
-alias irwget="speedtest RAM WGET http://185.239.106.174/assets/12mb.png"
+alias ir="speedtest-fish RAM AXEL https://mirror.mobinhost.com/.speedtest/10mb.bin"
+alias irwget="speedtest-fish RAM WGET https://mirror.mobinhost.com/.speedtest/10mb.bin"

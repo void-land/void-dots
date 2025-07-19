@@ -2,6 +2,7 @@ abbr jar "java -jar"
 
 abbr svpn "sudo vpn"
 abbr pg "ping google.com"
+abbr dg "dig google.com"
 
 abbr fkill "pkill -f"
 abbr pkill "pkill -9"
@@ -19,4 +20,3 @@ abbr rma "rm -rf *"
 abbr ins "grep -E 'sse3|sse4|avx|avx2' /proc/cpuinfo"
 
 abbr axel "axel -n 16"
-
