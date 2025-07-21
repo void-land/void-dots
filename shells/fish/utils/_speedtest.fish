@@ -51,5 +51,5 @@ function speedtest-fish --description 'Download a file from a given URL with an 
     end
 end
 
-alias ir="speedtest-fish RAM AXEL https://mirror.mobinhost.com/.speedtest/10mb.bin"
-alias irwget="speedtest-fish RAM WGET https://mirror.mobinhost.com/.speedtest/10mb.bin"
+alias ir="speedtest-fish RAM AXEL https://repo.iut.ac.ir/repo/archlinux/iso/latest/archlinux-bootstrap-x86_64.tar.zst"
+alias irwget="speedtest-fish RAM WGET https://repo.iut.ac.ir/repo/archlinux/iso/latest/archlinux-bootstrap-x86_64.tar.zst"
