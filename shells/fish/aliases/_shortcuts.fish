@@ -20,3 +20,5 @@ abbr rma "rm -rf *"
 abbr ins "grep -E 'sse3|sse4|avx|avx2' /proc/cpuinfo"
 
 abbr axel "axel -n 16"
+
+abbr sshkey "ssh-keygen -t rsa -b 4096 -C 'hesam.init@gmail.com'"
