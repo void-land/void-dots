@@ -41,6 +41,14 @@ function pacu -d "Short and friendly command wrapper for Pacman and Systemd"
             sudo pacman -Sc
 
         case prune-cache
+            set -l cache_dir /var/cache/pacman/pkg
+            set -l count (find $cache_dir -type f | wc -l)
+            set -l size (du -sh $cache_dir | cut -f1)
+
+            echo "Total cache size: $size"
+            echo "Cached package files: $count"
+
+            # echo "Pruning cache (this will remove all cached packages)..."
             sudo pacman -Scc
 
         case hold
