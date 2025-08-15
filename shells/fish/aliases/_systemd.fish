@@ -42,8 +42,7 @@ abbr sysunit "systemd-analyze unit-paths"
 abbr syssecurity "systemd-analyze security"
 
 # Log viewing
-abbr jctl journalctl
-abbr jctlf "journalctl -f"
+abbr jctl "journalctl -f -u"
 abbr jctlboot "journalctl -b"
 abbr jctluser "journalctl --user"
 abbr jctlerr "journalctl -p err"
