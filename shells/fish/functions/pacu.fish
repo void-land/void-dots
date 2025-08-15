@@ -79,12 +79,15 @@ function pacu -d "Short and friendly command wrapper for Pacman and Systemd"
 
         case stop
             sudo systemctl stop $cmd_args
+            systemctl status $cmd_args
 
         case restart
             sudo systemctl restart $cmd_args
+            systemctl status $cmd_args
 
         case reload
             sudo systemctl reload $cmd_args
+            systemctl status $cmd_args
 
         case enable
             sudo systemctl enable $cmd_args
@@ -93,10 +96,16 @@ function pacu -d "Short and friendly command wrapper for Pacman and Systemd"
             sudo systemctl disable $cmd_args
 
         case enable-now
-            sudo systemctl enable --now $cmd_args
+            sudo systemctl enable $cmd_args
+            sudo systemctl start $cmd_args
+
+            systemctl status $cmd_args
 
         case disable-now
-            sudo systemctl disable --now $cmd_args
+            sudo systemctl stop $cmd_args
+            sudo systemctl disable $cmd_args
+
+            systemctl status $cmd_args
 
         case start-user
             systemctl --user start $cmd_args
@@ -120,10 +129,13 @@ function pacu -d "Short and friendly command wrapper for Pacman and Systemd"
             systemctl --user disable $cmd_args
 
         case enable-now-user
-            systemctl --user enable --now $cmd_args
+            systemctl --user enable $cmd_args
+            systemctl --user start $cmd_args
+            systemctl --user status $cmd_args
 
         case disable-now-user
-            systemctl --user disable --now $cmd_args
+            systemctl --user stop $cmd_args
+            systemctl --user disable $cmd_args
 
         case '*'
             echo "Unknown command: $sub_command"
