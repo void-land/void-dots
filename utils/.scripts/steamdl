@@ -1,0 +1,19 @@
+#!/bin/bash
+
+# Read token from environment variable, fallback to default
+TOKEN="${MITM_TOKEN:-dac38848-aded-4d46-acc5-f15370e0a2a2}"
+
+python3 -m venv mitmproxy_env
+source mitmproxy_env/bin/activate
+pip install mitmproxy 'bcrypt<5.0.0'
+
+# Run mitmdump with the token variable
+sudo mitmproxy_env/bin/mitmdump \
+  -m reverse:http://dl.steamdl.ir@127.0.0.1:80 \
+  -s ~/.scripts/steamdl.py \
+  --set allow_hosts=dl.steamdl.ir \
+  --set token="$TOKEN" \
+  --set keep_host_header=true \
+  --set flow_detail=0 \
+  --set termlog_verbosity=warn \
+  --set stream_large_bodies=100k
