@@ -1,7 +1,6 @@
 abbr jar "java -jar"
 
-abbr svpn "sudo vpn"
-abbr pg "ping google.com"
+abbr pg "ping -c 10 -i 0.1 -a -v google.com"
 abbr dg "dig google.com"
 
 abbr fkill "pkill -f"
