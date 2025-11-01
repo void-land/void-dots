@@ -7,6 +7,41 @@
 // custom settings, run the `zed: Open Default Settings` command
 // from the command palette
 {
+  "agent": {
+     "enabled": false
+   },
+  "project_panel": {
+    "auto_fold_dirs": false
+  },
+  "outline_panel": {
+    "file_icons": false,
+    "folder_icons": false
+  },
+  "preview_tabs": {
+    "enabled": true
+  },
+  "vertical_scroll_margin": 0.0,
+  "minimap": {
+    "show": "always",
+    "display_in": "active_editor",
+    "max_width_columns": 120
+  },
+  "cursor_shape": "bar",
+  "cursor_blink": true,
+  "buffer_font_size": 14.0,
+  "buffer_font_family": "Cascadia Code",
+  "ui_font_family": "Cascadia Code",
+  "file_types": {
+    "env": [
+      "*.env.development",
+      "*.env.production"
+    ]
+  },
+  "auto_indent_on_paste": true,
+  "use_on_type_format": true,
+  "show_whitespaces": "all",
+  "show_edit_predictions": true,
+  "tab_size": 3,
   "auto_install_extensions": {
     "html": true,
     "biome": true,
@@ -16,19 +51,30 @@
     "tailwind-syntax": true,
     "docker-compose": false
   },
-  "language": {
-    "javascript": {},
-    "typescript": {}
-  },
   "languages": {
     "TypeScript": {
-      // "language_servers": ["typescript-language-server", "!vtsls", "..."]
+      "language_servers": ["typescript-language-server", "!vtsls", "..."],
+      "auto_indent_on_paste": true,
+      "use_on_type_format": true,
+      "show_whitespaces": "selection",
+      "show_edit_predictions": true,
+      "tab_size": 3
     },
     "TSX": {
-      // "language_servers": ["typescript-language-server", "!vtsls", "..."]
+      "language_servers": ["typescript-language-server", "!vtsls", "..."],
+      "auto_indent_on_paste": true,
+      "use_on_type_format": true,
+      "show_whitespaces": "selection",
+      "show_edit_predictions": true,
+      "tab_size": 3
     },
     "JavaScript": {
       // "language_servers": ["typescript-language-server", "!vtsls", "..."]
+      "auto_indent_on_paste": true,
+      "use_on_type_format": true,
+      "show_whitespaces": "selection",
+      "show_edit_predictions": true,
+      "tab_size": 3
     }
   },
   "language_servers": [
@@ -57,12 +103,14 @@
   "base_keymap": "VSCode",
   "language_models": {},
   "terminal": {
+    "max_scroll_history_lines": 50000,
+    // "font_family": "",
     "font_size": 12
   },
   "theme": {
     "mode": "dark",
     "light": "One Light",
-    "dark": "VSCode Dark Modern"
+    "dark": "GitHub Dark Default"
   },
   "auto_update": false
 }
