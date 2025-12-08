@@ -2,6 +2,7 @@ abbr jar "java -jar"
 
 abbr pg "ping -c 10 -i 0.01 -v google.com"
 abbr pgr "ping -i 0.01 -v google.com"
+abbr pgi "ping -i 0.01 -v speedtest1.irancell.ir"
 abbr dg "dig google.com"
 
 abbr fkill "pkill -f"
