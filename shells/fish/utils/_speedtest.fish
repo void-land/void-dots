@@ -51,5 +51,5 @@ function speedtest-fish --description 'Download a file from a given URL with an 
     end
 end
 
-alias ir="speedtest-fish RAM AXEL http://dl.steamdl.ir/download_test/200MB.bin"
-alias irwget="speedtest-fish RAM WGET http://dl.steamdl.ir/download_test/200MB.bin"
+alias ir="speedtest-fish RAM AXEL http://dl2.steamdl.ir/download_test/200MB.bin"
+alias irwget="speedtest-fish RAM WGET http://dl2.steamdl.ir/download_test/200MB.bin"
