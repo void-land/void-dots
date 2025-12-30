@@ -1,5 +1,5 @@
 function myip --description 'Retrieve IP information using ip-api.com'
-    set URL "http://ip-api.com/json/"
+    set URL "https://api.myip.com/"
 
     check_command curl
     check_command jq
