@@ -117,7 +117,7 @@
   "theme": {
     "mode": "dark",
     "light": "One Light",
-    "dark": "GitHub Dark Default"
+    "dark": "VSCode Dark Modern"
   },
   "auto_update": false
 }
