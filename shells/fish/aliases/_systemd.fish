@@ -11,16 +11,16 @@ abbr syslistfailed "systemctl list-units --failed"
 abbr sysactive "systemctl list-units --state=active"
 
 # Power management
-abbr syspoweroff "systemctl poweroff"
-abbr sysreboot "systemctl reboot"
-abbr syssuspend "systemctl suspend"
-abbr syshibernate "systemctl hibernate"
-abbr syshybrid "systemctl hybrid-sleep"
+abbr spoweroff "systemctl poweroff"
+abbr sreboot "systemctl reboot"
+abbr ssuspend "systemctl suspend"
+abbr shibernate "systemctl hibernate"
+abbr shybrid "systemctl hybrid-sleep"
 
 # Daemon management
-abbr sysdaemon "systemctl daemon-reload"
-abbr sysrescue "systemctl rescue"
-abbr sysemergency "systemctl emergency"
+abbr sdaemon "systemctl daemon-reload"
+abbr srescue "systemctl rescue"
+abbr semergency "systemctl emergency"
 
 # User systemctl commands
 abbr sysstatuser "systemctl --user status"
