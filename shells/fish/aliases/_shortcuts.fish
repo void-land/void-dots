@@ -1,8 +1,9 @@
 abbr jar "java -jar"
 
-abbr pg "ping -c 10 -i 0.01 -v 8.8.8.8"
-abbr pgr "ping -i 0.01 -v 8.8.8.8"
-abbr pgi "ping -i 0.01 -v speedtest1.irancell.ir"
+abbr pg "ping -c 10 -i 0.002 -v 8.8.8.8"
+abbr pgr "ping -i 0.002 -v 8.8.8.8"
+abbr pgi "ping -i 0.002 -v shatel.ir"
+abbr dip "dig +short myip.opendns.com @resolver1.opendns.com -4"
 abbr dg "dig google.com"
 
 abbr fkill "pkill -f"
