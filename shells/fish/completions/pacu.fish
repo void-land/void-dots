@@ -27,7 +27,7 @@ for cmd in $pkg_commands
     complete -c pacu -n "__fish_seen_subcommand_from $cmd" -xa "(pacman -Slq)" -f
 end
 
-set -l installed_pkg_commands remove update
+set -l installed_pkg_commands files remove update
 
 for cmd in $installed_pkg_commands
     complete -c pacu -n "__fish_seen_subcommand_from $cmd" -xa "(pacman -Qq)" -f

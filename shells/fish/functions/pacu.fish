@@ -34,6 +34,9 @@ function pacu -d "Short and friendly command wrapper for Pacman and Systemd"
         case info
             pacman -Si $cmd_args
 
+        case files
+            pacman -Qlv $cmd_args
+
         case list
             pacman -Qe
 

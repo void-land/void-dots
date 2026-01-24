@@ -6,6 +6,7 @@ set --query pacu_helper_commands || set --global pacu_helper_commands \
     "update:Update the system and installed packages" \
     "search:Search for packages" \
     "info:Show package information" \
+    "files:List only explicitly installed packages" \
     "list:List explicitly installed packages" \
     "clean-cache:Remove old cached packages" \
     "prune-cache:Remove all cached packages" \
