@@ -1,6 +1,6 @@
 function speedtest-fish --description 'Download a file from a given URL with an option to store it in RAM or disk using wget or axel'
     if test (count $argv) -lt 3
-        echo "Usage: speedtest <RAM|DISK> <WGET|AXEL> <URL>"
+        echo "Usage: speedtest <RAM|DISK> <WGET|AXEL|CURL> <URL>"
         return 1
     end
 
@@ -28,13 +28,23 @@ function speedtest-fish --description 'Download a file from a given URL with an 
             end
             echo "Using wget for downloading..."
             wget -q --show-progress --progress=bar -O $DESTINATION $URL
+
         case axel
             if not type -q axel
                 echo "axel not found. Please install axel."
                 return 1
             end
             echo "Using axel for downloading..."
-            axel -n 16 -a -o $DESTINATION $URL
+            axel -n 32 -a -o $DESTINATION $URL
+
+        case curl
+            if not type -q curl
+                echo "curl not found. Please install curl."
+                return 1
+            end
+            echo "Using curl for downloading..."
+            curl -o $DESTINATION $URL
+
         case '*'
             echo "Invalid download tool. Use 'WGET' or 'AXEL'."
             return 1
@@ -53,3 +63,4 @@ end
 
 alias ir="speedtest-fish RAM AXEL http://dl2.steamdl.ir/download_test/200MB.bin"
 alias irwget="speedtest-fish RAM WGET http://dl2.steamdl.ir/download_test/200MB.bin"
+alias ircurl="speedtest-fish RAM CURL http://dl2.steamdl.ir/download_test/200MB.bin"
