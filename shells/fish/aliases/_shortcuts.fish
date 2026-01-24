@@ -1,8 +1,8 @@
 abbr jar "java -jar"
 
-abbr pg "ping -c 10 -i 0.002 -v 8.8.8.8"
+abbr pg "ping -c 100 -i 0.002 -v 8.8.8.8"
 abbr pgr "ping -i 0.002 -v 8.8.8.8"
-abbr pgi "ping -i 0.002 -v shatel.ir"
+abbr pgi "ping -c 100 -i 0.002 -v shatel.ir"
 abbr dip "dig +short myip.opendns.com @resolver1.opendns.com -4"
 abbr dg "dig google.com"
 
@@ -21,7 +21,7 @@ abbr rmf "rm -rf"
 abbr rma "rm -rf *"
 abbr ins "grep -E 'sse3|sse4|avx|avx2' /proc/cpuinfo"
 
-abbr axel "axel -n 16"
+abbr axel "axel -n 32"
 
 abbr sshkey "ssh-keygen -t rsa -b 4096 -C 'hesam.init@gmail.com'"
 
