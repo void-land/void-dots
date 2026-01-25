@@ -61,6 +61,8 @@ function speedtest-fish --description 'Download a file from a given URL with an 
     end
 end
 
-alias ir="speedtest-fish RAM AXEL http://dl2.steamdl.ir/download_test/200MB.bin"
-alias irwget="speedtest-fish RAM WGET http://dl2.steamdl.ir/download_test/200MB.bin"
-alias ircurl="speedtest-fish RAM CURL http://dl2.steamdl.ir/download_test/200MB.bin"
+set FILE_URL "http://mirror.0-1.cloud/alpine/latest-stable/releases/x86_64/alpine-netboot-3.23.1-x86_64.tar.gz"
+
+abbr ir "speedtest-fish RAM AXEL $FILE_URL"
+abbr irwget "speedtest-fish RAM WGET $FILE_URL"
+abbr ircurl "speedtest-fish RAM CURL $FILE_URL"
