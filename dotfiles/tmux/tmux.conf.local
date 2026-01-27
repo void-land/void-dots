@@ -1,4 +1,6 @@
-# : << EOF
+# : << 'EOF'
+# Oh my tmux!
+# 💛🩷💙🖤❤️🤍
 # https://github.com/gpakosz/.tmux
 # (‑●‑●)> dual licensed under the WTFPL v2 license and the MIT license,
 #         without any warranty.
@@ -6,6 +8,40 @@
 
 
 # -- bindings ------------------------------------------------------------------
+
+bind -n M-n split-window -v
+bind -n M-m split-window -h
+bind -n M-c kill-pane
+
+# Resize panes
+bind -n M-[ resize-pane -L 2
+bind -n M-] resize-pane -R 2
+bind -n M-- resize-pane -D 2
+bind -n M-= resize-pane -U 2
+# bind -n K resize-pane -U 2
+# bind -n L resize-pane -D 2
+
+# Move between panes using Alt + Arrow keys
+bind -n M-Left  select-pane -L  # Move to the pane on the left
+bind -n M-Right select-pane -R  # Move to the pane on the right
+bind -n M-Up    select-pane -U  # Move to the pane above
+bind -n M-Down  select-pane -D  # Move to the pane below
+
+bind -n M-h select-pane -L  # move left
+bind -n M-j select-pane -D  # move down
+bind -n M-k select-pane -U  # move up
+bind -n M-l select-pane -R  # move right
+
+bind -n M-s select-pane -t :.+
+
+bind -n M-PageUp   previous-window   # Alt + Page Up: Move to the previous window
+bind -n M-PageDown next-window       # Alt + Page Down: Move to the next window
+
+bind -n C-PageUp   previous-window   # Alt + Page Up: Move to the previous window
+bind -n C-PageDown next-window       # Alt + Page Down: Move to the next window
+
+# if you don't want Oh my tmux! to alter a binding, use #!important
+# bind c new-window -c '#{pane_current_path}' #!important
 
 # preserve tmux stock bindings,
 # while adding bindings that don't conflict with these stock bindings
@@ -267,10 +303,12 @@ tmux_conf_theme_right_separator_sub="|"
 #     - #{uptime_s}
 #     - #{username}
 #     - #{username_ssh}
-# tmux_conf_theme_status_left=" ❐ #S | ↑#{?uptime_y, #{uptime_y}y,}#{?uptime_d, #{uptime_d}d,}#{?uptime_h, #{uptime_h}h,}#{?uptime_m, #{uptime_m}m,} | #{pretty_pane_current_path} "
-tmux_conf_theme_status_left=" ↑#{?uptime_y, #{uptime_y}y,}#{?uptime_d, #{uptime_d}d,}#{?uptime_h, #{uptime_h}h,}#{?uptime_m, #{uptime_m}m,} "
-# tmux_conf_theme_status_right=" #{prefix}#{mouse}#{pairing}#{synchronized}#{?battery_status,#{battery_status},}#{?battery_hbar, #{battery_bar},}#{?battery_percentage, #{battery_percentage},} , %R , %d %b | #{username}#{root} | #{hostname} "
-tmux_conf_theme_status_right=" #{prefix}#{mouse}#{pairing}#{synchronized}#{?battery_status,#{battery_status},}#{?battery_hbar, #{battery_bar},}#{?battery_percentage, #{battery_percentage},} , %R , %d %b | #{username}#{root} | #{hostname} "
+tmux_conf_theme_status_left=" ❐ #S | ↑#{?uptime_y, #{uptime_y}y,}#{?uptime_d, #{uptime_d}d,}#{?uptime_h, #{uptime_h}h,}#{?uptime_m, #{uptime_m}m,} "
+#tmux_conf_theme_status_left=" ❐ #S | ↑#{?uptime_y, #{uptime_y}y,}#{?uptime_d, #{uptime_d}d,}#{?uptime_h, #{uptime_h}h,}#{?uptime_m, #{uptime_m}m,} | #{pretty_pane_current_path} "
+
+#tmux_conf_theme_status_right=" #{prefix}#{mouse}#{pairing}#{synchronized}#{?battery_status,#{battery_status},}#{?battery_bar, #{battery_bar},}#{?battery_percentage, #{battery_percentage},} , %R , %d %b | #{username}#{root} | #{hostname}"
+tmux_conf_theme_status_right=" #{prefix}#{mouse}#{pairing}#{synchronized}#{?battery_status,#{battery_status},}#{?battery_bar, #{battery_bar},}#{?battery_percentage, #{battery_percentage},} , %R , %d %b | #{username}#{root} | #{hostname} | #{wan_ip_v4}"
+
 
 # status left style
 tmux_conf_theme_status_left_fg="$tmux_conf_theme_colour_6,$tmux_conf_theme_colour_7,$tmux_conf_theme_colour_8"
@@ -327,22 +365,28 @@ tmux_conf_battery_bar_length="auto"
 #   - gradient (default)
 #   - heat
 #   - "colour_full_fg,colour_empty_fg,colour_bg"
+#   - gradient(colour_fg_1,colour_fg_2,...,colour_fg_n)
 tmux_conf_battery_bar_palette="gradient"
 #tmux_conf_battery_bar_palette="#d70000,#e4e4e4,#000000"   # red, white, black
+#tmux_conf_battery_bar_palette="gradient(#00afff,#47a2ff,#7c91ff,#ac7afb,#d65be2,#e163df,#eb6cdd,#f475db,#ec9ff1,#eac3fe,#efe2ff,#ffffff)"
 
 # battery hbar palette, possible values are:
 #   - gradient (default)
 #   - heat
 #   - "colour_low,colour_half,colour_full"
+#   - gradient(colour_fg_1,colour_fg_2,...,colour_fg_n)
 tmux_conf_battery_hbar_palette="gradient"
 #tmux_conf_battery_hbar_palette="#d70000,#ff5f00,#5fff00"  # red, orange, green
+#tmux_conf_battery_hbar_palette="gradient(#00afff,#47a2ff,#7c91ff,#ac7afb,#d65be2,#e163df,#eb6cdd,#f475db,#ec9ff1,#eac3fe,#efe2ff,#ffffff)"
 
 # battery vbar palette, possible values are:
 #   - gradient (default)
 #   - heat
 #   - "colour_low,colour_half,colour_full"
+#   - gradient(colour_fg_1,colour_fg_2,...,colour_fg_n)
 tmux_conf_battery_vbar_palette="gradient"
 #tmux_conf_battery_vbar_palette="#d70000,#ff5f00,#5fff00"  # red, orange, green
+#tmux_conf_battery_vbar_palette="gradient(#00afff,#47a2ff,#7c91ff,#ac7afb,#d65be2,#e163df,#eb6cdd,#f475db,#ec9ff1,#eac3fe,#efe2ff,#ffffff)"
 
 # symbols used to indicate whether battery is charging or discharging
 tmux_conf_battery_status_charging="↑"       # U+2191
@@ -377,10 +421,10 @@ tmux_conf_urlscan_options="--compact --dedupe"
 # this is the place to override or undo settings
 
 # increase history size
-#set -g history-limit 10000
+set -g history-limit 100000
 
 # start with mouse mode enabled
-set -g mouse on
+#set -g mouse on
 
 # force Vi mode
 #   really you should export VISUAL or EDITOR environment variable, see manual
@@ -394,40 +438,14 @@ set -g mouse on
 # set -g prefix C-a
 # bind C-a send-prefix
 
-bind -n M-n split-window -v
-bind -n M-m split-window -h
-bind -n M-c kill-pane
-
-# Resize panes
-bind -n M-[ resize-pane -L 2
-bind -n M-] resize-pane -R 2
-# bind -n K resize-pane -U 2
-# bind -n L resize-pane -D 2
-
-# Move between panes using Alt + Arrow keys
-bind -n M-Left  select-pane -L  # Move to the pane on the left
-bind -n M-Right select-pane -R  # Move to the pane on the right
-bind -n M-Up    select-pane -U  # Move to the pane above
-bind -n M-Down  select-pane -D  # Move to the pane below
-
-bind -n M-h select-pane -L  # move left
-bind -n M-j select-pane -D  # move down
-bind -n M-k select-pane -U  # move up
-bind -n M-l select-pane -R  # move right
-
-bind -n M-s select-pane -t :.+
-
-bind -n M-PageUp   previous-window   # Alt + Page Up: Move to the previous window
-bind -n M-PageDown next-window       # Alt + Page Down: Move to the next window
-
-bind -n C-PageUp   previous-window   # Alt + Page Up: Move to the previous window
-bind -n C-PageDown next-window       # Alt + Page Down: Move to the next window
-
-# if you don't want Oh my tmux! to alter a binding, use #!important
+# if you don't want Oh my tmux! to alter a binding or a setting, use #!important
 # bind c new-window -c '#{pane_current_path}' #!important
 
+# display a message after toggling mouse support
+bind m run "cut -c3- '#{TMUX_CONF}' | sh -s _toggle_mouse" \; display 'mouse #{?#{mouse},on,off}'
+
 # move status line to top
-set -g status-position bottom
+#set -g status-position top
 
 
 # -- tpm -----------------------------------------------------------------------
@@ -463,6 +481,7 @@ tmux_conf_uninstall_plugins_on_reload=true
 # /!\ do not add set -g @plugin 'tmux-plugins/tpm'
 # /!\ do not add run '~/.tmux/plugins/tpm/tpm'
 
+# /!\ the 'set -g @tpm_plugins' syntax is not supported
 # to enable a plugin, use the 'set -g @plugin' syntax:
 # visit https://github.com/tmux-plugins for available plugins
 #set -g @plugin 'tmux-plugins/tmux-copycat'
@@ -489,22 +508,37 @@ tmux_conf_uninstall_plugins_on_reload=true
 #
 # # /!\ do not "uncomment" the functions: the leading "# " characters are needed
 #
+# # usage: #{weather}
 # weather() {                                         # see https://github.com/chubin/wttr.in#one-line-output
 #   curl -f -s -m 2 'wttr.in?format=3' || printf '\n' # /!\ make sure curl is installed
 #   sleep 900                                         # sleep for 15 minutes, throttle network requests whatever the value of status-interval
 # }
 #
+# # usage: #{online}
 # online() {
 #   ping -c 1 1.1.1.1 >/dev/null 2>&1 && printf '✔' || printf '✘'
 # }
 #
+# # usage: #{wan_ip_v4}
 # wan_ip_v4() {
-#   curl -f -s -m 2 -4 ifconfig.me
+#   # curl -f -s -m 2 -4 ifconfig.me
+#   curl -f -s -m 2 -4 https://chabokan.net/ip/ | grep -o '[0-9]\{1,3\}\.[0-9]\{1,3\}\.[0-9]\{1,3\}\.[0-9]\{1,3\}'
 #   sleep 300                                         # sleep for 5 minutes, throttle network requests whatever the value of status-interval
 # }
 #
+# # usage: #{wan_ip_v6}
 # wan_ip_v6() {
 #   curl -f -s -m 2 -6 ifconfig.me
+#   sleep 300                                         # sleep for 5 minutes, throttle network requests whatever the value of status-interval
+# }
+#
+# # usage: #{github_stars}, #{github_stars tmux/tmux}, ...
+# github_stars() {
+#   repository=${1##*https://github.com/}
+#   repository=${repository%% *}
+#   repository=${repository%%.git}
+#   url="https://api.github.com/repos/${repository:-gpakosz/.tmux}"
+#   curl -s "$url" | perl -MJSON::PP=decode_json -CO -0777 -E '$response = decode_json(readline *STDIN); say ($response->{stargazers_count})'
 #   sleep 300                                         # sleep for 5 minutes, throttle network requests whatever the value of status-interval
 # }
 #
