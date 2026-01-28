@@ -1,5 +1,8 @@
 abbr jar "java -jar"
 
+
+abbr static "ldd ./"
+
 abbr pg "ping -c 10 -i 0.002 -v 8.8.8.8"
 abbr pgr "ping -c 100 -i 0.002 -v 8.8.8.8"
 abbr pgi "ping -c 100 -i 0.002 -v 2.189.44.44"

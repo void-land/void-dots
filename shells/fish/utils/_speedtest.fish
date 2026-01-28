@@ -35,7 +35,7 @@ function speedtest-fish --description 'Download a file from a given URL with an 
                 return 1
             end
             echo "Using axel for downloading..."
-            axel -n 32 -a -o $DESTINATION $URL
+            axel -n 16 -a -o $DESTINATION $URL
 
         case curl
             if not type -q curl
