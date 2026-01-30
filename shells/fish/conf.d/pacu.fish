@@ -4,6 +4,8 @@ set --query pacu_helper_commands || set --global pacu_helper_commands \
     "remove:Remove packages and dependencies" \
     "upgrade:Upgrade all installed packages" \
     "update:Update the system and installed packages" \
+    "sync:Force database refresh + system update" \
+    "autoremove:Remove orphans packages" \
     "search:Search for packages" \
     "info:Show package information" \
     "files:List only explicitly installed packages" \
@@ -32,4 +34,3 @@ set --query pacu_helper_commands || set --global pacu_helper_commands \
     "enable-now-user:Enable and start a user service" \
     "disable-now:Disable and stop a system service" \
     "disable-now-user:Disable and stop a user service" \
-    "sync:Force database refresh + system update"

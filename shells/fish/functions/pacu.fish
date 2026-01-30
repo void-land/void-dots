@@ -40,6 +40,20 @@ function pacu -d "Short and friendly command wrapper for Pacman and Systemd"
         case list
             pacman -Qe
 
+        case autoremove
+            set -l orphans (pacman -Qdtq)
+            
+            if test (count $orphans) -eq 0
+                echo "No orphaned packages to remove."
+                return 0
+            end
+
+            echo "Orphaned packages:"
+            printf "  %s\n" $orphans
+
+            # Remove orphans (review output first; remove -n if you want pacsave backups)
+            sudo pacman -Rns $orphans
+
         case clean-cache
             sudo pacman -Sc
 
