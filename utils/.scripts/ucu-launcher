@@ -16,7 +16,7 @@ LOG_FILE="$GAME_DIR/game.log"
 
 # UMU Settings
 GAMEID="umu-default"
-PROTONPATH="GE-Proton"  # "GE-Proton" for auto-download or full path
+PROTONPATH="$HOME/.local/share/Steam/compatibilitytools.d/Proton-GE Latest"
 STEAM_APP_ID="0"
 GAME_ARGS=""
 
