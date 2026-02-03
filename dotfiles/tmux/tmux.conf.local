@@ -441,6 +441,7 @@ tmux_conf_urlscan_options="--compact --dedupe"
 
 # increase history size
 set -g history-limit 100000
+set -g cursor-style bar
 
 # start with mouse mode enabled
 set -g mouse on
