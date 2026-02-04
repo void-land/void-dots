@@ -114,8 +114,8 @@ setup_environment() {
     export PROTONPATH="$PROTONPATH"
     export STEAM_COMPAT_APP_ID="$STEAM_APP_ID"
     
-    # Proton optimizations
-    export PROTON_ENABLE_WAYLAND=1
+    # ProtonGe ^10 optimizations
+    export PROTON_ENABLE_WAYLAND=0
     export PROTON_USE_NTSYNC=1
     export PROTON_NO_ESYNC=0  # Enable ESYNC for better performance
     export PROTON_NO_FSYNC=0  # Enable FSYNC for better performance
@@ -125,22 +125,22 @@ setup_environment() {
     # DXVK/VKD3D
     export DXVK_ASYNC=1
     export DXVK_STATE_CACHE_PATH="$WINE_PREFIX"
-    export VKD3D_CONFIG=dxr
+    # export VKD3D_CONFIG=dxr
     
     # GPU optimizations
-    export __GL_SHADER_DISK_CACHE=1
-    export __GL_SHADER_DISK_CACHE_PATH="$WINE_PREFIX/shader_cache"
-    export RADV_PERFTEST=gpl
-    export mesa_glthread=true
+    # export __GL_SHADER_DISK_CACHE=1
+    # export __GL_SHADER_DISK_CACHE_PATH="$WINE_PREFIX/shader_cache"
+    # export RADV_PERFTEST=gpl
+    # export mesa_glthread=true
     
     # Performance monitoring
     export MANGOHUD=1
-    export MANGOHUD_CONFIG="fps,frametime,cpu_temp,gpu_temp"
+    # export MANGOHUD_CONFIG="fps,frametime,cpu_temp,gpu_temp"
     
-    # Disable debug output
-    export WINEDEBUG=-all
-    export GST_DEBUG=0
-    export DXVK_LOG_LEVEL=none
+    # Proton logging
+    export WINEDEBUG="fixme,err"
+    export PROTON_LOG=1
+    export PROTON_LOG_DIR="$GAME_DIR"
     
     log "Environment configured"
 }
@@ -153,31 +153,34 @@ launch_game() {
     log "Executable: $GAME_EXE"
     log "Prefix: $WINE_PREFIX"
     log "Proton: $PROTONPATH"
-    log "Game ID: $GAMEID"
-    log "Steam App ID: $STEAM_APP_ID"
     log "=========================================="
     
-    # Filter warnings
+    # NO GREP FILTERS - show everything like Heroic
     if [ "$USE_GAMEMODE" = true ]; then
         log "Launching with GameMode..."
-        gamemoderun umu-run "$GAME_EXE" $GAME_ARGS 2>&1 | \
-        grep -v "GStreamer-WARNING" | \
-        grep -v "Failed to load plugin" | \
-        grep -v "wrong ELF class" | \
-        tee -a "$LOG_FILE"
+        gamemoderun umu-run "$GAME_EXE" $GAME_ARGS 2>&1 | tee -a "$LOG_FILE"
     else
         log "Launching..."
-        umu-run "$GAME_EXE" $GAME_ARGS 2>&1 | \
-        grep -v "GStreamer-WARNING" | \
-        grep -v "Failed to load plugin" | \
-        grep -v "wrong ELF class" | \
-        tee -a "$LOG_FILE"
+        umu-run "$GAME_EXE" $GAME_ARGS 2>&1 | tee -a "$LOG_FILE"
     fi
     
     GAME_EXIT_CODE=$?
+    
+    log "=========================================="
     log "Game exited with code: $GAME_EXIT_CODE"
+    
+    if [ $GAME_EXIT_CODE -ne 0 ]; then
+        error "Game crashed! Check output above for errors like:"
+        error "  - err:seh:NtRaiseException (crash/exception)"
+        error "  - err:module:import_dll (missing DLLs)"
+        error "  - fixme:d3d/fixme:dxgi (graphics issues)"
+        log "Full log saved to: $LOG_FILE"
+    fi
+    log "=========================================="
+    
     return $GAME_EXIT_CODE
 }
+
 
 # Main
 main() {
