@@ -4,8 +4,8 @@ USER="afz2077"
 PASSWORD="6764"
 
 declare -A VPN_SERVERS=(
+    ["Mci"]="mcipower2.apibaz.org"
     ["RANDOM"]="i54.apibaz.info:110"
-
     ["Server NL 1"]="nl42.apibaz.info:110"
     ["Server NL 2"]="nl43.apibaz.info:110"
     ["Server NL 3"]="nl44.apibaz.info:110"

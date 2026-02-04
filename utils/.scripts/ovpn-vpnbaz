@@ -5,7 +5,7 @@ USER="afz2077"
 PASSWORD="6764"
 
 # Configuration directory
-CONFIG_DIR="$HOME/.dots/linux-configs/utils/.scripts/ovpn-servers"
+CONFIG_DIR="$HOME/.dots/linux-configs/utils/.scripts/ovpn-vpnbaz-servers"
 
 # Store .ovpn files in an array
 declare -a OVPN_FILES
