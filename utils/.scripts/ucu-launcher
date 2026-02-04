@@ -11,7 +11,7 @@
 GAME_NAME="My Game"
 GAME_DIR="$HOME/Games/game-folder"
 GAME_EXE="$GAME_DIR/game.exe"
-WINE_PREFIX="$GAME_DIR/umu-prefix"
+WINE_PREFIX="$HOME/Games/umu-shared"
 LOG_FILE="$GAME_DIR/game.log"
 
 # UMU Settings
