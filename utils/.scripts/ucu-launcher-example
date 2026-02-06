@@ -6,7 +6,7 @@
 #==========================================
 
 #------------------------------------------
-# Configuration - EDIT THIS SECTION
+# Configuration
 #------------------------------------------
 GAME_NAME="My Game"
 GAME_DIR="$HOME/Games/game-folder"
@@ -62,6 +62,7 @@ cleanup() {
     
     # Force kill
     pkill -9 -f "$(basename "$GAME_EXE")" 2>/dev/null && log "Game process terminated"
+    pkill -9 -f '\.exe' 2>/dev/null
     pkill -9 wine 2>/dev/null
     pkill -9 wineserver 2>/dev/null
     pkill -9 -f pressure-vessel 2>/dev/null
