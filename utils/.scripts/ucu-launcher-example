@@ -109,13 +109,13 @@ setup_environment() {
     log "Configuring environment..."
     
     # UMU variables
-    export WINEPREFIX="$WINE_PREFIX"
     export GAMEID="$GAMEID"
     export PROTONPATH="$PROTONPATH"
+    export WINEPREFIX="$WINE_PREFIX"
     export STEAM_COMPAT_APP_ID="$STEAM_APP_ID"
     
     # ProtonGe ^10 optimizations
-    export PROTON_ENABLE_WAYLAND=0
+    export PROTON_ENABLE_WAYLAND=1
     export PROTON_USE_NTSYNC=1
     export PROTON_NO_ESYNC=0  # Enable ESYNC for better performance
     export PROTON_NO_FSYNC=0  # Enable FSYNC for better performance
@@ -123,14 +123,12 @@ setup_environment() {
     export PROTON_USE_STEAM_STUB=0
     
     # DXVK/VKD3D
-    export DXVK_ASYNC=1
+    # export DXVK_ASYNC=1
     export DXVK_STATE_CACHE_PATH="$WINE_PREFIX"
-    # export VKD3D_CONFIG=dxr
+    # export VKD3D_CONFIG=dxr # Enable ray tracing
     
     # GPU optimizations
-    # export __GL_SHADER_DISK_CACHE=1
-    # export __GL_SHADER_DISK_CACHE_PATH="$WINE_PREFIX/shader_cache"
-    # export RADV_PERFTEST=gpl
+    export RADV_PERFTEST=gpl
     # export mesa_glthread=true
     
     # Performance monitoring
@@ -138,8 +136,8 @@ setup_environment() {
     # export MANGOHUD_CONFIG="fps,frametime,cpu_temp,gpu_temp"
     
     # Proton logging
-    export WINEDEBUG="fixme,err"
     export PROTON_LOG=1
+    export WINEDEBUG="fixme,err"
     export PROTON_LOG_DIR="$GAME_DIR"
     
     log "Environment configured"
