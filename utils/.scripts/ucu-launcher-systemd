@@ -53,11 +53,23 @@ info() {
 
 cleanup() {
     local EXIT_CODE=$?
+    
+    # Prevent double execution
+    if [ -n "$CLEANUP_DONE" ]; then
+        return
+    fi
+    export CLEANUP_DONE=1
+    
     echo ""
     log "Shutting down..."
     
-    # Force stop systemd scope (kills ALL subprocesses)
+    # Show process tree before cleanup
     if systemctl --user is-active --quiet "$SYSTEMD_UNIT.scope" 2>/dev/null; then
+        echo ""
+        echo -e "${YELLOW}Process tree before cleanup:${NC}"
+        systemctl --user status "$SYSTEMD_UNIT.scope" --no-pager 2>/dev/null | grep -E "├─|└─" || echo "  (no process tree)"
+        echo ""
+        
         log "Force stopping systemd scope..."
         systemctl --user kill --signal=SIGKILL "$SYSTEMD_UNIT.scope" 2>/dev/null
         systemctl --user stop "$SYSTEMD_UNIT.scope" 2>/dev/null

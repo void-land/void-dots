@@ -51,6 +51,13 @@ info() {
 
 cleanup() {
     local EXIT_CODE=$?
+
+    # Prevent double execution
+    if [ -n "$CLEANUP_DONE" ]; then
+        return
+    fi
+    export CLEANUP_DONE=1
+
     echo ""
     log "Shutting down..."
     
