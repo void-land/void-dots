@@ -31,6 +31,7 @@ fish_add_path $HOME/.cargo/bin
 fish_add_path $HOME/go/bin
 # fish_add_path $HOME/.local/bin
 fish_add_path $HOME/.scripts
+fish_add_path $HOME/.umu-launchers
 fish_add_path $HOME/platform-tools
 
 fish_add_path $BUN_INSTALL/bin
