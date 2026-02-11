@@ -32,189 +32,193 @@ YELLOW='\033[1;33m'
 BLUE='\033[0;34m'
 NC='\033[0m'
 
-log() { 
-    echo -e "${GREEN}[$(date '+%H:%M:%S')]${NC} $1"
-    echo "[$(date '+%Y-%m-%d %H:%M:%S')] $1" >> "$LOG_FILE"
+log() {
+	echo -e "${GREEN}[$(date '+%H:%M:%S')]${NC} $1"
+	echo "[$(date '+%Y-%m-%d %H:%M:%S')] $1" >>"$LOG_FILE"
 }
 
-error() { 
-    echo -e "${RED}[ERROR]${NC} $1"
-    echo "[ERROR] $1" >> "$LOG_FILE"
+error() {
+	echo -e "${RED}[ERROR]${NC} $1"
+	echo "[ERROR] $1" >>"$LOG_FILE"
 }
 
-warn() { 
-    echo -e "${YELLOW}[WARN]${NC} $1"
-    echo "[WARN] $1" >> "$LOG_FILE"
+warn() {
+	echo -e "${YELLOW}[WARN]${NC} $1"
+	echo "[WARN] $1" >>"$LOG_FILE"
 }
 
 info() {
-    echo -e "${BLUE}[INFO]${NC} $1"
+	echo -e "${BLUE}[INFO]${NC} $1"
 }
 
 cleanup() {
-    local EXIT_CODE=$?
-    
-    # Prevent double execution
-    if [ -n "$CLEANUP_DONE" ]; then
-        return
-    fi
-    export CLEANUP_DONE=1
-    
-    echo ""
-    log "Shutting down..."
-    
-    # Show process tree before cleanup
-    if systemctl --user is-active --quiet "$SYSTEMD_UNIT.scope" 2>/dev/null; then
-        echo ""
-        echo -e "${YELLOW}Process tree before cleanup:${NC}"
-        systemctl --user status "$SYSTEMD_UNIT.scope" --no-pager 2>/dev/null | grep -E "├─|└─" || echo "  (no process tree)"
-        echo ""
-        
-        log "Force stopping systemd scope..."
-        systemctl --user kill --signal=SIGKILL "$SYSTEMD_UNIT.scope" 2>/dev/null
-        systemctl --user stop "$SYSTEMD_UNIT.scope" 2>/dev/null
-        systemctl --user reset-failed "$SYSTEMD_UNIT.scope" 2>/dev/null
-    fi
-    
-    log "Cleanup complete. Exit code: $EXIT_CODE"
-    exit $EXIT_CODE
+	local EXIT_CODE=$?
+
+	# Prevent double execution
+	if [ -n "$CLEANUP_DONE" ]; then
+		return
+	fi
+	export CLEANUP_DONE=1
+
+	echo ""
+	log "Shutting down..."
+
+	# Show process tree before cleanup
+	if systemctl --user is-active --quiet "$SYSTEMD_UNIT.scope" 2>/dev/null; then
+		echo ""
+		echo -e "${YELLOW}Process tree before cleanup:${NC}"
+		systemctl --user status "$SYSTEMD_UNIT.scope" --no-pager 2>/dev/null | grep -E "├─|└─" || echo "  (no process tree)"
+		echo ""
+
+		log "Force stopping systemd scope..."
+		systemctl --user kill --signal=SIGKILL "$SYSTEMD_UNIT.scope" 2>/dev/null
+		systemctl --user stop "$SYSTEMD_UNIT.scope" 2>/dev/null
+		systemctl --user reset-failed "$SYSTEMD_UNIT.scope" 2>/dev/null
+	fi
+
+	log "Cleanup complete. Exit code: $EXIT_CODE"
+	exit $EXIT_CODE
 }
 
 trap cleanup SIGINT SIGTERM SIGHUP EXIT
 
 # Validation
 validate() {
-    log "Validating environment..."
-    
-    # Check systemd
-    if ! command -v systemctl &>/dev/null; then
-        error "systemctl not found. This script requires systemd."
-        exit 1
-    fi
-    
-    # Check umu-run
-    if ! command -v umu-run &> /dev/null; then
-        error "umu-run not found. Install: pacman -S umu-launcher"
-        exit 1
-    fi
-    
-    # Check game executable
-    if [ ! -f "$GAME_EXE" ]; then
-        error "Game executable not found: $GAME_EXE"
-        exit 1
-    fi
-    
-    # Create directories
-    mkdir -p "$GAME_DIR" "$(dirname "$LOG_FILE")" 2>/dev/null
-    
-    # Check GameMode
-    if command -v gamemoderun &> /dev/null; then
-        info "GameMode: Enabled"
-        USE_GAMEMODE=true
-    else
-        warn "GameMode: Not found (install: pacman -S gamemode)"
-        USE_GAMEMODE=false
-    fi
-    
-    log "Validation complete"
+	log "Validating environment..."
+
+	# Check systemd
+	if ! command -v systemctl &>/dev/null; then
+		error "systemctl not found. This script requires systemd."
+		exit 1
+	fi
+
+	# Check umu-run
+	if ! command -v umu-run &>/dev/null; then
+		error "umu-run not found. Install: pacman -S umu-launcher"
+		exit 1
+	fi
+
+	# Check game executable
+	if [ ! -f "$GAME_EXE" ]; then
+		error "Game executable not found: $GAME_EXE"
+		exit 1
+	fi
+
+	# Create directories
+	mkdir -p "$GAME_DIR" "$(dirname "$LOG_FILE")" 2>/dev/null
+
+	# Check GameMode
+	if command -v gamemoderun &>/dev/null; then
+		info "GameMode: Enabled"
+		PROTON_GAMEMODE=true
+	else
+		warn "GameMode: Not found (install: pacman -S gamemode)"
+		PROTON_GAMEMODE=false
+	fi
+
+	log "Validation complete"
 }
 
 # Environment setup
 setup_environment() {
-    log "Configuring environment..."
-    
-    # UMU variables
-    export GAMEID="$GAMEID"
-    export PROTONPATH="$PROTONPATH"
-    export WINEPREFIX="$WINE_PREFIX"
-    export STEAM_COMPAT_APP_ID="$STEAM_APP_ID"
-    
-    # ProtonGe ^10 optimizations
-    export PROTON_ENABLE_WAYLAND=1
-    export PROTON_USE_NTSYNC=1
-    export PROTON_NO_ESYNC=0  # Enable ESYNC for better performance
-    export PROTON_NO_FSYNC=0  # Enable FSYNC for better performance
-    export PROTON_FORCE_LARGE_ADDRESS_AWARE=1
-    export PROTON_USE_STEAM_STUB=0
-    
-    # DXVK/VKD3D
-    # export DXVK_ASYNC=1
-    export DXVK_STATE_CACHE_PATH="$WINE_PREFIX"
-    # export VKD3D_CONFIG=dxr # Enable ray tracing
-    
-    # GPU optimizations
-    export RADV_PERFTEST=gpl
-    # export mesa_glthread=true
-    
-    # Performance monitoring
-    export MANGOHUD=1
-    # export MANGOHUD_CONFIG="fps,frametime,cpu_temp,gpu_temp"
-    
-    # Proton logging
-    export PROTON_LOG=1
-    export WINEDEBUG="fixme,err"
-    export PROTON_LOG_DIR="$GAME_DIR"
-    
-    log "Environment configured"
+	log "Configuring environment..."
+
+	# UMU variables
+	export GAMEID="$GAMEID"
+	export PROTONPATH="$PROTONPATH"
+	export WINEPREFIX="$WINE_PREFIX"
+	export STEAM_COMPAT_APP_ID="$STEAM_APP_ID"
+
+	# ProtonGe ^10 optimizations
+	export PROTON_ENABLE_WAYLAND=1
+	export PROTON_USE_NTSYNC=1
+	export PROTON_NO_ESYNC=0 # Enable ESYNC for better performance
+	export PROTON_NO_FSYNC=0 # Enable FSYNC for better performance
+	export PROTON_FORCE_LARGE_ADDRESS_AWARE=1
+	export PROTON_USE_STEAM_STUB=0
+
+	# DXVK/VKD3D
+	# export DXVK_ASYNC=1
+	export DXVK_STATE_CACHE_PATH="$WINE_PREFIX"
+	# export VKD3D_CONFIG=dxr # Enable ray tracing
+
+	# GPU optimizations
+	export RADV_PERFTEST=gpl
+	# export mesa_glthread=true
+
+	# Performance monitoring
+	export MANGOHUD=1
+	# export MANGOHUD_CONFIG="fps_limit=120,fps_limit_method=late,full"
+	# export MANGOHUD_CONFIG="fps,frametime,cpu_temp,gpu_temp"
+
+	# Proton logging
+	export PROTON_LOG=1
+	export WINEDEBUG="fixme,err"
+	export PROTON_LOG_DIR="$GAME_DIR"
+
+	# GameMode
+	export PROTON_GAMEMODE=true
+
+	log "Environment configured"
 }
 
 # Launch game
 launch_game() {
-    log "=========================================="
-    log "  Launching: $GAME_NAME"
-    log "=========================================="
-    log "Executable: $GAME_EXE"
-    log "Prefix: $WINE_PREFIX"
-    log "Proton: $PROTONPATH"
-    log "Systemd Unit: $SYSTEMD_UNIT.scope"
-    log "=========================================="
-    
-    # Build command
-    local CMD="umu-run \"$GAME_EXE\" $GAME_ARGS"
-    if [ "$USE_GAMEMODE" = true ]; then
-        CMD="gamemoderun $CMD"
-        log "Launching with GameMode..."
-    else
-        log "Launching..."
-    fi
-    
-    # Launch in systemd scope for automatic subprocess management
-    systemd-run --user --scope \
-        --unit="$SYSTEMD_UNIT" \
-        --description="UMU Game: $GAME_NAME" \
-        --property=KillMode=control-group \
-        --collect \
-        bash -c "$CMD" 2>&1 | tee -a "$LOG_FILE"
-    
-    GAME_EXIT_CODE=${PIPESTATUS[0]}
-    
-    log "=========================================="
-    log "Game exited with code: $GAME_EXIT_CODE"
-    
-    if [ $GAME_EXIT_CODE -ne 0 ]; then
-        error "Game crashed! Check output above for errors like:"
-        error "  - err:seh:NtRaiseException (crash/exception)"
-        error "  - err:module:import_dll (missing DLLs)"
-        error "  - fixme:d3d/fixme:dxgi (graphics issues)"
-        log "Full log saved to: $LOG_FILE"
-    fi
-    log "=========================================="
-    
-    return $GAME_EXIT_CODE
+	log "=========================================="
+	log "  Launching: $GAME_NAME"
+	log "=========================================="
+	log "Executable: $GAME_EXE"
+	log "Prefix: $WINE_PREFIX"
+	log "Proton: $PROTONPATH"
+	log "Systemd Unit: $SYSTEMD_UNIT.scope"
+	log "=========================================="
+
+	# Build command
+	local CMD="umu-run \"$GAME_EXE\" $GAME_ARGS"
+	if [ "$PROTON_GAMEMODE" = true ]; then
+		CMD="gamemoderun $CMD"
+		log "Launching with GameMode..."
+	else
+		log "Launching..."
+	fi
+
+	# Launch in systemd scope for automatic subprocess management
+	systemd-run --user --scope \
+		--unit="$SYSTEMD_UNIT" \
+		--description="UMU Game: $GAME_NAME" \
+		--property=KillMode=control-group \
+		--collect \
+		bash -c "$CMD" 2>&1 | tee -a "$LOG_FILE"
+
+	GAME_EXIT_CODE=${PIPESTATUS[0]}
+
+	log "=========================================="
+	log "Game exited with code: $GAME_EXIT_CODE"
+
+	if [ $GAME_EXIT_CODE -ne 0 ]; then
+		error "Game crashed! Check output above for errors like:"
+		error "  - err:seh:NtRaiseException (crash/exception)"
+		error "  - err:module:import_dll (missing DLLs)"
+		error "  - fixme:d3d/fixme:dxgi (graphics issues)"
+		log "Full log saved to: $LOG_FILE"
+	fi
+	log "=========================================="
+
+	return $GAME_EXIT_CODE
 }
 
 # Main
 main() {
-    clear
-    echo "=========================================="
-    echo "  $GAME_NAME"
-    echo "  UMU Launcher v2.0 (systemd)"
-    echo "=========================================="
-    echo ""
-    
-    validate
-    setup_environment
-    launch_game
+	clear
+	echo "=========================================="
+	echo "  $GAME_NAME"
+	echo "  UMU Launcher v2.0 (systemd)"
+	echo "=========================================="
+	echo ""
+
+	validate
+	setup_environment
+	launch_game
 }
 
 main "$@"
