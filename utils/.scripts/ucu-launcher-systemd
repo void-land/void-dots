@@ -148,6 +148,7 @@ setup_environment() {
 
 	# MangoHud Configuration
 	export MANGOHUD=1
+	export MANGOHUD_CONFIG="full,vsync=1,font_size=16,font_scale=1.0"
 	# export MANGOHUD_CONFIG="full,vsync=1,fps_limit=120,fps_limit_method=early,font_size=16,font_scale=1.0"
 
 	# Proton logging
