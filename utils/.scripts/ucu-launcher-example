@@ -139,10 +139,11 @@ setup_environment() {
 	export RADV_PERFTEST=gpl
 	# export mesa_glthread=true
 
-	# Performance monitoring
+	# MangoHud Configuration
 	export MANGOHUD=1
-	export MANGOHUD_CONFIG="fps_limit=120,fps_limit_method=late,full"
-	# export MANGOHUD_CONFIG="fps,frametime,cpu_temp,gpu_temp"
+	# fps_limit_method modes: early = wait before present, late = wait after present
+	# vsync modes: 0=Adaptive (drops frames when below refresh), 1=Off (immediate/no sync), 2=Mailbox (triple buffering), 3=On (traditional sync)
+	export MANGOHUD_CONFIG="full,vsync=1,fps_limit=120,fps_limit_method=early,font_size=16,font_scale=1.0"
 
 	# Proton logging
 	export PROTON_LOG=1
