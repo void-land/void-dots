@@ -1,6 +1,5 @@
 abbr jar "java -jar"
 
-
 abbr static "ldd ./"
 
 abbr pg "ping -c 10 -i 0.002 -v 8.8.8.8"
@@ -30,3 +29,5 @@ abbr sshkey "ssh-keygen -t rsa -b 4096 -C 'hesam.init@gmail.com'"
 abbr kssh "kitty +kitten ssh -o TCPKeepAlive=yes -o ServerAliveInterval=30"
 
 abbr scode "SUDO_EDITOR='code -nw' sudo -e"
+
+abbr lip "ip -4 addr show eno1 | grep -oP '(?<=inet\s)\d+(\.\d+){3}'"
