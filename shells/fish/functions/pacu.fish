@@ -42,7 +42,7 @@ function pacu -d "Short and friendly command wrapper for Pacman and Systemd"
 
         case autoremove
             set -l orphans (pacman -Qdtq)
-            
+
             if test (count $orphans) -eq 0
                 echo "No orphaned packages to remove."
                 return 0
@@ -64,9 +64,18 @@ function pacu -d "Short and friendly command wrapper for Pacman and Systemd"
 
             echo "Total cache size: $size"
             echo "Cached package files: $count"
+            echo ""
 
-            # echo "Pruning cache (this will remove all cached packages)..."
-            sudo pacman -Scc
+            read -l -P 'Remove all cached packages? [y/N] ' confirm
+
+            switch $confirm
+                case Y y
+                    echo "Pruning cache..."
+                    sudo rm -rfv $cache_dir/*
+                case '' N n
+                    echo "Operation cancelled."
+                    return 1
+            end
 
         case hold
             echo "$cmd_args" | sudo tee -a /etc/pacman.conf
