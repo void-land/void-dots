@@ -24,8 +24,7 @@ decorations = "transparent"
 # dynamic_padding = true
 
 [cursor]
-style = { blinking = "Always", shape = "Block" }
-thickness = 0.2
+style = { blinking = "Always", shape = "Beam" }
 
 [scrolling]
 history = 100000
