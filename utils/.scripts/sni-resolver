@@ -1,0 +1,43 @@
+#!/bin/bash
+
+declare -A DNS=(
+	["Primary 1"]="78.157.34.245"
+	["Secondary 1"]="2.189.86.41"
+	["Primary 2"]="78.157.48.82"
+	["Secondary 2"]="2.189.86.11"
+)
+
+DOMAINS=(
+	"ea.com"
+	"callofduty.com"
+	"store.steampowered.com"
+	"store.epicgames.com"
+)
+
+query_dns() {
+	local name="$1" ip="$2"
+	echo -e "\n═══ $name ($ip) ═══"
+	parallel -j4 --keep-order --tag "dig +short @$ip {} A | head -1" ::: "${DOMAINS[@]}" | column -t -s $'\t'
+}
+
+main() {
+	if ! command -v parallel &>/dev/null; then
+		echo "Install GNU Parallel: sudo pacman -S pacman" && exit 1
+	fi
+
+	echo "DNS Resolver - Testing ${#DOMAINS[@]} domains on ${#DNS[@]} servers"
+
+	read -p "Query [a]ll or [s]ingle DNS? (a/s): " choice
+
+	if [[ $choice == "a" ]]; then
+		for name in "${!DNS[@]}"; do
+			query_dns "$name" "${DNS[$name]}"
+		done
+	else
+		select name in "${!DNS[@]}"; do
+			[[ -n $name ]] && query_dns "$name" "${DNS[$name]}" && break
+		done
+	fi
+}
+
+main
