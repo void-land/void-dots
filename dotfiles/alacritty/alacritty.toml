@@ -16,7 +16,7 @@ size = 11
 [window]
 dynamic_title = true
 blur = true
-opacity = 0.4
+opacity = 0.6
 dimensions = { columns = 90, lines = 30 }
 padding = { x = 16, y = 8 }
 startup_mode = "Windowed"
