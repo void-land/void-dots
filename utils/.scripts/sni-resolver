@@ -1,33 +1,37 @@
 #!/bin/bash
 
 declare -A DNS=(
-	["Primary 1"]="78.157.34.245"
-	["Secondary 1"]="2.189.86.41"
-	["Primary 2"]="78.157.48.82"
-	["Secondary 2"]="2.189.86.11"
+	["Shelter First"]="78.157.34.245,2.189.86.41"
+	["Shelter Second"]="78.157.48.82,2.189.86.11"
+	["SteamDL"]="88.218.16.122,88.218.16.123"
 )
 
 DOMAINS=(
+	"epicgames.com"
+	"store.steampowered.com"
 	"ea.com"
 	"callofduty.com"
-	"store.steampowered.com"
-	"store.epicgames.com"
 )
 
 query_dns() {
-	local name="$1" ip="$2"
-	echo -e "\n═══ $name ($ip) ═══"
-	parallel -j4 --keep-order --tag "dig +short @$ip {} A | head -1" ::: "${DOMAINS[@]}" | column -t -s $'\t'
+	local name="$1" ips="$2"
+	IFS=',' read -ra IP_ARRAY <<<"$ips"
+
+	for ip in "${IP_ARRAY[@]}"; do
+		ip=$(echo "$ip" | xargs) # Trim whitespace
+		echo -e "\n═══ $name: ($ip) ═══"
+		parallel -j4 --keep-order --tag "dig +short @$ip {} A | head -1" ::: "${DOMAINS[@]}" | column -t -s $'\t'
+	done
 }
 
 main() {
 	if ! command -v parallel &>/dev/null; then
-		echo "Install GNU Parallel: sudo pacman -S pacman" && exit 1
+		echo "Install GNU Parallel: sudo pacman -S parallel" && exit 1
 	fi
 
-	echo "DNS Resolver - Testing ${#DOMAINS[@]} domains on ${#DNS[@]} servers"
+	echo "DNS Resolver - Testing ${#DOMAINS[@]} domains on ${#DNS[@]} server groups"
 
-	read -p "Query [a]ll or [s]ingle DNS? (a/s): " choice
+	read -p "Query [a]ll or [s]ingle DNS group? (a/s): " choice
 
 	if [[ $choice == "a" ]]; then
 		for name in "${!DNS[@]}"; do
