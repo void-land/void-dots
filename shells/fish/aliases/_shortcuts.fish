@@ -30,4 +30,4 @@ abbr kssh "kitty +kitten ssh -o TCPKeepAlive=yes -o ServerAliveInterval=30"
 
 abbr scode "SUDO_EDITOR='code -nw' sudo -e"
 
-abbr lip "ip -4 addr show eno1 | grep -oP '(?<=inet\s)\d+(\.\d+){3}'"
+abbr -a lip "ip -4 addr show (ip route get 1.1.1.1 | awk '{print \$5; exit}') | grep -oP '(?<=inet\s)\d+(\.\d+){3}'"

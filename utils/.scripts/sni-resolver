@@ -1,16 +1,15 @@
 #!/bin/bash
 
 declare -A DNS=(
-	["Shelter First"]="78.157.34.245,2.189.86.41"
-	["Shelter Second"]="78.157.48.82,2.189.86.11"
-	["SteamDL"]="88.218.16.122,88.218.16.123"
+	["Shelter First"]="78.157.34.245,10.30.72.24"
+	["Shelter Second"]="78.157.32.196,78.157.44.131"
 )
 
 DOMAINS=(
-	"epicgames.com"
 	"store.steampowered.com"
-	"ea.com"
+	"epicgames.com"
 	"callofduty.com"
+	"ea.com"
 )
 
 query_dns() {
@@ -20,7 +19,7 @@ query_dns() {
 	for ip in "${IP_ARRAY[@]}"; do
 		ip=$(echo "$ip" | xargs) # Trim whitespace
 		echo -e "\n═══ $name: ($ip) ═══"
-		parallel -j4 --keep-order --tag "dig +short @$ip {} A | head -1" ::: "${DOMAINS[@]}" | column -t -s $'\t'
+		parallel --keep-order --tag "dig +short @$ip {} A | head -1" ::: "${DOMAINS[@]}" | column -t -s $'\t'
 	done
 }
 
