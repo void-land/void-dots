@@ -1,3 +1,5 @@
+abbr startx "exec /usr/lib/plasma-dbus-run-session-if-needed /usr/bin/startplasma-wayland"
+
 abbr jar "java -jar"
 
 abbr static "ldd ./"
