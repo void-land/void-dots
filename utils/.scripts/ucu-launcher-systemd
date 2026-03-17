@@ -128,8 +128,10 @@ setup_environment() {
 	export PROTONPATH="$PROTONPATH"
 	export WINEPREFIX="$WINE_PREFIX"
 	export STEAM_COMPAT_APP_ID="$STEAM_APP_ID"
+	export UMU_RUNTIME_UPDATE=0
 
 	# ProtonGe ^10 optimizations
+	# export PROTONFIXES_DISABLE=1
 	export PROTON_ENABLE_WAYLAND=1
 	export PROTON_USE_NTSYNC=1
 	export PROTON_NO_ESYNC=0 # Enable ESYNC for better performance
