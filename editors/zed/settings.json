@@ -14,12 +14,14 @@
     "dock": "right"
   },
   "agent": {
-     "enabled": false
-   },
+    "enabled": false
+  },
   "project_panel": {
+    "dock": "left",
     "auto_fold_dirs": false
   },
   "outline_panel": {
+    "dock": "left",
     "file_icons": false,
     "folder_icons": false
   },
@@ -44,7 +46,7 @@
     ]
   },
   "auto_indent_on_paste": true,
-  "use_on_type_format": true,
+  "use_on_type_format": false,
   "show_whitespaces": "all",
   "show_edit_predictions": true,
   "tab_size": 3,
@@ -60,7 +62,11 @@
   },
   "languages": {
     "TypeScript": {
-      "language_servers": ["typescript-language-server", "!vtsls", "..."],
+      "language_servers": [
+        "typescript-language-server",
+        "!vtsls",
+        "..."
+      ],
       "auto_indent_on_paste": true,
       "use_on_type_format": true,
       "show_whitespaces": "selection",
@@ -68,7 +74,11 @@
       "tab_size": 3
     },
     "TSX": {
-      "language_servers": ["typescript-language-server", "!vtsls", "..."],
+      "language_servers": [
+        "typescript-language-server",
+        "!vtsls",
+        "..."
+      ],
       "auto_indent_on_paste": true,
       "use_on_type_format": true,
       "show_whitespaces": "selection",

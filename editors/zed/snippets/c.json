@@ -1,0 +1,9 @@
+{
+  "Print new line": {
+    "prefix": "prn",
+    "body": [
+      "printf(\"${1}\");"
+    ],
+    "description": "Print new line"
+  }
+}
