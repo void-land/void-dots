@@ -134,8 +134,9 @@ setup_environment() {
 	# export PROTONFIXES_DISABLE=1
 	export PROTON_ENABLE_WAYLAND=1
 	export PROTON_USE_NTSYNC=1
-	export PROTON_NO_ESYNC=0 # Enable ESYNC for better performance
-	export PROTON_NO_FSYNC=0 # Enable FSYNC for better performance
+	# export PROTON_NO_NTSYNC=0
+	# export PROTON_NO_ESYNC=0
+	# export PROTON_NO_FSYNC=0
 	export PROTON_FORCE_LARGE_ADDRESS_AWARE=1
 	export PROTON_USE_STEAM_STUB=0
 
