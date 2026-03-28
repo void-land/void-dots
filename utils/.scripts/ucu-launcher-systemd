@@ -110,10 +110,10 @@ validate() {
 	# Check GameMode
 	if command -v gamemoderun &>/dev/null; then
 		info "GameMode: Enabled"
-		PROTON_GAMEMODE=true
+		PROTON_GAMEMODE=1
 	else
 		warn "GameMode: Not found (install: pacman -S gamemode)"
-		PROTON_GAMEMODE=false
+		PROTON_GAMEMODE=0
 	fi
 
 	log "Validation complete"
@@ -139,6 +139,7 @@ setup_environment() {
 	# export PROTON_NO_FSYNC=0
 	export PROTON_FORCE_LARGE_ADDRESS_AWARE=1
 	export PROTON_USE_STEAM_STUB=0
+	# export WINEDLLOVERRIDES=""
 
 	# DXVK/VKD3D
 	# export DXVK_ASYNC=1
@@ -160,7 +161,7 @@ setup_environment() {
 	export PROTON_LOG_DIR="$GAME_DIR"
 
 	# GameMode
-	export PROTON_GAMEMODE=true
+	export PROTON_GAMEMODE=1
 
 	log "Environment configured"
 }
@@ -178,7 +179,7 @@ launch_game() {
 
 	# Build command
 	local CMD="umu-run \"$GAME_EXE\" $GAME_ARGS"
-	if [ "$PROTON_GAMEMODE" = true ]; then
+	if [ "$PROTON_GAMEMODE" -eq 1 ]; then
 		CMD="gamemoderun $CMD"
 		log "Launching with GameMode..."
 	else
