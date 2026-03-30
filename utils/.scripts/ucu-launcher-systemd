@@ -109,7 +109,7 @@ validate() {
 
 	# Check GameMode
 	if command -v gamemoderun &>/dev/null; then
-		info "GameMode: Enabled"
+		info "GameMode: Available"
 		PROTON_GAMEMODE=1
 	else
 		warn "GameMode: Not found (install: pacman -S gamemode)"
