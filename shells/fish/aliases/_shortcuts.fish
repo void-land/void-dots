@@ -21,8 +21,10 @@ abbr duse "du -sh"
 
 abbr cpd "pwd | wl-copy"
 abbr srm "sudo rm"
-abbr rmf "rm -rf"
-abbr rma "rm -rf *"
+abbr rmf "rm -fv"
+abbr rmfa "rm -fv *"
+abbr rmd "rm -rfv"
+abbr rma "rm -rfv *"
 abbr ins "grep -E 'sse3|sse4|avx|avx2' /proc/cpuinfo"
 
 abbr axel "axel -n 32"
