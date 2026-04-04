@@ -131,24 +131,22 @@ setup_environment() {
 	export UMU_RUNTIME_UPDATE=0
 
 	# ProtonGe ^10 optimizations
-	# export PROTONFIXES_DISABLE=1
+	export PROTON_USE_STEAM_STUB=0
+	export PROTON_FORCE_LARGE_ADDRESS_AWARE=1
 	export PROTON_ENABLE_WAYLAND=1
 	export PROTON_USE_NTSYNC=1
+	# export PROTONFIXES_DISABLE=1
 	# export PROTON_NO_NTSYNC=0
 	# export PROTON_NO_ESYNC=0
 	# export PROTON_NO_FSYNC=0
-	export PROTON_FORCE_LARGE_ADDRESS_AWARE=1
-	export PROTON_USE_STEAM_STUB=0
 	# export WINEDLLOVERRIDES=""
 
 	# DXVK/VKD3D
 	# export DXVK_ASYNC=1
-	export DXVK_STATE_CACHE_PATH="$WINE_PREFIX"
-	# export VKD3D_CONFIG=dxr # Enable ray tracing
-
-	# GPU optimizations
+	# export VKD3D_CONFIG=dxr
+	# export DXVK_FRAME_RATE=120
 	export RADV_PERFTEST=gpl
-	# export mesa_glthread=true
+	export DXVK_STATE_CACHE_PATH="$WINE_PREFIX"
 
 	# MangoHud Configuration
 	export MANGOHUD=1
