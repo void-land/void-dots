@@ -1,4 +1,5 @@
-abbr startx "exec /usr/lib/plasma-dbus-run-session-if-needed /usr/bin/startplasma-wayland"
+abbr startk "exec /usr/lib/plasma-dbus-run-session-if-needed /usr/bin/startplasma-wayland"
+abbr starth "exec dbus-run-session Hyprland"
 
 abbr jar "java -jar"
 
