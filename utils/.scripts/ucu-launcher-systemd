@@ -143,9 +143,9 @@ setup_environment() {
 
 	# DXVK/VKD3D
 	# export DXVK_ASYNC=1
-	# export VKD3D_CONFIG=dxr
 	# export DXVK_FRAME_RATE=120
-	export RADV_PERFTEST=gpl
+	# export VKD3D_CONFIG=dxr
+	# export RADV_PERFTEST=gpl
 	export DXVK_STATE_CACHE_PATH="$WINE_PREFIX"
 
 	# MangoHud Configuration
@@ -154,7 +154,7 @@ setup_environment() {
 	# export MANGOHUD_CONFIG="full,vsync=1,fps_limit=120,fps_limit_method=early,font_size=16,font_scale=1.0"
 
 	# Proton logging
-	export PROTON_LOG=1
+	export PROTON_LOG=0
 	export WINEDEBUG="fixme,err"
 	export PROTON_LOG_DIR="$GAME_DIR"
 
