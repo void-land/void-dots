@@ -124,6 +124,7 @@ setup_environment() {
 	export WINEPREFIX="$WINE_PREFIX"
 	export STEAM_COMPAT_APP_ID="$STEAM_APP_ID"
 	export UMU_RUNTIME_UPDATE=0
+	export PROTON_USE_STEAM_STUB=0
 
 	# ProtonGe ^10 optimizations
 	export PROTON_FORCE_LARGE_ADDRESS_AWARE=1
