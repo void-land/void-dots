@@ -1,15 +1,17 @@
 #!/bin/bash
 
 declare -A DNS=(
-	["Shelter First"]="78.157.34.245,10.30.72.24"
-	["Shelter Second"]="78.157.32.196,78.157.44.131"
+	["Shecan"]="178.22.122.101,185.51.200.1"
 )
 
 DOMAINS=(
+	"chatgpt.com"
+	"claude.ai"
+	"cdnjs.com"
+	"cdnjs.cloudflare.com"
 	"store.steampowered.com"
 	"epicgames.com"
 	"callofduty.com"
-	"ea.com"
 )
 
 query_dns() {
