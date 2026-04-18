@@ -12,11 +12,11 @@ GAME_NAME="My Game"
 GAME_DIR="$HOME/Games/game-folder"
 GAME_EXE="$GAME_DIR/game.exe"
 WINE_PREFIX="$HOME/Games/umu-shared"
-LOG_FILE="$GAME_DIR/game.log"
+LOG_FILE="$GAME_DIR/steam-default.log"
 
 # UMU Settings
 GAMEID="umu-default"
-PROTONPATH="$HOME/.local/share/Steam/compatibilitytools.d/Proton-GE Latest"
+PROTONPATH="$HOME/.local/share/Steam/compatibilitytools.d/GE-Proton10-33"
 STEAM_APP_ID="0"
 GAME_ARGS=""
 
@@ -34,17 +34,14 @@ NC='\033[0m'
 
 log() {
 	echo -e "${GREEN}[$(date '+%H:%M:%S')]${NC} $1"
-	echo "[$(date '+%Y-%m-%d %H:%M:%S')] $1" >>"$LOG_FILE"
 }
 
 error() {
 	echo -e "${RED}[ERROR]${NC} $1"
-	echo "[ERROR] $1" >>"$LOG_FILE"
 }
 
 warn() {
 	echo -e "${YELLOW}[WARN]${NC} $1"
-	echo "[WARN] $1" >>"$LOG_FILE"
 }
 
 info() {
@@ -86,28 +83,26 @@ trap cleanup SIGINT SIGTERM SIGHUP EXIT
 validate() {
 	log "Validating environment..."
 
-	# Check systemd
 	if ! command -v systemctl &>/dev/null; then
 		error "systemctl not found. This script requires systemd."
 		exit 1
 	fi
 
-	# Check umu-run
 	if ! command -v umu-run &>/dev/null; then
 		error "umu-run not found. Install: pacman -S umu-launcher"
 		exit 1
 	fi
 
-	# Check game executable
 	if [ ! -f "$GAME_EXE" ]; then
 		error "Game executable not found: $GAME_EXE"
 		exit 1
 	fi
 
-	# Create directories
-	mkdir -p "$GAME_DIR" "$(dirname "$LOG_FILE")" 2>/dev/null
+	if [ ! -d "$PROTONPATH" ]; then
+		error "Proton not found at: $PROTONPATH"
+		exit 1
+	fi
 
-	# Check GameMode
 	if command -v gamemoderun &>/dev/null; then
 		info "GameMode: Available"
 		PROTON_GAMEMODE=1
@@ -131,7 +126,6 @@ setup_environment() {
 	export UMU_RUNTIME_UPDATE=0
 
 	# ProtonGe ^10 optimizations
-	export PROTON_USE_STEAM_STUB=0
 	export PROTON_FORCE_LARGE_ADDRESS_AWARE=1
 	export PROTON_ENABLE_WAYLAND=1
 	export PROTON_USE_NTSYNC=1
@@ -144,8 +138,8 @@ setup_environment() {
 	# DXVK/VKD3D
 	# export DXVK_ASYNC=1
 	# export DXVK_FRAME_RATE=120
-	# export VKD3D_CONFIG=dxr
 	# export RADV_PERFTEST=gpl
+	# export VKD3D_CONFIG=dxr
 	export DXVK_STATE_CACHE_PATH="$WINE_PREFIX"
 
 	# MangoHud Configuration
@@ -153,10 +147,10 @@ setup_environment() {
 	export MANGOHUD_CONFIG="full,vsync=1,font_size=16,font_scale=1.0"
 	# export MANGOHUD_CONFIG="full,vsync=1,fps_limit=120,fps_limit_method=early,font_size=16,font_scale=1.0"
 
-	# Proton logging
+	# Wine + Proton logging
 	export PROTON_LOG=0
-	export WINEDEBUG="fixme,err"
 	export PROTON_LOG_DIR="$GAME_DIR"
+	# export WINEDEBUG="+warn,+err"
 
 	# GameMode
 	export PROTON_GAMEMODE=1
@@ -169,14 +163,18 @@ launch_game() {
 	log "=========================================="
 	log "  Launching: $GAME_NAME"
 	log "=========================================="
+	log "Systemd Unit: $SYSTEMD_UNIT.scope"
 	log "Executable: $GAME_EXE"
 	log "Prefix: $WINE_PREFIX"
 	log "Proton: $PROTONPATH"
-	log "Systemd Unit: $SYSTEMD_UNIT.scope"
+	if [ $PROTON_LOG -eq 1 ]; then
+		log "Full log: $LOG_FILE"
+	fi
 	log "=========================================="
 
-	# Build command
+	# Build commands
 	local CMD="umu-run \"$GAME_EXE\" $GAME_ARGS"
+
 	if [ "$PROTON_GAMEMODE" -eq 1 ]; then
 		CMD="gamemoderun $CMD"
 		log "Launching with GameMode..."
@@ -190,7 +188,7 @@ launch_game() {
 		--description="UMU Game: $GAME_NAME" \
 		--property=KillMode=control-group \
 		--collect \
-		bash -c "$CMD" 2>&1 | tee -a "$LOG_FILE"
+		bash -c "$CMD"
 
 	GAME_EXIT_CODE=${PIPESTATUS[0]}
 
@@ -202,8 +200,11 @@ launch_game() {
 		error "  - err:seh:NtRaiseException (crash/exception)"
 		error "  - err:module:import_dll (missing DLLs)"
 		error "  - fixme:d3d/fixme:dxgi (graphics issues)"
-		log "Full log saved to: $LOG_FILE"
+		if [ $PROTON_LOG -eq 1 ]; then
+			log "Full log saved to: $LOG_FILE"
+		fi
 	fi
+
 	log "=========================================="
 
 	return $GAME_EXIT_CODE
