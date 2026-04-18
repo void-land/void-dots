@@ -5,10 +5,12 @@ declare -A DNS=(
 )
 
 DOMAINS=(
-	"chatgpt.com"
 	"claude.ai"
+	"chatgpt.com"
+	"github.com"
 	"cdnjs.com"
 	"cdnjs.cloudflare.com"
+	"google.com"
 	"store.steampowered.com"
 	"epicgames.com"
 	"callofduty.com"
