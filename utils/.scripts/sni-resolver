@@ -5,15 +5,22 @@ declare -A DNS=(
 )
 
 DOMAINS=(
+	"shecan.ir"
+	"google.com"
 	"claude.ai"
 	"chatgpt.com"
 	"github.com"
 	"cdnjs.com"
+	"microsoft.com"
 	"cdnjs.cloudflare.com"
-	"google.com"
-	"store.steampowered.com"
+
+	"spotify.com"
+	"steampowered.com"
 	"epicgames.com"
 	"callofduty.com"
+	"playstation.com"
+	"xbox.com"
+	"gog.com"
 )
 
 query_dns() {
