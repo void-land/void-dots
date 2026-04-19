@@ -5,11 +5,14 @@ abbr jar "java -jar"
 
 abbr static "ldd ./"
 
+abbr axel "axel -n 32"
 abbr pg "ping -c 10 -i 0.002 -v 8.8.8.8"
 abbr pgr "ping -c 100 -i 0.002 -v 8.8.8.8"
-abbr pgi "ping -c 100 -i 0.002 -v 2.189.44.44"
+abbr pgi "ping -c 100 -i 0.002 -v digikala.com"
 abbr dip "dig +short myip.opendns.com @resolver1.opendns.com -4"
 abbr dg "dig google.com"
+abbr mtru "mtr --udp -P 53"
+abbr mtrt "mtr --tcp -P 443"
 
 abbr fkill "pkill -f"
 abbr pkill "pkill -9"
@@ -27,8 +30,6 @@ abbr rmfa "rm -fv *"
 abbr rmd "rm -rfv"
 abbr rma "rm -rfv *"
 abbr ins "grep -E 'sse3|sse4|avx|avx2' /proc/cpuinfo"
-
-abbr axel "axel -n 32"
 
 abbr sshkey "ssh-keygen -t rsa -b 4096 -C 'hesam.init@gmail.com'"
 abbr kssh "kitty +kitten ssh -o TCPKeepAlive=yes -o ServerAliveInterval=30"
