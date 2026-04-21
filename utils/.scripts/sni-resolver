@@ -11,14 +11,21 @@ DOMAINS=(
 	"chatgpt.com"
 	"github.com"
 	"cdnjs.com"
-	"microsoft.com"
 	"cdnjs.cloudflare.com"
+	"challenges.cloudflare.com"
+	"microsoft.com"
+	"vercel.com"
+	"deepseek.com"
+	"nextjs.org"
+	"speedtest.org"
+	"askubuntu.com"
 
 	"spotify.com"
+	"callofduty.com"
 	"steampowered.com"
 	"epicgames.com"
-	"callofduty.com"
 	"playstation.com"
+	"nexusmods.com"
 	"xbox.com"
 	"gog.com"
 )
@@ -30,7 +37,7 @@ query_dns() {
 	for ip in "${IP_ARRAY[@]}"; do
 		ip=$(echo "$ip" | xargs) # Trim whitespace
 		echo -e "\n═══ $name: ($ip) ═══"
-		parallel --keep-order --tag "dig +short @$ip {} A | head -1" ::: "${DOMAINS[@]}" | column -t -s $'\t'
+		parallel --keep-order --tag "dig +tcp +short @$ip {} A | head -1" ::: "${DOMAINS[@]}" | column -t -s $'\t'
 	done
 }
 
