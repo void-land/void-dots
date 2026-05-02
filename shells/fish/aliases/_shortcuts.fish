@@ -1,18 +1,23 @@
 abbr startk "exec /usr/lib/plasma-dbus-run-session-if-needed /usr/bin/startplasma-wayland"
-abbr starth "exec dbus-run-session Hyprland"
+abbr starth "exec dbus-run-session start-hyprland"
 
 abbr jar "java -jar"
 
 abbr static "ldd ./"
 
 abbr axel "axel -n 32"
+
+abbr dg "dig google.com"
+abbr dip "dig +short myip.opendns.com @resolver1.opendns.com -4"
+
 abbr pg "ping -c 10 -i 0.002 -v 8.8.8.8"
 abbr pgr "ping -c 100 -i 0.002 -v 8.8.8.8"
 abbr pgi "ping -c 100 -i 0.002 -v digikala.com"
-abbr dip "dig +short myip.opendns.com @resolver1.opendns.com -4"
-abbr dg "dig google.com"
+
 abbr mtru "mtr --udp -P 53"
 abbr mtrt "mtr --tcp -P 443"
+abbr trt "sudo traceroute --tcp --port=443"
+abbr tru "sudo traceroute --udp --port=53"
 
 abbr fkill "pkill -f"
 abbr pkill "pkill -9"
