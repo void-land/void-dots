@@ -79,7 +79,6 @@ cleanup() {
 
 trap cleanup SIGINT SIGTERM SIGHUP EXIT
 
-# Validation
 validate() {
 	log "Validating environment..."
 
@@ -114,7 +113,6 @@ validate() {
 	log "Validation complete"
 }
 
-# Environment setup
 setup_environment() {
 	log "Configuring environment..."
 
@@ -159,7 +157,17 @@ setup_environment() {
 	log "Environment configured"
 }
 
-# Launch game
+change_to_game_dir() {
+	log "Changing to game directory..."
+	
+	if ! cd "$GAME_DIR"; then
+		error "Failed to change directory to: $GAME_DIR"
+		exit 1
+	fi
+	
+	info "Working directory: $(pwd)"
+}
+
 launch_game() {
 	log "=========================================="
 	log "  Launching: $GAME_NAME"
@@ -211,7 +219,6 @@ launch_game() {
 	return $GAME_EXIT_CODE
 }
 
-# Main
 main() {
 	clear
 	echo "=========================================="
@@ -222,6 +229,7 @@ main() {
 
 	validate
 	setup_environment
+	change_to_game_dir
 	launch_game
 }
 
