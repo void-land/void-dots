@@ -1,126 +1,131 @@
 #!/bin/bash
 
 # ─────────────────────────────────────────────
-#  DNS Switcher — with chattr lock/unlock support
+#  DNS Switcher
 # ─────────────────────────────────────────────
 
 declare -A DNS_SERVERS=(
-    ["Shecan"]="178.22.122.100,185.51.200.2"
-    ["Shecan Pro"]="178.22.122.101,185.51.200.1"
-    ["Begzar"]="185.55.226.26,185.55.225.25"
+    ["LOCAL"]="127.0.0.1"
     ["MCI"]="10.185.68.113,10.185.68.114"
-    ["Google"]="8.8.8.8,8.8.4.4"
-    ["Cloudflare"]="1.1.1.1"
+    ["SHECAN"]="178.22.122.100,185.51.200.2"
+    ["SHECAN PRO"]="178.22.122.100,185.51.200.2"
+    ["GOOGLE"]="8.8.8.8,8.8.4.4"
+    ["CF"]="1.1.1.1"
 )
 
 RESOLV_CONF="/etc/resolv.conf"
 
 # ─────────────────────────────────────────────
-#  Display
+#  Helpers
+# ─────────────────────────────────────────────
+
+info()    { echo "[*] $*"; }
+success() { echo "[✓] $*"; }
+warn()    { echo "[!] $*" >&2; }
+die()     { echo "[✗] $*" >&2; exit 1; }
+
+require_root() {
+    [[ $EUID -eq 0 ]] && return
+    info "Re-launching with root privileges..."
+    exec sudo bash "$0" "$@"
+}
+
+# ─────────────────────────────────────────────
+#  Display & Selection
 # ─────────────────────────────────────────────
 
 display_dns_list() {
-    echo "Available DNS Servers:"
+    echo -e "\n  Available DNS Servers"
+    echo "  ──────────────────────────────────────"
     local i=1
-    for dns_name in "${!DNS_SERVERS[@]}"; do
-        echo "  $i. $dns_name (${DNS_SERVERS[$dns_name]})"
+    for name in "${!DNS_SERVERS[@]}"; do
+        printf "  %2d.  %-14s  %s\n" "$i" "$name" "${DNS_SERVERS[$name]}"
         ((i++))
     done
+    echo -e "  ──────────────────────────────────────\n"
 }
 
-# ─────────────────────────────────────────────
-#  Selection
-# ─────────────────────────────────────────────
-
-get_dns_name_by_index() {
-    local target_index="$1"
-    local i=1
-    for dns_name in "${!DNS_SERVERS[@]}"; do
-        if ((i == target_index)); then
-            echo "$dns_name"
-            return 0
-        fi
-        ((i++))
+get_name_by_index() {
+    local idx=1
+    for name in "${!DNS_SERVERS[@]}"; do
+        ((idx++ == $1)) && echo "$name" && return 0
     done
-    return 1
-}
-
-validate_selection() {
-    local input="$1"
-
-    if [[ $input =~ ^[0-9]+$ ]]; then
-        get_dns_name_by_index "$input"
-        return $?
-    fi
-
-    if [[ -n "${DNS_SERVERS[$input]}" ]]; then
-        echo "$input"
-        return 0
-    fi
-
     return 1
 }
 
 select_dns() {
-    local input selected_name
-
+    local input name
     while true; do
-        read -rp "Select a DNS server (name or number): " input
-        selected_name=$(validate_selection "$input")
-
-        if [[ $? -eq 0 && -n "$selected_name" ]]; then
-            echo "$selected_name"
-            return 0
+        read -rp "  Select DNS (name or number): " input
+        if [[ $input =~ ^[0-9]+$ ]]; then
+            name=$(get_name_by_index "$input")
+        elif [[ -n "${DNS_SERVERS[$input]}" ]]; then
+            name="$input"
         fi
-
-        echo "Invalid selection. Please try again." >&2
+        [[ -n "$name" ]] && echo "$name" && return
+        warn "Invalid selection, try again."
+        name=""
     done
 }
 
 # ─────────────────────────────────────────────
-#  File lock / unlock
+#  resolv.conf management
 # ─────────────────────────────────────────────
 
-is_file_immutable() {
-    lsattr "$RESOLV_CONF" 2>/dev/null | grep -q '\-i\-'
+is_immutable() {
+    lsattr "$RESOLV_CONF" 2>/dev/null | awk '{print $1}' | grep -q 'i'
 }
 
-unlock_resolv_conf() {
-    if is_file_immutable; then
-        echo "Unlocking $RESOLV_CONF (removing immutable flag)..."
-        sudo chattr -i "$RESOLV_CONF"
+prepare_resolv_conf() {
+    # Remove symlink or create missing file — ensure it's a real plain file
+    if [[ -L "$RESOLV_CONF" ]]; then
+        info "$RESOLV_CONF is a symlink — replacing with a real file..."
+        rm -f "$RESOLV_CONF"
     fi
+
+    if [[ ! -f "$RESOLV_CONF" ]]; then
+        info "$RESOLV_CONF not found — creating..."
+        touch "$RESOLV_CONF" || die "Cannot create $RESOLV_CONF."
+    fi
+
+    is_immutable && { info "Unlocking $RESOLV_CONF..."; chattr -i "$RESOLV_CONF" || die "Failed to unlock."; }
+}
+
+write_resolv_conf() {
+    local name="$1" ips="$2"
+    {
+        echo "# dns-switcher — profile: $name"
+        echo "# updated: $(date '+%Y-%m-%d %H:%M:%S')"
+        echo ""
+        echo "search ."
+        echo ""
+        IFS=',' read -ra arr <<< "$ips"
+        printf "nameserver %s\n" "${arr[@]}"
+    } > "$RESOLV_CONF" || die "Failed to write $RESOLV_CONF."
 }
 
 lock_resolv_conf() {
-    echo "Locking $RESOLV_CONF (setting immutable flag)..."
-    sudo chattr +i "$RESOLV_CONF"
+    chattr +i "$RESOLV_CONF" || die "Failed to lock $RESOLV_CONF."
+    info "Locked $RESOLV_CONF."
 }
 
 # ─────────────────────────────────────────────
-#  Write DNS
+#  Apply
 # ─────────────────────────────────────────────
-
-write_dns_entries() {
-    local dns_string="$1"
-
-    sudo bash -c "echo '' > $RESOLV_CONF"
-
-    IFS=',' read -ra dns_array <<< "$dns_string"
-    for dns in "${dns_array[@]}"; do
-        echo "nameserver $dns" | sudo tee -a "$RESOLV_CONF" > /dev/null
-    done
-}
 
 apply_dns() {
-    local selected_name="$1"
-    local dns_string="${DNS_SERVERS[$selected_name]}"
+    local name="$1" ips="${DNS_SERVERS[$1]}"
 
-    unlock_resolv_conf
-    write_dns_entries "$dns_string"
+    prepare_resolv_conf
+    write_resolv_conf "$name" "$ips"
     lock_resolv_conf
 
-    echo "Done. Applied DNS servers for '$selected_name': $dns_string"
+    echo ""
+    success "Applied '$name' → $ips"
+    echo -e "\n  $RESOLV_CONF now contains:"
+    echo "  ──────────────────────────────────────"
+    sed 's/^/  /' "$RESOLV_CONF"
+    echo -e "  ──────────────────────────────────────\n"
 }
 
 # ─────────────────────────────────────────────
@@ -128,10 +133,9 @@ apply_dns() {
 # ─────────────────────────────────────────────
 
 main() {
+    require_root
     display_dns_list
-    local selected_name
-    selected_name=$(select_dns)
-    apply_dns "$selected_name"
+    apply_dns "$(select_dns)"
 }
 
 main
