@@ -1,7 +1,8 @@
 #!/bin/bash
 
 declare -A DNS=(
-	["Shecan"]="178.22.122.101,185.51.200.1"
+	["SHECAN PRO"]="178.22.122.101,185.51.200.1"
+	["FIRE OPS"]="78.158.166.131,78.158.166.132"
 )
 
 DOMAINS=(
@@ -23,7 +24,7 @@ DOMAINS=(
 
 	"spotify.com"
 	"callofduty.com"
-	"steampowered.com"
+	"store.steampowered.com"
 	"epicgames.com"
 	"playstation.com"
 	"nexusmods.com"
@@ -38,7 +39,7 @@ query_dns() {
 	for ip in "${IP_ARRAY[@]}"; do
 		ip=$(echo "$ip" | xargs) # Trim whitespace
 		echo -e "\n═══ $name: ($ip) ═══"
-		parallel --keep-order --tag "dig +tcp +short @$ip {} A | head -1" ::: "${DOMAINS[@]}" | column -t -s $'\t'
+		parallel --keep-order --tag "dig +udp +short @$ip {} A | head -1" ::: "${DOMAINS[@]}" | column -t -s $'\t'
 	done
 }
 
