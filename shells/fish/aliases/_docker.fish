@@ -1,5 +1,5 @@
 # Core Docker Commands
-abbr dk 'docker'
+abbr dk docker
 abbr dkb 'docker build'
 abbr dke 'docker exec'
 abbr dkei 'docker exec -it'
@@ -59,3 +59,4 @@ abbr dkNrm 'docker network rm'
 abbr dkdf 'docker system df'
 abbr dkpr 'docker system prune'
 abbr dkpra 'docker system prune -a'
+abbr dkbpra 'docker builder prune -a'
