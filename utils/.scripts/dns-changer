@@ -77,7 +77,6 @@ is_immutable() {
 }
 
 prepare_resolv_conf() {
-    # Remove symlink or create missing file — ensure it's a real plain file
     if [[ -L "$RESOLV_CONF" ]]; then
         info "$RESOLV_CONF is a symlink — replacing with a real file..."
         rm -f "$RESOLV_CONF"
@@ -110,18 +109,71 @@ lock_resolv_conf() {
 }
 
 # ─────────────────────────────────────────────
+#  nmcli — detect active connection
+# ─────────────────────────────────────────────
+
+get_active_connection() {
+    # Returns the name of the first active non-loopback nmcli connection
+    nmcli -t -f NAME,TYPE,STATE connection show --active \
+        | grep -v ':loopback:' \
+        | awk -F: '$3 == "activated" { print $1; exit }'
+}
+
+apply_nmcli_dns() {
+    local conn="$1" ips="$2"
+
+    # Convert comma-separated IPs to space-separated for nmcli
+    local nmcli_dns
+    nmcli_dns=$(echo "$ips" | tr ',' ' ')
+
+    if ! command -v nmcli &>/dev/null; then
+        warn "nmcli not found — skipping NetworkManager update."
+        return 0
+    fi
+
+    if [[ -z "$conn" ]]; then
+        warn "No active NetworkManager connection found — skipping nmcli update."
+        return 0
+    fi
+
+    info "Applying DNS to NetworkManager connection: '$conn'..."
+
+    nmcli connection modify "$conn" ipv4.dns "$nmcli_dns" \
+        || die "nmcli: failed to set DNS on '$conn'."
+
+    # Ensure NM doesn't override DNS from DHCP
+    nmcli connection modify "$conn" ipv4.ignore-auto-dns yes \
+        || warn "nmcli: could not set ignore-auto-dns (non-fatal)."
+
+    info "Restarting connection '$conn'..."
+    nmcli connection down "$conn" \
+        || warn "nmcli: failed to bring down '$conn' (may already be down)."
+    nmcli connection up "$conn" \
+        || die "nmcli: failed to bring up '$conn'."
+
+    success "NetworkManager updated and connection restarted."
+}
+
+# ─────────────────────────────────────────────
 #  Apply
 # ─────────────────────────────────────────────
 
 apply_dns() {
     local name="$1" ips="${DNS_SERVERS[$1]}"
 
+    # ── resolv.conf ──
     prepare_resolv_conf
     write_resolv_conf "$name" "$ips"
     lock_resolv_conf
 
+    # ── nmcli ──
+    local conn
+    conn=$(get_active_connection)
+    apply_nmcli_dns "$conn" "$ips"
+
     echo ""
     success "Applied '$name' → $ips"
+    [[ -n "$conn" ]] && success "Interface '$conn' updated and restarted."
     echo -e "\n  $RESOLV_CONF now contains:"
     echo "  ──────────────────────────────────────"
     sed 's/^/  /' "$RESOLV_CONF"

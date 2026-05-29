@@ -40,7 +40,8 @@ DEFAULT_EDNS=false
 DEFAULT_HTTP3=false
 DEFAULT_HOSTS_FILE_ENABLED=true
 DEFAULT_HOSTS_FILE="/etc/hosts"
-DEFAULT_BOOTSTRAP="8.8.8.8:53|1.1.1.1:53"
+# DEFAULT_BOOTSTRAP="8.8.8.8:53|1.1.1.1:53"
+DEFAULT_BOOTSTRAP=""
 
 # ─────────────────────────────────────────────
 #  Helpers
@@ -179,9 +180,6 @@ listen-addrs:
   - "0.0.0.0"
 listen-ports:
   - 53
-
-bootstrap:
-$(bootstrap_yaml)
 
 upstream:
 $(upstreams_yaml "$upstreams")
