@@ -17,7 +17,8 @@ DNSPROXY_SERVICE="dnsproxy"
 declare -A DNS_PROFILES=(
     ["LOCAL"]="udp://127.0.0.1:53"
     ["MCI"]="udp://10.185.68.114:53|udp://10.185.68.113:53"
-    ["SHECAN"]="tcp://178.22.122.101:53|tcp://185.51.200.1:53"
+    ["SHECAN"]="udp://178.22.122.101:53|udp://185.51.200.1:53"
+    ["FIREOPS"]="udp://78.158.166.131:53|udp://78.158.166.132:53"
     ["RADAR"]="udp://78.158.166.131:53|udp://78.158.166.132:53"
     ["JOINDNS4"]="https://unfiltered.joindns4.eu/dns-query"
     ["GOOGLE"]="udp://8.8.8.8:53|udp://8.8.4.4:53"
@@ -202,6 +203,7 @@ udp-buf-size: ${DEFAULT_UDP_BUF_SIZE}
 hosts-file-enabled: ${DEFAULT_HOSTS_FILE_ENABLED}
 hosts-files:
   - "${DEFAULT_HOSTS_FILE}"
+  # - "/etc/hosts.adsblocker"
 
 # output: "/var/log/dnsproxy.log"
 EOF
