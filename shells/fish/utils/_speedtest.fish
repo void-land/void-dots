@@ -61,7 +61,7 @@ function speedtest-fish --description 'Download a file from a given URL with an 
     end
 end
 
-set FILE_URL "http://dl2.steamdl.ir/download_test/200MB.bin"
+set FILE_URL "http://dl.steamdl.ir/download_test/200MB.bin"
 
 abbr ir "speedtest-fish RAM AXEL $FILE_URL"
 abbr irwget "speedtest-fish RAM WGET $FILE_URL"

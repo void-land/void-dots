@@ -19,6 +19,7 @@ declare -A DNS_PROFILES=(
     ["MCI"]="udp://10.185.68.114:53|udp://10.185.68.113:53"
     ["IRANCELL"]="udp://10.255.255.254:53|udp://10.10.10.10:53"
     ["SHECAN"]="udp://178.22.122.101:53|udp://185.51.200.1:53"
+    ["STEAMDL"]="udp://88.218.16.124:53"
     ["FIREOPS"]="udp://78.158.166.131:53|udp://78.158.166.132:53"
     ["RADAR"]="udp://78.158.166.131:53|udp://78.158.166.132:53"
     ["JOINDNS4"]="https://unfiltered.joindns4.eu/dns-query"
