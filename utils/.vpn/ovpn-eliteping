@@ -1,0 +1,8 @@
+#!/usr/bin/env bash
+source $HOME/.vpn/ovpn-lib.sh
+
+VPN_CONFIG_DIR="$HOME/.vpn/ovpn-servers/eliteping"
+VPN_AUTH_FILE="$HOME/.vpn/ovpn-servers/eliteping.auth"
+VPN_EXTRA_ARGS="--verb 3"
+
+vpn_connect_interactive
