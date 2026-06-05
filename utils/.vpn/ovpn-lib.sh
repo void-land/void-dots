@@ -3,11 +3,11 @@
 # Source this file; do not execute it directly.
 #
 # Usage:
-#   source /path/to/vpn-lib.sh
+#   source /path/to/ovpn-lib.sh
 #
 # Optional environment variables (set before sourcing or before calling functions):
 #   VPN_CONFIG_DIR   — directory containing .ovpn files
-#                      (default: $HOME/.scripts/ovpn-servers)
+#                      (default: $HOME/.scripts/ovpn-vpnbaz-servers)
 #   VPN_USER         — OpenVPN username            (used for inline auth)
 #   VPN_PASSWORD     — OpenVPN password            (used for inline auth)
 #   VPN_AUTH_FILE    — path to an existing auth file (user on line 1, pass on line 2)
@@ -114,7 +114,7 @@ vpn_select_config() {
 # ---------------------------------------------------------------------------
 _vpn_resolve_auth_file() {
     # 1. Caller supplied an explicit auth file — use it as-is.
-    if [[ -n "$VPN_AUTH_FILE" ]]; then
+    if [[ -n "${VPN_AUTH_FILE:-}" ]]; then
         if [[ ! -f "$VPN_AUTH_FILE" ]]; then
             echo "ERROR: VPN_AUTH_FILE not found: $VPN_AUTH_FILE" >&2
             return 1
@@ -124,7 +124,7 @@ _vpn_resolve_auth_file() {
     fi
 
     # 2. Inline credentials — write a temporary file.
-    if [[ -z "$VPN_USER" || -z "$VPN_PASSWORD" ]]; then
+    if [[ -z "${VPN_USER:-}" || -z "${VPN_PASSWORD:-}" ]]; then
         echo "ERROR: Set VPN_AUTH_FILE, or both VPN_USER and VPN_PASSWORD." >&2
         return 1
     fi
