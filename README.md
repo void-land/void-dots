@@ -9,8 +9,8 @@ Modern dotfiles configuration for any Linux distribution. This repository contai
 Clone the repository with shallow history to save bandwidth and disk space :
 
 ```bash
-git clone --depth 1 https://github.com/void-land/void-dots.git ~/.dotfiles
-cd ~/.dotfiles
+git clone https://github.com/void-land/void-dots.git ~/.void-dots --depth 1
+cd ~/.void-dots
 ```
 
 The `--depth 1` flag fetches only the latest commit, significantly reducing clone time and repository size.
@@ -23,7 +23,7 @@ Execute the stow script to create symbolic links :
 ./stow.sh
 ```
 
-This script automatically symlinks the configuration files from `~/.dotfiles` to their appropriate locations in the home directory. The actual files remain in the repository while appearing in the expected locations through symlinks.
+This script automatically symlinks the configuration files from `~/.void-dots` to their appropriate locations in the home directory. The actual files remain in the repository while appearing in the expected locations through symlinks.
 
 ## Removing Symlinks
 
