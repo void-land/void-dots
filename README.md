@@ -33,6 +33,29 @@ To remove all symlinks created by stow :
 stow -u
 ```
 
+## Updating / Pulling Changes
+
+To pull the latest updates:
+
+```bash
+git pull
+```
+
+If you receive an error about local changes being overwritten (e.g., `shells/fish/fish_variables`), you can stash your changes, pull, and then apply them back:
+
+```bash
+git stash
+git pull
+git stash pop
+```
+
+Alternatively, to discard local changes and reset a specific file:
+
+```bash
+git checkout -- shells/fish/fish_variables
+git pull
+```
+
 ## Notes
 
 Backup existing configuration files before running stow to avoid conflicts. If stow reports that target files already exist, remove or rename them before proceeding.
