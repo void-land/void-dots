@@ -15,6 +15,7 @@ DNSPROXY_SERVICE="dnsproxy"
 # ─────────────────────────────────────────────
 
 declare -A DNS_PROFILES=(
+    ["JOINDNS4"]="https://unfiltered.joindns4.eu/dns-query"
     ["LOCAL"]="udp://127.0.0.1:53"
     ["MCI"]="udp://10.185.68.114:53|udp://10.185.68.113:53"
     ["IRANCELL"]="udp://10.255.255.254:53|udp://10.10.10.10:53"
@@ -22,7 +23,6 @@ declare -A DNS_PROFILES=(
     ["STEAMDL"]="udp://88.218.16.124:53"
     ["FIREOPS"]="udp://78.158.166.131:53|udp://78.158.166.132:53"
     ["RADAR"]="udp://78.158.166.131:53|udp://78.158.166.132:53"
-    ["JOINDNS4"]="https://unfiltered.joindns4.eu/dns-query"
     ["GOOGLE"]="udp://8.8.8.8:53|udp://8.8.4.4:53"
     ["CLOUDFLARE"]="udp://1.1.1.1:53|udp://1.0.0.1:53"
 )
