@@ -32,6 +32,18 @@ bind -n M-j select-pane -D  # move down
 bind -n M-k select-pane -U  # move up
 bind -n M-l select-pane -R  # move right
 
+# Swap panes using Alt + Shift + Arrow keys
+bind -n M-S-Left  swap-pane -s '{left-of}'
+bind -n M-S-Right swap-pane -s '{right-of}'
+bind -n M-S-Up    swap-pane -s '{up-of}'
+bind -n M-S-Down  swap-pane -s '{down-of}'
+
+# Swap panes using Alt + Shift + HJKL keys
+bind -n M-H swap-pane -s '{left-of}'
+bind -n M-J swap-pane -s '{down-of}'
+bind -n M-K swap-pane -s '{up-of}'
+bind -n M-L swap-pane -s '{right-of}'
+
 bind -n M-s select-pane -t :.+
 
 bind -n M-PageUp   previous-window   # Alt + Page Up: Move to the previous window
