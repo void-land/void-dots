@@ -57,3 +57,6 @@ abbr miltaero "steam steam://millennium/settings/themes/enable/aerothemesteam"
 abbr milpdisdb "steam steam://millennium/settings/plugins/disable/steam-db"
 abbr milpdis "steam steam://millennium/settings/plugins/disable"
 abbr mildev "steam steam://millennium/settings/devtools/open"
+
+abbr dci "sudo chattr -i /etc/resolv.conf"
+abbr dcp "sudo chattr +i /etc/resolv.conf"
