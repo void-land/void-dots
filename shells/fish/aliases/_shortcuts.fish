@@ -48,3 +48,12 @@ abbr scode "SUDO_EDITOR='code -nw' sudo -e"
 abbr -a lip "ip -4 addr show (ip route get 1.1.1.1 | awk '{print \$5; exit}') | grep -oP '(?<=inet\s)\d+(\.\d+){3}'"
 
 abbr jellyfin "jellyfin --webdir /usr/share/jellyfin/web --datadir ~/.jellyfin"
+
+# Millennium Steam Links
+abbr mil "steam steam://millennium/settings"
+abbr milup "steam steam://millennium/settings/updates"
+abbr miltdefault "steam steam://millennium/settings/themes/disable"
+abbr miltaero "steam steam://millennium/settings/themes/enable/aerothemesteam"
+abbr milpdisdb "steam steam://millennium/settings/plugins/disable/steam-db"
+abbr milpdis "steam steam://millennium/settings/plugins/disable"
+abbr mildev "steam steam://millennium/settings/devtools/open"
