@@ -9,8 +9,8 @@
 
 # -- bindings ------------------------------------------------------------------
 
-bind -n M-n split-window -v \; select-layout -E
-bind -n M-m split-window -h \; select-layout -E
+bind -n M-n split-window -v
+bind -n M-m split-window -h
 bind -n M-c kill-pane
 bind -n M-e select-layout -E
 bind -n M-v select-layout even-vertical
