@@ -1,12 +1,11 @@
 function myip --description 'Retrieve IP information using ip-api.com'
-    set URL "https://api.myip.com/"
+    set URL "https://ifconfig.me/"
 
     check_command curl
-    check_command jq
 
     echo "Fetching IP information from $URL"
 
-    curl $URL -s | jq
+    curl $URL -s
 end
 
 function myinterfaces --description 'Display full details for physical, VPN, and tunnel network interfaces using nmcli'
