@@ -6,7 +6,6 @@ import = [
 
 live_config_reload = true
 
-
 [terminal]
 osc52 = "CopyPaste"
 
@@ -15,17 +14,16 @@ size = 12
 
 [window]
 dynamic_title = true
-blur = true
-opacity = 0.6
+blur = false
+opacity = 1
 dimensions = { columns = 90, lines = 30 }
 padding = { x = 16, y = 8 }
 startup_mode = "Windowed"
-decorations = "transparent"
+decorations = "Full"
 # dynamic_padding = true
 
 [cursor]
 style = { blinking = "Always", shape = "Beam" }
 
 [scrolling]
-history = 100000
-
+history = 10000

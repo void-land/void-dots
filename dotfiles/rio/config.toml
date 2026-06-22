@@ -1,0 +1,20 @@
+# Rio Terminal Configuration
+# Translated from Alacritty settings
+
+scrollback-history-limit = 10000
+
+[fonts]
+size = 16
+
+[window]
+opacity = 0.75
+blur = true
+columns = 90
+rows = 30
+padding = [8, 16]
+mode = "Windowed"
+decorations = "Enabled"
+
+[cursor]
+shape = "beam"
+blinking = true
