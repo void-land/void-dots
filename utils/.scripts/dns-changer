@@ -32,6 +32,32 @@ require_root() {
 }
 
 # ─────────────────────────────────────────────
+#  systemd-resolved conflict check
+# ─────────────────────────────────────────────
+
+check_resolved_conflict() {
+    systemctl is-active --quiet systemd-resolved || return 0
+
+    echo ""
+    echo "  ╔══════════════════════════════════════╗"
+    echo "  ║  ⚠  systemd-resolved is active!      ║"
+    echo "  ╚══════════════════════════════════════╝"
+    echo ""
+    warn "systemd-resolved is running and controls /etc/resolv.conf."
+    warn "It will override any changes this script makes."
+    echo ""
+    echo "  To fix this permanently, run:"
+    echo "    sudo systemctl disable --now systemd-resolved"
+    echo "    sudo systemctl stop systemd-resolved"
+    echo "    sudo systemctl mask systemd-resolved"
+    echo "    sudo pacman -Rns netctl"
+    echo ""
+    read -rp "  Continue anyway? [y/N]: " ans
+    [[ "${ans,,}" == "y" ]] || die "Aborted."
+    echo ""
+}
+
+# ─────────────────────────────────────────────
 #  Display & Selection
 # ─────────────────────────────────────────────
 
@@ -187,6 +213,7 @@ apply_dns() {
 
 main() {
     require_root
+    check_resolved_conflict
     display_dns_list
     apply_dns "$(select_dns)"
 }

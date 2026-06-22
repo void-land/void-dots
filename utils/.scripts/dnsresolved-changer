@@ -1,0 +1,222 @@
+#!/bin/bash
+
+# ─────────────────────────────────────────────
+#  DNS Switcher — systemd-resolved edition
+# ─────────────────────────────────────────────
+
+declare -A DNS_SERVERS=(
+    ["LOCAL"]="127.0.0.1"
+    ["MCI"]="10.185.68.113 10.185.68.114"
+    ["IRANCELL"]="10.255.255.254 10.10.10.10"
+    ["SHECAN"]="178.22.122.100 185.51.200.2"
+    ["SHECAN PRO"]="178.22.122.100 185.51.200.2"
+    ["GOOGLE"]="8.8.8.8 8.8.4.4"
+    ["CF"]="1.1.1.1 1.0.0.1"
+)
+
+RESOLVED_CONF="/etc/systemd/resolved.conf"
+RESOLV_CONF="/etc/resolv.conf"
+COMPAT_LINK="/run/systemd/resolve/resolv.conf"
+
+# Set to "yes" to symlink /etc/resolv.conf → resolved compat link.
+# Set to "no"  to leave /etc/resolv.conf untouched.
+USE_SYMLINK="yes"
+
+# ─────────────────────────────────────────────
+#  Helpers
+# ─────────────────────────────────────────────
+
+info()    { echo "[*] $*"; }
+success() { echo "[✓] $*"; }
+warn()    { echo "[!] $*" >&2; }
+die()     { echo "[✗] $*" >&2; exit 1; }
+
+require_root() {
+    [[ $EUID -eq 0 ]] && return
+    info "Re-launching with root privileges..."
+    exec sudo bash "$0" "$@"
+}
+
+check_resolved() {
+    if ! systemctl is-active --quiet systemd-resolved; then
+        warn "systemd-resolved is not running."
+        read -rp "  Start and enable it now? [Y/n]: " ans
+        [[ "${ans,,}" == "n" ]] && die "Cannot continue without systemd-resolved."
+        systemctl enable --now systemd-resolved \
+            || die "Failed to start systemd-resolved."
+        success "systemd-resolved started."
+    fi
+}
+
+# ─────────────────────────────────────────────
+#  Display & Selection
+# ─────────────────────────────────────────────
+
+display_dns_list() {
+    echo -e "\n  Available DNS Servers"
+    echo "  ──────────────────────────────────────"
+    local i=1
+    for name in "${!DNS_SERVERS[@]}"; do
+        printf "  %2d.  %-14s  %s\n" "$i" "$name" "${DNS_SERVERS[$name]}"
+        ((i++))
+    done
+    echo -e "  ──────────────────────────────────────\n"
+}
+
+get_name_by_index() {
+    local idx=1
+    for name in "${!DNS_SERVERS[@]}"; do
+        ((idx++ == $1)) && echo "$name" && return 0
+    done
+    return 1
+}
+
+select_dns() {
+    local input name
+    while true; do
+        read -rp "  Select DNS (name or number): " input
+        if [[ $input =~ ^[0-9]+$ ]]; then
+            name=$(get_name_by_index "$input")
+        elif [[ -n "${DNS_SERVERS[$input]}" ]]; then
+            name="$input"
+        fi
+        [[ -n "$name" ]] && echo "$name" && return
+        warn "Invalid selection, try again."
+        name=""
+    done
+}
+
+# ─────────────────────────────────────────────
+#  /etc/systemd/resolved.conf (main config)
+# ─────────────────────────────────────────────
+
+write_resolved_conf() {
+    local name="$1" dns="$2"
+
+    # Back up original once (only if no backup exists yet)
+    if [[ ! -f "${RESOLVED_CONF}.orig" ]]; then
+        cp "$RESOLVED_CONF" "${RESOLVED_CONF}.orig" \
+            && info "Backup saved: ${RESOLVED_CONF}.orig"
+    fi
+
+    {
+        echo "# dns-switcher — profile: $name"
+        echo "# updated: $(date '+%Y-%m-%d %H:%M:%S')"
+        echo "# original backed up at ${RESOLVED_CONF}.orig"
+        echo ""
+        echo "[Resolve]"
+        echo "DNS=$dns"
+        echo "FallbackDNS="
+        echo "Domains=~."
+        echo "DNSSEC=no"
+        echo "DNSOverTLS=no"
+        echo "Cache=no"
+        echo "DNSStubListener=no"
+        echo "ReadEtcHosts=yes"
+    } > "$RESOLVED_CONF" \
+        || die "Failed to write $RESOLVED_CONF."
+
+    success "Updated $RESOLVED_CONF"
+}
+
+# ─────────────────────────────────────────────
+#  /etc/resolv.conf symlink (optional)
+# ─────────────────────────────────────────────
+
+fix_symlink() {
+    [[ "$USE_SYMLINK" != "yes" ]] && {
+        info "Symlink disabled (USE_SYMLINK=no) — skipping."
+        return
+    }
+
+    # Unlock + remove plain file if present
+    if [[ -f "$RESOLV_CONF" && ! -L "$RESOLV_CONF" ]]; then
+        chattr -i "$RESOLV_CONF" 2>/dev/null
+        rm -f "$RESOLV_CONF" \
+            || die "Cannot remove existing $RESOLV_CONF."
+        info "Removed plain file $RESOLV_CONF."
+    elif [[ -L "$RESOLV_CONF" ]]; then
+        local current_target
+        current_target=$(readlink "$RESOLV_CONF")
+        if [[ "$current_target" == "$COMPAT_LINK" ]]; then
+            info "$RESOLV_CONF already points to compat link — OK."
+            return
+        fi
+        info "Removing stale symlink ($current_target)..."
+        rm -f "$RESOLV_CONF"
+    fi
+
+    ln -sf "$COMPAT_LINK" "$RESOLV_CONF" \
+        || die "Failed to create symlink."
+
+    success "Symlinked $RESOLV_CONF → $COMPAT_LINK"
+}
+
+# ─────────────────────────────────────────────
+#  Restart & verify
+# ─────────────────────────────────────────────
+
+restart_resolved() {
+    info "Restarting systemd-resolved..."
+    systemctl restart systemd-resolved \
+        || die "Failed to restart systemd-resolved."
+    sleep 0.5
+    success "systemd-resolved restarted."
+}
+
+show_status() {
+    echo ""
+    echo "  Active DNS configuration:"
+    echo "  ──────────────────────────────────────"
+    if command -v resolvectl &>/dev/null; then
+        resolvectl status --no-pager 2>/dev/null \
+            | grep -E '(DNS Servers|DNS Domain|Link|Current)' \
+            | sed 's/^/  /'
+    fi
+    echo ""
+    if [[ "$USE_SYMLINK" == "yes" ]]; then
+        echo "  $RESOLV_CONF → $(readlink "$RESOLV_CONF" 2>/dev/null || echo "(not a symlink)")"
+        echo ""
+    fi
+    echo "  $RESOLVED_CONF contents:"
+    echo "  ──────────────────────────────────────"
+    sed 's/^/  /' "$RESOLVED_CONF"
+    echo -e "  ──────────────────────────────────────\n"
+}
+
+# ─────────────────────────────────────────────
+#  Apply
+# ─────────────────────────────────────────────
+
+apply_dns() {
+    local name="$1" dns="${DNS_SERVERS[$1]}"
+
+    # 1. Edit main resolved.conf
+    write_resolved_conf "$name" "$dns"
+
+    # 2. Optionally symlink /etc/resolv.conf → stub
+    fix_symlink
+
+    # 3. Restart resolved to pick up new config
+    restart_resolved
+
+    # 4. Re-check symlink after restart
+    [[ "$USE_SYMLINK" == "yes" && ! -L "$RESOLV_CONF" ]] && fix_symlink
+
+    echo ""
+    success "Applied '$name' → $dns"
+    show_status
+}
+
+# ─────────────────────────────────────────────
+#  Main
+# ─────────────────────────────────────────────
+
+main() {
+    require_root
+    check_resolved
+    display_dns_list
+    apply_dns "$(select_dns)"
+}
+
+main
