@@ -15,8 +15,12 @@ DNSPROXY_SERVICE="dnsproxy"
 # ─────────────────────────────────────────────
 
 declare -A DNS_PROFILES=(
-    ["JOINDNS4"]="https://unfiltered.joindns4.eu/dns-query"
     ["LOCAL"]="udp://127.0.0.1:53"
+
+    ["QUAD9"]="udp://9.9.9.10:53|udp://149.112.112.10:53"
+    ["QUAD9-DOH"]="https://dns10.quad9.net/dns-query|https://dns.quad9.net/dns-query"
+    ["JOINDNS4"]="udp://86.54.11.100:53|udp://86.54.11.200:53"
+    ["JOINDNS4-DOH"]="https://unfiltered.joindns4.eu/dns-query"
     ["MCI"]="udp://10.185.68.114:53|udp://10.185.68.113:53"
     ["IRANCELL"]="udp://10.255.255.254:53|udp://10.10.10.10:53"
     ["SHECAN"]="udp://178.22.122.101:53|udp://185.51.200.1:53"
@@ -35,7 +39,7 @@ DEFAULT_CACHE_ENABLED=true
 DEFAULT_CACHE_SIZE=10485760      # 10 MB
 DEFAULT_CACHE_MIN_TTL=3600
 DEFAULT_CACHE_MAX_TTL=3600
-DEFAULT_TIMEOUT="2s"
+DEFAULT_TIMEOUT="4s"
 DEFAULT_RATELIMIT=0
 DEFAULT_UDP_BUF_SIZE=0
 DEFAULT_MAX_GOROUTINES=0
@@ -70,7 +74,7 @@ display_profiles() {
     echo "  ─────────────────────────────────────────────────────────────"
     local i=1
     for name in "${!DNS_PROFILES[@]}"; do
-        printf "  %2d.  %-14s  %s\n" "$i" "$name" "${DNS_PROFILES[$name]//|/ , }"
+        printf "  %2d.  %-14s  %s\n" "$i" "$name" "${DNS_PROFILES[$name]}"
         ((i++))
     done
     echo -e "  ─────────────────────────────────────────────────────────────\n"
