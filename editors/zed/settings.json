@@ -7,6 +7,7 @@
 // custom settings, run the `zed: Open Default Settings` command
 // from the command palette
 {
+  "cli_default_open_behavior": "existing_window",
   "agent_servers": {
     "gemini": {
       "type": "registry"

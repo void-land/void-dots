@@ -455,6 +455,8 @@ tmux_conf_urlscan_options="--compact --dedupe"
 
 # this is the place to override or undo settings
 
+unbind C-c
+
 # increase history size
 set -g history-limit 10000
 set -g cursor-style bar

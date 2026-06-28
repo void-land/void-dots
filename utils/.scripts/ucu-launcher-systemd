@@ -16,7 +16,8 @@ LOG_FILE="$GAME_DIR/steam-default.log"
 
 # UMU Settings
 GAMEID="umu-default"
-PROTONPATH="$HOME/.local/share/Steam/compatibilitytools.d/GE-Proton10-33"
+PROTONPATH="$HOME/.local/share/Steam/compatibilitytools.d/GE-Proton11-1"
+# PROTONPATH="$HOME/.local/share/Steam/compatibilitytools.d/GE-Proton10-34"
 STEAM_APP_ID="0"
 GAME_ARGS=""
 
