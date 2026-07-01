@@ -1,0 +1,48 @@
+#!/bin/bash
+# Save the library at this path, or update the line below to match wherever you keep it.
+source "$HOME/.umu/umu-launcher-lib.sh"
+
+# 1. Define game paths & variables
+GAME_NAME="Cyberpunk 2077"
+GAME_DIR="$HOME/Games/cyberpunk-2077"
+GAME_EXE="$GAME_DIR/bin/x64/Cyberpunk2077.exe"
+WINE_PREFIX="$HOME/Games/.umu-prefixes/cyberpunk"
+
+# 2. UMU / Proton identity
+# Using the real Steam App ID (not "umu-default") lets umu-launcher pull in
+# this game's known protonfixes automatically — works even for non-Steam
+# copies, since umu only uses the ID to look up fixes / name compatdata.
+GAMEID="steam-default"
+STEAM_APP_ID="0"
+PROTONPATH="$HOME/.local/share/Steam/compatibilitytools.d/GE-Proton10-34"
+GAME_ARGS=""
+
+# 3. Game-specific overrides — only uncomment what you actually need.
+umu_env_hook() {
+	# --- Optimizations ---
+   export PROTON_USE_NTSYNC=1
+   export PROTON_ENABLE_WAYLAND=0
+   export PROTON_FORCE_LARGE_ADDRESS_AWARE=1
+
+	# --- Sync / compatibility ---
+	# export PROTON_NO_NTSYNC=1
+	# export PROTON_NO_ESYNC=0
+	# export PROTON_NO_FSYNC=0
+	# export PROTONFIXES_DISABLE=1
+	# export WINEDLLOVERRIDES=""
+
+	# --- Graphics (DXVK / VKD3D) ---
+	# export DXVK_ASYNC=1
+	# export DXVK_FRAME_RATE=120
+	# export RADV_PERFTEST=gpl
+	# export VKD3D_CONFIG=dxr
+
+	# --- Debugging ---
+	# export PROTON_LOG=0
+
+	# --- Overlay ---
+	# export MANGOHUD=0
+}
+
+
+umu_launch_game
