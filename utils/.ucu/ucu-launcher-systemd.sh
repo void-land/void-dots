@@ -160,12 +160,12 @@ setup_environment() {
 
 change_to_game_dir() {
 	log "Changing to game directory..."
-	
+
 	if ! cd "$GAME_DIR"; then
 		error "Failed to change directory to: $GAME_DIR"
 		exit 1
 	fi
-	
+
 	info "Working directory: $(pwd)"
 }
 
