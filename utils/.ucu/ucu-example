@@ -1,6 +1,6 @@
 #!/bin/bash
 # Save the library at this path, or update the line below to match wherever you keep it.
-source "$HOME/.umu/umu-launcher-lib.sh"
+source "$HOME/.ucu/ucu-launcher-lib.sh"
 
 # 1. Define game paths & variables
 GAME_NAME="Cyberpunk 2077"
@@ -20,9 +20,10 @@ GAME_ARGS=""
 # 3. Game-specific overrides — only uncomment what you actually need.
 umu_env_hook() {
 	# --- Optimizations ---
-   export PROTON_USE_NTSYNC=1
-   export PROTON_ENABLE_WAYLAND=0
-   export PROTON_FORCE_LARGE_ADDRESS_AWARE=1
+	export PROTON_GAMEMODE=1
+	export PROTON_USE_NTSYNC=1
+	export PROTON_ENABLE_WAYLAND=0
+	export PROTON_FORCE_LARGE_ADDRESS_AWARE=1
 
 	# --- Sync / compatibility ---
 	# export PROTON_NO_NTSYNC=1
@@ -43,6 +44,5 @@ umu_env_hook() {
 	# --- Overlay ---
 	# export MANGOHUD=0
 }
-
 
 umu_launch_game
