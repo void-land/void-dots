@@ -1,15 +1,12 @@
 #!/bin/bash
 
 LINUX_CONFIGS_DIR="$(pwd)"
-LINUX_DOTFILES_DIR="$LINUX_CONFIGS_DIR/dotfiles"
 
-# NIX_DIR="$LINUX_CONFIGS_DIR/nix"
-# ZSH_DIR="$LINUX_CONFIGS_DIR/shells/zsh"
+HOME_DIR="$LINUX_CONFIGS_DIR/_home"
+TERMINAL_DIR="$LINUX_CONFIGS_DIR/_terminal"
+LINUX_DOTFILES_DIR="$LINUX_CONFIGS_DIR/_dotfiles"
+
 ZED_DIR="$LINUX_CONFIGS_DIR/editors/zed"
-# VIM_DIR="$LINUX_CONFIGS_DIR/editors/vim"
-# NVIM_DIR="$LINUX_CONFIGS_DIR/editors/nvim"
-FISH_DIR="$LINUX_CONFIGS_DIR/shells/fish"
-UTILS_DIR="$LINUX_CONFIGS_DIR/utils"
 
 display_help() {
 	echo "Usage: [-s | -u] [-h]"
@@ -38,9 +35,9 @@ create_link() {
 		mkdir -p "$(dirname "$target")"
 	fi
 
-	if [ -e "$target" ]; then
-		rm -rf "$target"
-	fi
+	# if [ -e "$target" ]; then
+	# 	rm -rf "$target"
+	# fi
 
 	ln -sfn "$source" "$target"
 	echo "$source ===> $target"
@@ -100,23 +97,22 @@ stow() {
 	create_links $LINUX_DOTFILES_DIR ~/.config
 	log "Base dotfiles stowed successfully!"
 
-	create_link $FISH_DIR ~/.config/fish
-	log "Fish dotfiles stowed successfully!"
+	create_links $TERMINAL_DIR ~/.config
+	log "Terminal dotfiles stowed successfully!"
+
+	create_links $HOME_DIR ~
+	log "Utilities stowed successfully!"
 
 	create_link $ZED_DIR ~/.config/zed
 	log "Editors dotfiles stowed successfully!"
-
-	create_links $UTILS_DIR ~
-	log "Utilities stowed successfully!"
 }
 
 unstow() {
-	delete_links $LINUX_DOTFILES_DIR ~/.config
-
-	unlink ~/.config/fish
 	unlink ~/.config/zed
 
-	delete_links $UTILS_DIR ~
+	delete_links $HOME_DIR ~
+	delete_links $TERMINAL_DIR ~/.config
+	delete_links $LINUX_DOTFILES_DIR ~/.config
 
 	log "All configs ustowed successfully !"
 }
