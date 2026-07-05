@@ -62,7 +62,7 @@ ask_prompt() {
 	while true; do
 		read -p "$question (Y/n) [Y]: " choice
 		case "$choice" in
-		[Yy] | "") return 0 ;; # Accept Y, y, or empty (Enter)
+		[Yy] | "") return 0 ;;
 		[Nn]) return 1 ;;
 		*) echo "Please enter Y or N (or press Enter for Yes)." ;;
 		esac
@@ -70,13 +70,14 @@ ask_prompt() {
 }
 
 display_help() {
-	echo "Usage: $0 [-s | -a | -p | -m | -l | -f] [-h]"
+	echo "Usage: $0 [-s | -a | -p | -m | -l | -f | -k] [-h]"
 	echo " -s  Full system setup"
 	echo " -a  Install AUR packages only"
 	echo " -p  Install pacman packages only"
 	echo " -m  Enable multilib repository"
 	echo " -l  Setup locales (Persian)"
 	echo " -f  Setup fish shell"
+	echo " -k  Apply KWin / Graphics performance tweaks"
 	echo " -h  Show this help"
 }
 
@@ -88,6 +89,11 @@ check_root() {
 }
 
 update_system() {
+	log "Optimizing Pacman configurations..."
+	# Enable parallel downloads (5) and color if not already set
+	sudo sed -i 's/^#ParallelDownloads.*/ParallelDownloads = 5/' /etc/pacman.conf
+	sudo sed -i 's/^#Color/Color/' /etc/pacman.conf
+
 	log "Updating system packages..."
 	if ! ask_prompt "Do you want to update the system?"; then
 		error "Action cancelled..."
@@ -146,12 +152,15 @@ setup_aur_packages() {
 	fi
 
 	if ! command -v yay &>/dev/null; then
+		log "Installing yay dependencies first..."
+		sudo pacman -S --needed --noconfirm base-devel git
+
 		log "Installing yay AUR helper..."
-		cd /tmp
+		cd /tmp || exit 1
 		git clone https://aur.archlinux.org/yay.git
-		cd yay
+		cd yay || exit 1
 		makepkg -si --noconfirm
-		cd ~
+		cd ~ || exit 1
 	fi
 
 	yay -S --noconfirm $packages_list
@@ -223,6 +232,30 @@ setup_fish_shell() {
 	log "Fish shell set as default. Changes will take effect after logout/login."
 }
 
+setup_kwin_tweaks() {
+	log "Setting up KWin & Graphics environment tweaks..."
+	if ! ask_prompt "Do you want to add performance environment variables to /etc/environment?"; then
+		error "Action cancelled..."
+		return 0
+	fi
+
+	# Add KWin Triple Buffering Disable
+	if grep -q "KWIN_DRM_DISABLE_TRIPLE_BUFFERING" /etc/environment; then
+		echo "KWIN_DRM_DISABLE_TRIPLE_BUFFERING is already set."
+	else
+		echo "KWIN_DRM_DISABLE_TRIPLE_BUFFERING=1" | sudo tee -a /etc/environment >/dev/null
+		echo "Added KWIN_DRM_DISABLE_TRIPLE_BUFFERING=1 to /etc/environment"
+	fi
+
+	# Bonus AMD performance optimization variable
+	if grep -q "RADV_PERFTEST" /etc/environment; then
+		echo "RADV_PERFTEST environment variables already present."
+	else
+		echo "RADV_PERFTEST=nggc" | sudo tee -a /etc/environment >/dev/null
+		echo "Added RADV_PERFTEST=nggc (Next-Gen Geometry Compiler optimization for AMD Vulkan)"
+	fi
+}
+
 full_setup() {
 	check_root
 	clear
@@ -236,11 +269,12 @@ full_setup() {
 	setup_aur_packages
 	setup_locales
 	setup_fish_shell
+	setup_kwin_tweaks
 
 	log "Setup completed! Please reboot your system to ensure all changes take effect."
 }
 
-while getopts "sapmlhf" opt; do
+while getopts "sapmlhfk" opt; do
 	case $opt in
 	s)
 		full_setup
@@ -264,6 +298,10 @@ while getopts "sapmlhf" opt; do
 	f)
 		check_root
 		setup_fish_shell
+		;;
+	k)
+		check_root
+		setup_kwin_tweaks
 		;;
 	h)
 		display_help
