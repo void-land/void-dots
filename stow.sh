@@ -4,6 +4,7 @@ LINUX_CONFIGS_DIR="$(pwd)"
 
 HOME_DIR="$LINUX_CONFIGS_DIR/_home"
 TERMINAL_DIR="$LINUX_CONFIGS_DIR/_shell"
+PLASMA_DIR="$LINUX_CONFIGS_DIR/_plasma"
 LINUX_DOTFILES_DIR="$LINUX_CONFIGS_DIR/_dotfiles"
 
 ZED_DIR="$LINUX_CONFIGS_DIR/editors/zed"
@@ -94,14 +95,17 @@ create_target_dir() {
 stow() {
 	create_target_dir
 
+	create_links $HOME_DIR ~
+	log "Utilities stowed successfully!"
+
 	create_links $LINUX_DOTFILES_DIR ~/.config
 	log "Base dotfiles stowed successfully!"
 
 	create_links $TERMINAL_DIR ~/.config
 	log "Terminal dotfiles stowed successfully!"
 
-	create_links $HOME_DIR ~
-	log "Utilities stowed successfully!"
+	create_links $PLASMA_DIR ~/.config
+	log "Plasma stowed successfully!"
 
 	create_link $ZED_DIR ~/.config/zed
 	log "Editors dotfiles stowed successfully!"
@@ -112,6 +116,7 @@ unstow() {
 
 	delete_links $HOME_DIR ~
 	delete_links $TERMINAL_DIR ~/.config
+	delete_links $PLASMA_DIR ~/.config
 	delete_links $LINUX_DOTFILES_DIR ~/.config
 
 	log "All configs ustowed successfully !"
