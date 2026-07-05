@@ -90,8 +90,8 @@ check_root() {
 
 update_system() {
 	log "Optimizing Pacman configurations..."
-	# Enable parallel downloads (5) and color if not already set
-	sudo sed -i 's/^#ParallelDownloads.*/ParallelDownloads = 5/' /etc/pacman.conf
+	# Enable parallel downloads (12) and color if not already set
+	sudo sed -i 's/^#ParallelDownloads.*/ParallelDownloads = 12/' /etc/pacman.conf
 	sudo sed -i 's/^#Color/Color/' /etc/pacman.conf
 
 	log "Updating system packages..."
