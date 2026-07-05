@@ -15,6 +15,7 @@ blurEnabled=true
 desktopchangeosdEnabled=false
 magiclampEnabled=true
 squashEnabled=false
+wobblywindowsEnabled=true
 
 [Tiling][0057338a-5ed6-4c12-b5e3-5a765a89bb04][445a1d8e-a1bf-4e0d-897a-8cb7b9e01076]
 padding=4
