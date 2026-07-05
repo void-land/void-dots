@@ -246,14 +246,6 @@ setup_kwin_tweaks() {
 		echo "KWIN_DRM_DISABLE_TRIPLE_BUFFERING=1" | sudo tee -a /etc/environment >/dev/null
 		echo "Added KWIN_DRM_DISABLE_TRIPLE_BUFFERING=1 to /etc/environment"
 	fi
-
-	# Bonus AMD performance optimization variable
-	if grep -q "RADV_PERFTEST" /etc/environment; then
-		echo "RADV_PERFTEST environment variables already present."
-	else
-		echo "RADV_PERFTEST=nggc" | sudo tee -a /etc/environment >/dev/null
-		echo "Added RADV_PERFTEST=nggc (Next-Gen Geometry Compiler optimization for AMD Vulkan)"
-	fi
 }
 
 full_setup() {
