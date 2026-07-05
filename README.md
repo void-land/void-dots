@@ -1,61 +1,53 @@
-# Modern dots configuration for any linux distro
 
-## Overview
+# My Dotfiles
 
-Modern dotfiles configuration for any Linux distribution. This repository contains configurations for various applications designed to enhance workflow and customize the Linux environment.
+A modular, organized repository containing configuration files for my Linux environment. This setup utilizes a custom installation script to manage symlinks and configurations cleanly across the system, targeting a lightweight yet powerful terminal experience alongside the KDE Plasma desktop environment.
 
-## Quick Installation
+## 📂 Repository Structure
 
-Clone the repository with shallow history to save bandwidth and disk space :
+* **`_dotfiles/`**: Base application configurations (`~/.config/`). Includes extensive theme sets for **Alacritty** and **btop**, customized **Kitty** and **Rio** terminals, audio routing via **Pipewire**, and game performance tracking via **MangoHud**.
 
-```bash
-git clone https://github.com/void-land/void-dots.git ~/.void-dots --depth 1
-cd ~/.void-dots
-```
+* **`_shell/`**: Shell configurations with a heavy focus on **Fish**. Features modularized aliases, custom completion scripts, `fzf` plugins via `fisher`, and multiplexer setups for both **Tmux** and **Zellij**.
 
-The `--depth 1` flag fetches only the latest commit, significantly reducing clone time and repository size.
+* **`_plasma/`**: Configuration files for the **KDE Plasma** desktop suite, hardware profiles, and default application behaviors (`dolphinrc`, `kwinrc`, etc.).
 
-## Deploying Dotfiles
+* **`editors/`**: Text editor setups featuring **Zed** (complete with custom TSX/C snippets and themes) and standard **Vim**.
 
-Execute the stow script to create symbolic links :
+---
 
-```bash
-./stow.sh
-```
+## 🛠️ Installation & Setup
 
-This script automatically symlinks the configuration files from `~/.void-dots` to their appropriate locations in the home directory. The actual files remain in the repository while appearing in the expected locations through symlinks.
+This repository contains two automation scripts at the root level to bootstrap the environment:
 
-## Removing Symlinks
+### 1. System Provisioning (Arch/Endeavour)
 
-To remove all symlinks created by stow :
+The `arch-setup.sh` script installs necessary dependencies, system packages, and core utilities on a fresh Arch installation.
 
 ```bash
-stow -u
+chmod +x arch-setup.sh
+./arch-setup.sh
 ```
 
-## Updating / Pulling Changes
+### 2. Symlink Configurations
 
-To pull the latest updates:
+The custom deployment script handles symlinking the repository components into their appropriate target locations in your `$HOME` directory.
 
 ```bash
-git pull
+chmod +x stow.sh
+./stow.sh -s
 ```
 
-If you receive an error about local changes being overwritten (e.g., `shells/fish/fish_variables`), you can stash your changes, pull, and then apply them back:
+---
 
-```bash
-git stash
-git pull
-git stash pop
-```
+## 🧰 Software Stack Summary
 
-Alternatively, to discard local changes and reset a specific file:
-
-```bash
-git checkout -- shells/fish/fish_variables
-git pull
-```
-
-## Notes
-
-Backup existing configuration files before running stow to avoid conflicts. If stow reports that target files already exist, remove or rename them before proceeding.
+| Category | Utilities Configured |
+| --- | --- |
+| **Shell & Prompt** | Fish Shell, Starship Prompt, Bash |
+| **Terminals** | Alacritty, Kitty, Rio |
+| **Multiplexers** | Tmux |
+| **Editors** | Zed |
+| **System & Monitoring** | btop, htop, MangoHud |
+| **Desktop Suite** | KDE Plasma (KWin, Dolphin, Baloo, PowerDevil) |
+| **Audio** | Pipewire + Wireplumber (DeepFilter & Echo-Canceling) |
+| **Media Player** | mpv (with AMD GPU hardware acceleration shaders) |
