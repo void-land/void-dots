@@ -8,9 +8,6 @@ Show Status Bar=true
 Show Tab Bar=true
 Show Url Nav Bar=true
 
-[MainWindow]
-2 screens: Window-Maximized=true
-
 [filetree]
 editShade=70,53,111
 listMode=false
