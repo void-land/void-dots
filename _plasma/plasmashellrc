@@ -1,3 +1,7 @@
+[PlasmaTransientsConfig]
+popupHeight=400
+popupWidth=560
+
 [PlasmaViews][Panel 26]
 floating=1
 shell=org.kde.plasma.desktop

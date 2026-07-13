@@ -1,0 +1,19 @@
+[Added Associations]
+image/avif=okularApplication_kimgio.desktop;
+image/bmp=okularApplication_kimgio.desktop;
+image/heif=okularApplication_kimgio.desktop;
+image/jpeg=okularApplication_kimgio.desktop;
+image/png=okularApplication_kimgio.desktop;
+image/webp=okularApplication_kimgio.desktop;
+
+[Default Applications]
+image/avif=okularApplication_kimgio.desktop;
+image/bmp=okularApplication_kimgio.desktop;
+image/heif=okularApplication_kimgio.desktop;
+image/jpeg=okularApplication_kimgio.desktop;
+image/png=okularApplication_kimgio.desktop;
+image/webp=okularApplication_kimgio.desktop;
+text/html=google-chrome.desktop
+x-scheme-handler/http=google-chrome.desktop
+x-scheme-handler/https=google-chrome.desktop
+x-scheme-handler/throne=throne-url-handler.desktop
