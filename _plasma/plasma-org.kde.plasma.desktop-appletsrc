@@ -240,6 +240,14 @@ DialogWidth=810
 [Containments][3][Applets][5][Configuration][General]
 showOnlyCurrentScreen=true
 
+[Containments][3][Applets][50]
+immutability=1
+plugin=org.kde.plasma.notifications
+
+[Containments][3][Applets][50][Configuration]
+popupHeight=433
+popupWidth=324
+
 [Containments][3][Applets][6]
 immutability=1
 plugin=org.kde.plasma.icontasks
@@ -334,7 +342,7 @@ extraItems=org.kde.kdeconnect,org.kde.plasma.printmanager,org.kde.plasma.keyboar
 knownItems=org.kde.kdeconnect,org.kde.plasma.printmanager,org.kde.plasma.keyboardindicator,org.kde.plasma.cameraindicator,org.kde.kscreen,org.kde.plasma.mediacontroller,org.kde.plasma.manage-inputmethod,org.kde.plasma.networkmanagement,org.kde.plasma.brightness,org.kde.plasma.keyboardlayout,org.kde.plasma.clipboard,org.kde.plasma.devicenotifier,org.kde.plasma.weather,org.kde.plasma.volume,org.kde.plasma.bluetooth,org.kde.plasma.notifications,org.kde.plasma.battery,org.kde.plasma.kclock_1x2
 
 [Containments][3][General]
-AppletOrder=4;5;6;7;8;22;23
+AppletOrder=4;5;6;7;8;22;50;23
 
 [ScreenMapping]
 itemsOnDisabledScreens=
