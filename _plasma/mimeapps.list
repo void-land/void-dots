@@ -5,6 +5,8 @@ image/heif=okularApplication_kimgio.desktop;
 image/jpeg=okularApplication_kimgio.desktop;
 image/png=okularApplication_kimgio.desktop;
 image/webp=okularApplication_kimgio.desktop;
+x-scheme-handler/http=chromium.desktop;
+x-scheme-handler/https=chromium.desktop;
 
 [Default Applications]
 image/avif=okularApplication_kimgio.desktop;
