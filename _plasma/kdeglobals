@@ -135,6 +135,8 @@ ForegroundVisited=155,89,182
 [General]
 BrowserApplication=google-chrome.desktop
 ColorSchemeHash=9d38eb71ded8ff549da26d57d7cbab9164da243a
+TerminalApplication=alacritty
+TerminalService=Alacritty.desktop
 
 [KDE]
 LookAndFeelPackage=org.kde.breezedark.desktop
