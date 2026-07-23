@@ -56,7 +56,6 @@ declare -a STEP_NAMES=(
 	"Install AUR packages"
 	"Setup Persian locale (fa_IR UTF-8)"
 	"Setup Fish shell as default"
-	"Apply KWin / graphics performance tweaks"
 	"Configure gaming environment (GameMode group, NTSync)"
 )
 
@@ -69,7 +68,6 @@ declare -a STEP_FUNCS=(
 	setup_aur_packages
 	setup_locales
 	setup_fish_shell
-	setup_kwin_tweaks
 	setup_gaming_config
 )
 
@@ -107,14 +105,17 @@ ask_prompt() {
 }
 
 # Generic yay-style exclude picker.
-# Usage: select_exclusions <name-of-array-var>
+# Usage: select_exclusions <name-of-input-array-var> <label> <name-of-output-array-var>
 # Prints a numbered list of the given array's elements, prompts once for
 # items to exclude (accepts "1 2 3", "1-3", "^4", space/comma separated,
-# "^" prefix optional), and fills the global EXCLUDED assoc array with the
-# 1-based indices that should be skipped.
+# "^" prefix optional), and writes the 1-based excluded indices into the
+# caller-supplied output array (nameref) - no global state involved, so
+# nested calls (e.g. setup_packages calling this again for its own list)
+# can never clobber a different call's result.
 select_exclusions() {
 	local -n items_ref="$1"
 	local label="${2:-items}"
+	local -n out_ref="$3"
 
 	echo -e "${BLUE}::${NC} Following $label will be executed:"
 	for i in "${!items_ref[@]}"; do
@@ -124,7 +125,7 @@ select_exclusions() {
 	echo -e "${RED} -> Excluding $label may result in a partial setup${NC}"
 	read -p "==> " excl_input
 
-	declare -gA EXCLUDED=()
+	out_ref=()
 	if [[ -n "$excl_input" ]]; then
 		# normalize commas to spaces so both styles work
 		excl_input="${excl_input//,/ }"
@@ -132,10 +133,10 @@ select_exclusions() {
 			token="${token#^}"
 			if [[ "$token" =~ ^([0-9]+)-([0-9]+)$ ]]; then
 				for ((i = "${BASH_REMATCH[1]}"; i <= "${BASH_REMATCH[2]}"; i++)); do
-					EXCLUDED[$i]=1
+					out_ref[$i]=1
 				done
 			elif [[ "$token" =~ ^[0-9]+$ ]]; then
-				EXCLUDED[$token]=1
+				out_ref[$token]=1
 			fi
 		done
 	fi
@@ -193,12 +194,13 @@ setup_multilib() {
 }
 
 setup_packages() {
-	select_exclusions ORDERS_LIST "package groups"
+	local -A excluded_groups=()
+	select_exclusions ORDERS_LIST "package groups" excluded_groups
 
 	local packages_list=""
 	for i in "${!ORDERS_LIST[@]}"; do
 		local idx=$((i + 1))
-		[[ -n "${EXCLUDED[$idx]}" ]] && continue
+		[[ -n "${excluded_groups[$idx]}" ]] && continue
 		packages_list+="${PACKAGES_LIST["${ORDERS_LIST[$i]}"]} "
 	done
 
@@ -220,12 +222,13 @@ setup_packages() {
 }
 
 setup_aur_packages() {
-	select_exclusions AUR_PACKAGES "AUR packages"
+	local -A excluded_aur=()
+	select_exclusions AUR_PACKAGES "AUR packages" excluded_aur
 
 	local packages_list=""
 	for i in "${!AUR_PACKAGES[@]}"; do
 		local idx=$((i + 1))
-		[[ -n "${EXCLUDED[$idx]}" ]] && continue
+		[[ -n "${excluded_aur[$idx]}" ]] && continue
 		packages_list+="${AUR_PACKAGES[$i]} "
 	done
 
@@ -419,7 +422,8 @@ full_setup() {
 
 	# Show every step once, up front, yay-exclude style, instead of
 	# asking Y/n before each individual function.
-	select_exclusions STEP_NAMES "steps"
+	local -A excluded_steps=()
+	select_exclusions STEP_NAMES "steps" excluded_steps
 
 	echo
 	log "Running selected steps..."
@@ -427,7 +431,7 @@ full_setup() {
 
 	for i in "${!STEP_NAMES[@]}"; do
 		local idx=$((i + 1))
-		if [[ -n "${EXCLUDED[$idx]}" ]]; then
+		if [[ -n "${excluded_steps[$idx]}" ]]; then
 			echo -e "${RED}[-]${NC} Skipping: ${STEP_NAMES[$i]}"
 			continue
 		fi
