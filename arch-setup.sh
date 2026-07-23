@@ -7,6 +7,10 @@ GREEN='\033[0;32m'
 BLUE='\033[0;34m'
 NC='\033[0m'
 
+# When true, ask_prompt auto-confirms (used once the user has already
+# picked what to run via the exclude-style selector in full_setup).
+ASSUME_YES=false
+
 declare -a ORDERS_LIST=(
 	"BASE_PACKAGES"
 	"AUDIO_PACKAGES"
@@ -21,7 +25,7 @@ declare -A PACKAGES_LIST=(
 	["BASE_PACKAGES"]="base-devel fish tmux bandwhich jq git curl axel xz zstd fzf networkmanager bluez bluez-utils xdg-utils wl-clipboard"
 	["AUDIO_PACKAGES"]="pipewire wireplumber pipewire-pulse pipewire-alsa pipewire-jack pavucontrol"
 	["GPU_DRIVERS"]="mesa lib32-mesa vulkan-radeon lib32-vulkan-radeon vulkan-icd-loader lib32-vulkan-icd-loader vulkan-mesa-layers vulkan-extra-layers vulkan-tools xf86-video-amdgpu"
-	["GAMING_PACKAGES"]="steam umu-launcher gamescope mangohud gamemode lib32-mangohud lib32-gamemode"
+	["GAMING_PACKAGES"]="steam umu-launcher gamescope mangohud gamemode lib32-mangohud lib32-gamemode goverlay"
 	["FONTS"]="ttf-jetbrains-mono-nerd noto-fonts noto-fonts-emoji ttf-liberation"
 )
 
@@ -42,6 +46,33 @@ declare -a USER_SERVICES_LIST=(
 	"pipewire-pulse"
 )
 
+# Steps executed by full_setup, in order. Names and functions are paired by index.
+declare -a STEP_NAMES=(
+	"Update system"
+	"Enable multilib repository"
+	"Install pacman packages"
+	"Enable system services"
+	"Enable user services"
+	"Install AUR packages"
+	"Setup Persian locale (fa_IR UTF-8)"
+	"Setup Fish shell as default"
+	"Apply KWin / graphics performance tweaks"
+	"Configure gaming environment (GameMode group, NTSync)"
+)
+
+declare -a STEP_FUNCS=(
+	update_system
+	setup_multilib
+	setup_packages
+	setup_services
+	setup_user_services
+	setup_aur_packages
+	setup_locales
+	setup_fish_shell
+	setup_kwin_tweaks
+	setup_gaming_config
+)
+
 trap exit_trap SIGINT SIGTERM
 
 exit_trap() {
@@ -59,6 +90,12 @@ error() {
 
 ask_prompt() {
 	local question="$1"
+
+	# Already confirmed via the up-front selection screen, skip re-asking.
+	if [[ "$ASSUME_YES" == true ]]; then
+		return 0
+	fi
+
 	while true; do
 		read -p "$question (Y/n) [Y]: " choice
 		case "$choice" in
@@ -67,6 +104,41 @@ ask_prompt() {
 		*) echo "Please enter Y or N (or press Enter for Yes)." ;;
 		esac
 	done
+}
+
+# Generic yay-style exclude picker.
+# Usage: select_exclusions <name-of-array-var>
+# Prints a numbered list of the given array's elements, prompts once for
+# items to exclude (accepts "1 2 3", "1-3", "^4", space/comma separated,
+# "^" prefix optional), and fills the global EXCLUDED assoc array with the
+# 1-based indices that should be skipped.
+select_exclusions() {
+	local -n items_ref="$1"
+	local label="${2:-items}"
+
+	echo -e "${BLUE}::${NC} Following $label will be executed:"
+	for i in "${!items_ref[@]}"; do
+		printf "%2d  %s\n" "$((i + 1))" "${items_ref[$i]}"
+	done
+	echo -e "${BLUE}==>${NC} ${label^} to exclude: (eg: \"1 2 3\", \"1-3\", \"^4\")"
+	echo -e "${RED} -> Excluding $label may result in a partial setup${NC}"
+	read -p "==> " excl_input
+
+	declare -gA EXCLUDED=()
+	if [[ -n "$excl_input" ]]; then
+		# normalize commas to spaces so both styles work
+		excl_input="${excl_input//,/ }"
+		for token in $excl_input; do
+			token="${token#^}"
+			if [[ "$token" =~ ^([0-9]+)-([0-9]+)$ ]]; then
+				for ((i = "${BASH_REMATCH[1]}"; i <= "${BASH_REMATCH[2]}"; i++)); do
+					EXCLUDED[$i]=1
+				done
+			elif [[ "$token" =~ ^[0-9]+$ ]]; then
+				EXCLUDED[$token]=1
+			fi
+		done
+	fi
 }
 
 display_help() {
@@ -78,6 +150,7 @@ display_help() {
 	echo " -l  Setup locales (Persian)"
 	echo " -f  Setup fish shell"
 	echo " -k  Apply KWin / Graphics performance tweaks"
+	echo " -g  Configure gaming environment (GameMode group, NTSync)"
 	echo " -h  Show this help"
 }
 
@@ -120,12 +193,21 @@ setup_multilib() {
 }
 
 setup_packages() {
+	select_exclusions ORDERS_LIST "package groups"
+
 	local packages_list=""
-	for order in "${ORDERS_LIST[@]}"; do
-		packages_list+="${PACKAGES_LIST["$order"]} "
+	for i in "${!ORDERS_LIST[@]}"; do
+		local idx=$((i + 1))
+		[[ -n "${EXCLUDED[$idx]}" ]] && continue
+		packages_list+="${PACKAGES_LIST["${ORDERS_LIST[$i]}"]} "
 	done
 
-	log "Following package groups will be installed:"
+	if [[ -z "${packages_list// /}" ]]; then
+		echo "No package groups selected, skipping installation."
+		return 0
+	fi
+
+	log "Following packages will be installed:"
 	echo -e "$packages_list\n"
 
 	if ! ask_prompt "Do you want to continue with installation?"; then
@@ -138,12 +220,21 @@ setup_packages() {
 }
 
 setup_aur_packages() {
+	select_exclusions AUR_PACKAGES "AUR packages"
+
 	local packages_list=""
-	for package in "${AUR_PACKAGES[@]}"; do
-		packages_list+="${package} "
+	for i in "${!AUR_PACKAGES[@]}"; do
+		local idx=$((i + 1))
+		[[ -n "${EXCLUDED[$idx]}" ]] && continue
+		packages_list+="${AUR_PACKAGES[$i]} "
 	done
 
-	log "Following AUR package groups will be installed:"
+	if [[ -z "${packages_list// /}" ]]; then
+		echo "No AUR packages selected, skipping installation."
+		return 0
+	fi
+
+	log "Following AUR packages will be installed:"
 	echo -e "$packages_list\n"
 
 	if ! ask_prompt "Do you want to install AUR packages ?"; then
@@ -248,25 +339,106 @@ setup_kwin_tweaks() {
 	fi
 }
 
+# Returns 0 if the running kernel is >= 6.14 (minimum for NTSync).
+check_ntsync_kernel() {
+	local kver major minor
+	kver=$(uname -r | grep -oE '^[0-9]+\.[0-9]+')
+	major=$(echo "$kver" | cut -d. -f1)
+	minor=$(echo "$kver" | cut -d. -f2)
+	((major > 6 || (major == 6 && minor >= 14)))
+}
+
+# Returns 0 if the running kernel was built with CONFIG_NTSYNC=y or =m.
+check_ntsync_kconfig() {
+	local config_file="/boot/config-$(uname -r)"
+	if [[ -r "$config_file" ]]; then
+		grep -qE '^CONFIG_NTSYNC=[ym]' "$config_file" && return 0
+	elif [[ -r /proc/config.gz ]]; then
+		zgrep -qE '^CONFIG_NTSYNC=[ym]' /proc/config.gz && return 0
+	else
+		# Can't verify config, fall back to checking if the module/device is present.
+		[[ -e /dev/ntsync ]] && return 0
+		modinfo ntsync &>/dev/null && return 0
+	fi
+	return 1
+}
+
+setup_gaming_config() {
+	log "Configuring gaming environment (GameMode group, NTSync)..."
+	if ! ask_prompt "Do you want to apply gaming-specific configuration?"; then
+		error "Action cancelled..."
+		return 0
+	fi
+
+	# --- Add user to the gamemode group ---
+	if id -nG "$USER" | grep -qw "gamemode"; then
+		echo "User '$USER' is already in the gamemode group."
+	elif getent group gamemode &>/dev/null; then
+		sudo usermod -aG gamemode "$USER"
+		echo "Added '$USER' to the gamemode group. Reboot/re-login for this to take effect."
+	else
+		error "The 'gamemode' group doesn't exist yet - is the gamemode package installed? (run -p or full setup first)"
+	fi
+
+	# --- NTSync ---
+	log "Checking NTSync support..."
+	if ! check_ntsync_kernel; then
+		echo "Kernel $(uname -r) is older than 6.14 - NTSync isn't available, skipping."
+		return 0
+	fi
+	if ! check_ntsync_kconfig; then
+		echo "Kernel $(uname -r) wasn't built with CONFIG_NTSYNC - NTSync isn't available, skipping."
+		return 0
+	fi
+
+	echo "Kernel supports NTSync."
+	if lsmod | grep -qi '^ntsync'; then
+		echo "ntsync module is already loaded."
+	else
+		if [[ -f /etc/modules-load.d/ntsync.conf ]] && grep -qx "ntsync" /etc/modules-load.d/ntsync.conf; then
+			echo "ntsync is already configured to load at boot."
+		else
+			echo "ntsync" | sudo tee /etc/modules-load.d/ntsync.conf >/dev/null
+			echo "Created /etc/modules-load.d/ntsync.conf so ntsync loads on every boot."
+		fi
+
+		if sudo modprobe ntsync 2>/dev/null; then
+			echo "ntsync module loaded for this session."
+		else
+			error "Couldn't load ntsync right now - it will load automatically on next boot."
+		fi
+	fi
+
+	log "Verify anytime with: lsmod | grep -i ntsync"
+}
+
 full_setup() {
 	check_root
 	clear
 	log "Starting full Arch Linux post-installation setup..."
 
-	update_system
-	setup_multilib
-	setup_packages
-	setup_services
-	setup_user_services
-	setup_aur_packages
-	setup_locales
-	setup_fish_shell
-	setup_kwin_tweaks
+	# Show every step once, up front, yay-exclude style, instead of
+	# asking Y/n before each individual function.
+	select_exclusions STEP_NAMES "steps"
 
+	echo
+	log "Running selected steps..."
+	ASSUME_YES=true
+
+	for i in "${!STEP_NAMES[@]}"; do
+		local idx=$((i + 1))
+		if [[ -n "${EXCLUDED[$idx]}" ]]; then
+			echo -e "${RED}[-]${NC} Skipping: ${STEP_NAMES[$i]}"
+			continue
+		fi
+		"${STEP_FUNCS[$i]}"
+	done
+
+	ASSUME_YES=false
 	log "Setup completed! Please reboot your system to ensure all changes take effect."
 }
 
-while getopts "sapmlhfk" opt; do
+while getopts "sapmlhfkg" opt; do
 	case $opt in
 	s)
 		full_setup
@@ -294,6 +466,10 @@ while getopts "sapmlhfk" opt; do
 	k)
 		check_root
 		setup_kwin_tweaks
+		;;
+	g)
+		check_root
+		setup_gaming_config
 		;;
 	h)
 		display_help
