@@ -14,6 +14,7 @@ abbr axel "axel -n 32"
 
 abbr fkill "pkill -f"
 abbr sfkill "sudo pkill -f"
+abbr idkill "kill -9"
 abbr pkill "pkill -9"
 abbr spkill "sudo pkill -9"
 abbr psfind "ps -aux | grep"

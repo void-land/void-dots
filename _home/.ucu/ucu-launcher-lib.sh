@@ -3,7 +3,7 @@
 # umu-launcher-lib.sh — Reusable UMU Launcher library
 # source this file; do not execute it directly.
 # umu-launcher steamrt path: $HOME/.local/share/umu
-# steamrt download link https://repo.steampowered.com/steamrt4/images
+# steamrt links: https://repo.steampowered.com/steamrt3/images/ | https://repo.steampowered.com/steamrt4/images/
 
 # Guard against being executed instead of sourced
 if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
