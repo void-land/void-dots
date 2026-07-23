@@ -4,6 +4,8 @@ abbr -a yayupdate 'https_proxy=socks5h://localhost:2080 yay -Sua'
 abbr startk "exec /usr/lib/plasma-dbus-run-session-if-needed /usr/bin/startplasma-wayland"
 abbr starth "exec dbus-run-session start-hyprland"
 
+abbr -a sturbo "sudo turbostat --interval 1 --show PkgWatt,CorWatt,RAMWatt,Core,CPU,Bzy_MHz,IRQ"
+
 abbr jar "java -jar"
 
 abbr static "ldd ./"
