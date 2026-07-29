@@ -1,0 +1,7 @@
+abbr jlast "journalctl -b -1 -p 3 --no-pager"
+abbr jlastall "journalctl -b -1 --no-pager"
+abbr jerr "journalctl -p 3 --no-pager"
+abbr jnow "journalctl -f --no-pager"
+abbr jboots "journalctl --list-boots"
+abbr jkern "journalctl -b -1 -k --no-pager"
+abbr sjlast "sudo journalctl -b -1 -p 3 --no-pager"

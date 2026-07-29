@@ -6,6 +6,8 @@ abbr starth "exec dbus-run-session start-hyprland"
 
 abbr -a sturbo "sudo turbostat --interval 1 --show PkgWatt,CorWatt,RAMWatt,Core,CPU,Bzy_MHz,IRQ"
 
+abbr -a ggrub "sudo grub-mkconfig -o /boot/grub/grub.cfg"
+
 abbr jar "java -jar"
 
 abbr static "ldd ./"
@@ -22,6 +24,7 @@ abbr psfind "ps -aux | grep"
 abbr dfl "df -h"
 abbr dux "du -sh *"
 abbr dus "dust -d 1 -b"
+abbr sdus "sudo dust -d 1 -b"
 abbr duse "du -sh"
 
 abbr cpd "pwd | wl-copy"
