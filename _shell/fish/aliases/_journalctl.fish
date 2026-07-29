@@ -1,3 +1,13 @@
+abbr jctl "journalctl -f -u"
+abbr jctlboot "journalctl -b"
+abbr jctluser "journalctl --user"
+abbr jctlerr "journalctl -p err"
+abbr jctlunit "journalctl -u"
+abbr jctlsince "journalctl --since"
+abbr jctluntil "journalctl --until"
+abbr jctltoday "journalctl --since today"
+abbr jctlyesterday "journalctl --since yesterday"
+
 abbr jlast "journalctl -b -1 -p 3 --no-pager"
 abbr jlastall "journalctl -b -1 --no-pager"
 abbr jerr "journalctl -p 3 --no-pager"
