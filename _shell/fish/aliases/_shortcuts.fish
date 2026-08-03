@@ -5,6 +5,7 @@ abbr startk "exec /usr/lib/plasma-dbus-run-session-if-needed /usr/bin/startplasm
 abbr starth "exec dbus-run-session start-hyprland"
 
 abbr -a sturbo "sudo turbostat --interval 1 --show PkgWatt,CorWatt,RAMWatt,Core,CPU,Bzy_MHz,IRQ"
+abbr -a smount "sudo mount -a"
 
 abbr -a ggrub "sudo grub-mkconfig -o /boot/grub/grub.cfg"
 
