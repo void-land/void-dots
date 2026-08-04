@@ -119,7 +119,7 @@ _umu_setup_environment() {
 
 	# MangoHud Configuration
 	export MANGOHUD="${MANGOHUD:-1}"
-	export MANGOHUD_CONFIG="${MANGOHUD_CONFIG:-full,vsync=1,font_size=16,font_scale=1.0}"
+	# export MANGOHUD_CONFIG="${MANGOHUD_CONFIG:-full,vsync=1,font_size=16,font_scale=1.0}"
 
 	# Logging
 	export PROTON_LOG="${PROTON_LOG:-0}"

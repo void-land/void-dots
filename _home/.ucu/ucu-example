@@ -38,11 +38,12 @@ umu_env_hook() {
 	# export RADV_PERFTEST=gpl
 	# export VKD3D_CONFIG=dxr
 
+	# --- Overlay ---
+	export MANGOHUD=1
+	# export MANGOHUD_CONFIG="${MANGOHUD_CONFIG:-full,vsync=1,font_size=16,font_scale=1.0}"
+
 	# --- Debugging ---
 	# export PROTON_LOG=0
-
-	# --- Overlay ---
-	# export MANGOHUD=0
 }
 
 umu_launch_game
