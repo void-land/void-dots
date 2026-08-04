@@ -33,6 +33,7 @@ umu_env_hook() {
 	# export WINEDLLOVERRIDES=""
 
 	# --- Graphics (DXVK / VKD3D) ---
+	# export PROTON_ENABLE_HDR=1
 	# export DXVK_ASYNC=1
 	# export DXVK_FRAME_RATE=120
 	# export RADV_PERFTEST=gpl
