@@ -22,6 +22,7 @@ abbr pkill "pkill -9"
 abbr spkill "sudo pkill -9"
 abbr psfind "ps -aux | grep"
 
+abbr siotop "sudo iotop -oPa"
 abbr dfl "df -h"
 abbr dux "du -sh *"
 abbr dus "dust -d 1 -b"
