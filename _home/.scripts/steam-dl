@@ -1,0 +1,181 @@
+#!/bin/bash
+
+# ─────────────────────────────────────────────
+#  SteamDL Proxy Runner
+# ─────────────────────────────────────────────
+
+WORK_DIR="/tmp/steamdl"
+ADDON_FILE="$WORK_DIR/addon.py"
+RX_FILE="$WORK_DIR/rx.txt"
+
+LISTEN_PORT="80"
+LISTEN_ADDR="127.0.0.1"
+TARGET_HOST="dl.steamdl.ir"
+TOKEN="${STEAMDL_TOKEN:-}"
+
+FLOW_DETAIL="0"
+TERMLOG_VERBOSITY="warn"
+STREAM_LARGE_BODIES="10k"
+
+# ─────────────────────────────────────────────
+#  Helpers
+# ─────────────────────────────────────────────
+
+info()    { echo "[*] $*"; }
+success() { echo "[✓] $*"; }
+warn()    { echo "[!] $*" >&2; }
+die()     { echo "[✗] $*" >&2; exit 1; }
+
+require_root() {
+    [[ $EUID -eq 0 ]] && return
+    info "Re-launching with root privileges..."
+    exec sudo bash "$0" "$@"
+}
+
+usage() {
+    echo "Usage: $0 [--token TOKEN]"
+    echo ""
+    echo "  --token TOKEN    SteamDL Auth-Token (or set STEAMDL_TOKEN env var)"
+    echo ""
+}
+
+parse_args() {
+    while [[ $# -gt 0 ]]; do
+        case "$1" in
+            --token)
+                [[ -n "$2" ]] || die "--token requires a value."
+                TOKEN="$2"
+                shift 2
+                ;;
+            --token=*)
+                TOKEN="${1#--token=}"
+                shift
+                ;;
+            -h|--help)
+                usage
+                exit 0
+                ;;
+            *)
+                die "Unknown argument: $1"
+                ;;
+        esac
+    done
+}
+
+# ─────────────────────────────────────────────
+#  Dependency check
+# ─────────────────────────────────────────────
+
+check_mitmdump() {
+    command -v mitmdump &>/dev/null && return 0
+
+    echo ""
+    echo "  ╔══════════════════════════════════════╗"
+    echo "  ║  ⚠  mitmdump not found!               ║"
+    echo "  ╚══════════════════════════════════════╝"
+    echo ""
+    warn "mitmproxy (mitmdump) is not installed or not in PATH."
+    echo ""
+    echo "  Install it, e.g.:"
+    echo "    pip install --user mitmproxy"
+    echo "    -- or --"
+    echo "    sudo pacman -S mitmproxy"
+    echo ""
+    die "Aborted."
+}
+
+# ─────────────────────────────────────────────
+#  Token handling
+# ─────────────────────────────────────────────
+
+ensure_token() {
+    [[ -n "$TOKEN" ]] || die "Token is required. Pass it with --token TOKEN or set STEAMDL_TOKEN."
+}
+
+# ─────────────────────────────────────────────
+#  Workspace setup
+# ─────────────────────────────────────────────
+
+prepare_workspace() {
+    info "Preparing working directory: $WORK_DIR"
+    mkdir -p "$WORK_DIR" || die "Cannot create $WORK_DIR."
+}
+
+write_addon() {
+    info "Writing addon.py..."
+    cat > "$ADDON_FILE" << 'PYEOF'
+from mitmproxy import ctx
+from time import time
+import os
+
+class SteamDL:
+    def load(self, loader):
+        loader.add_option(name="token", typespec=str, default="", help="User Token")
+        mode_string = ctx.options.mode[0]
+        domain_start = mode_string.find("//") + 2
+        self.cache_domain = mode_string[domain_start:].split("@")[0]
+        self.last_update_time = 0
+        self.rx_bytes = 0
+        try:
+            if os.path.isfile("rx.txt"):
+                with open("rx.txt", 'r') as rx_file:
+                    self.rx_bytes = int(rx_file.read().strip())
+        except:
+            pass
+
+    def requestheaders(self, flow):
+        if flow.request.method in ["GET", "HEAD"]:
+            flow.request.headers["Real-Host"] = flow.request.host_header
+            flow.request.headers["Host"] = self.cache_domain
+            flow.request.headers["Auth-Token"] = ctx.options.token
+
+    def responseheaders(self, flow):
+        if 200 <= flow.response.status_code <= 299 and flow.request.headers.get("User-Agent") != "GamingServices":
+            self.rx_bytes += int(flow.response.headers.get("Content-Length", 0))
+
+        current_time = time()
+        if current_time - self.last_update_time > 2:
+            self.last_update_time = current_time
+            with open("rx.txt", "w") as rx_file:
+                rx_file.write(str(self.rx_bytes))
+
+addons = [SteamDL()]
+PYEOF
+    success "addon.py written to $ADDON_FILE"
+}
+
+# ─────────────────────────────────────────────
+#  Run
+# ─────────────────────────────────────────────
+
+run_mitmdump() {
+    info "Starting mitmdump (reverse proxy: $TARGET_HOST -> $LISTEN_ADDR:$LISTEN_PORT)..."
+    echo ""
+
+    cd "$WORK_DIR" || die "Cannot cd into $WORK_DIR."
+
+    mitmdump -m "reverse:http://${TARGET_HOST}@${LISTEN_ADDR}:${LISTEN_PORT}" \
+        -s "$ADDON_FILE" \
+        --set allow_hosts="$TARGET_HOST" \
+        --set token="$TOKEN" \
+        --set keep_host_header=true \
+        --set flow_detail="$FLOW_DETAIL" \
+        --set termlog_verbosity="$TERMLOG_VERBOSITY" \
+        --set stream_large_bodies="$STREAM_LARGE_BODIES"
+}
+
+# ─────────────────────────────────────────────
+#  Main
+# ─────────────────────────────────────────────
+
+main() {
+    require_root "$@"
+    parse_args "$@"
+    check_mitmdump
+    ensure_token
+    prepare_workspace
+    write_addon
+    run_mitmdump
+}
+
+main "$@"
