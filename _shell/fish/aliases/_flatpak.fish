@@ -1,7 +1,0 @@
-abbr flist "flatpak list"
-abbr fclean "flatpak uninstall --unused --delete-data"
-abbr fpkg "flatpak install flathub"
-abbr frm "flatpak uninstall"
-abbr fup "flatpak update"
-abbr fsearch "flatpak search"
-abbr fdir "cd $HOME/.var/app && ls"

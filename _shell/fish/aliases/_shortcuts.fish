@@ -1,13 +1,10 @@
-abbr -a sysupdate 'sudo ALL_PROXY="socks5h://localhost:2080" pacman -Syu'
-abbr -a yayupdate 'https_proxy=socks5h://localhost:2080 yay -Sua'
-
 abbr startk "exec /usr/lib/plasma-dbus-run-session-if-needed /usr/bin/startplasma-wayland"
 abbr starth "exec dbus-run-session start-hyprland"
 
-abbr -a sturbo "sudo turbostat --interval 1 --show PkgWatt,CorWatt,RAMWatt,Core,CPU,Bzy_MHz,IRQ"
-abbr -a smount "sudo mount -a"
+abbr sturbo "sudo turbostat --interval 1 --show PkgWatt,CorWatt,RAMWatt,Core,CPU,Bzy_MHz,IRQ"
+abbr smount "sudo mount -a"
 
-abbr -a ggrub "sudo grub-mkconfig -o /boot/grub/grub.cfg"
+abbr ggrub "sudo grub-mkconfig -o /boot/grub/grub.cfg"
 
 abbr jar "java -jar"
 
@@ -43,14 +40,7 @@ abbr sshkey "ssh-keygen -t rsa -b 4096 -C 'hesam.init@gmail.com'"
 abbr kssh "kitty +kitten ssh -o TCPKeepAlive=yes -o ServerAliveInterval=30"
 
 abbr scode "SUDO_EDITOR='code -nw' sudo -e"
+abbr coder "code ./ -r"
+abbr coden "code ./ -n"
 
 abbr jellyfin "jellyfin --webdir /usr/share/jellyfin/web --datadir ~/.jellyfin"
-
-# Millennium Steam Links
-abbr mil "steam steam://millennium/settings"
-abbr milup "steam steam://millennium/settings/updates"
-abbr miltdefault "steam steam://millennium/settings/themes/disable"
-abbr miltaero "steam steam://millennium/settings/themes/enable/aerothemesteam"
-abbr milpdisdb "steam steam://millennium/settings/plugins/disable/steam-db"
-abbr milpdis "steam steam://millennium/settings/plugins/disable"
-abbr mildev "steam steam://millennium/settings/devtools/open"

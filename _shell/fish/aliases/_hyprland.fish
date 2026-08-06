@@ -1,2 +1,2 @@
-abbr monitors "hyprctl monitors"
-abbr clients "hyprctl clients"
+abbr hymonitors "hyprctl monitors"
+abbr hyclients "hyprctl clients"
