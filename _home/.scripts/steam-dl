@@ -15,7 +15,7 @@ TOKEN="${STEAMDL_TOKEN:-}"
 
 FLOW_DETAIL="0"
 TERMLOG_VERBOSITY="warn"
-STREAM_LARGE_BODIES="10k"
+STREAM_LARGE_BODIES="1"
 
 # ─────────────────────────────────────────────
 #  Helpers
