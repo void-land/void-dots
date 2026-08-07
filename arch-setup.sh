@@ -22,7 +22,7 @@ declare -a ORDERS_LIST=(
 
 declare -A PACKAGES_LIST=(
 	["UTILITIES"]="turbostat iotop-c glances htop btop nvtop amdgpu_top stress-ng cpu-x"
-	["BASE_PACKAGES"]="base-devel fish tmux jq git curl axel xz zstd fzf bandwhich vortix networkmanager bluez bluez-utils xdg-utils wl-clipboard alacritty evince"
+	["BASE_PACKAGES"]="base-devel fish tmux jq git curl axel xz zstd fzf bandwhich vortix net-tools dnsproxy networkmanager bluez bluez-utils xdg-utils wl-clipboard alacritty evince"
 	["AUDIO_PACKAGES"]="pipewire wireplumber pipewire-pulse pipewire-alsa pipewire-jack pavucontrol"
 	["GPU_DRIVERS"]="mesa lib32-mesa vulkan-radeon lib32-vulkan-radeon vulkan-icd-loader lib32-vulkan-icd-loader vulkan-mesa-layers vulkan-extra-layers vulkan-tools xf86-video-amdgpu"
 	["GAMING_PACKAGES"]="steam umu-launcher gamescope mangohud gamemode lib32-mangohud lib32-gamemode goverlay"
