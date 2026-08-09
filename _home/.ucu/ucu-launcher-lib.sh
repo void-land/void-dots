@@ -96,10 +96,10 @@ _umu_validate() {
 
 	if command -v gamemoderun &>/dev/null; then
 		umu_info "GameMode: Available"
-		_PROTON_GAMEMODE=1
+		_GAMEMODE_AVAILABLE=1
 	else
 		umu_warn "GameMode: Not found"
-		_PROTON_GAMEMODE=0
+		_GAMEMODE_AVAILABLE=0
 	fi
 }
 
@@ -126,7 +126,7 @@ _umu_setup_environment() {
 	export PROTON_LOG_DIR="${PROTON_LOG_DIR:-$GAME_DIR}"
 
 	# GameMode
-	export PROTON_GAMEMODE="$_PROTON_GAMEMODE"
+	export PROTON_GAMEMODE="${PROTON_GAMEMODE:-$_GAMEMODE_AVAILABLE}"
 
 	# Hook: a per-game script can define umu_env_hook() to set/override
 	# additional env vars (e.g. DXVK_ASYNC, VKD3D_CONFIG) right before launch.
@@ -153,9 +153,13 @@ _umu_launch_game() {
 
 	local cmd="umu-run \"$GAME_EXE\" $GAME_ARGS"
 
-	if [[ "$_PROTON_GAMEMODE" -eq 1 ]]; then
-		cmd="gamemoderun $cmd"
-		umu_log "Launching with GameMode..."
+	if [[ "$PROTON_GAMEMODE" -eq 1 ]]; then
+		if [[ "$_GAMEMODE_AVAILABLE" -eq 1 ]]; then
+			cmd="gamemoderun $cmd"
+			umu_log "Launching with GameMode..."
+		else
+			umu_warn "PROTON_GAMEMODE=1 but gamemoderun is not installed; launching without it."
+		fi
 	else
 		umu_log "Launching..."
 	fi
