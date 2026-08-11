@@ -15,7 +15,10 @@ blurEnabled=true
 desktopchangeosdEnabled=false
 magiclampEnabled=true
 squashEnabled=false
-wobblywindowsEnabled=true
+
+[Tiling][0057338a-5ed6-4c12-b5e3-5a765a89bb04][]
+padding=4
+tiles={"layoutDirection":"horizontal","tiles":[{"width":0.25},{"width":0.5},{"width":0.25}]}
 
 [Tiling][0057338a-5ed6-4c12-b5e3-5a765a89bb04][445a1d8e-a1bf-4e0d-897a-8cb7b9e01076]
 padding=4
@@ -41,6 +44,10 @@ tiles={"layoutDirection":"horizontal","tiles":[{"width":0.25},{"width":0.5},{"wi
 padding=4
 tiles={"layoutDirection":"horizontal","tiles":[{"width":0.25},{"width":0.5},{"width":0.25}]}
 
+[Tiling][0b3ca394-c1c1-4ac7-9a63-144aac5d4c50][]
+padding=4
+tiles={"layoutDirection":"horizontal","tiles":[{"width":0.25},{"width":0.5},{"width":0.25}]}
+
 [Tiling][0b3ca394-c1c1-4ac7-9a63-144aac5d4c50][445a1d8e-a1bf-4e0d-897a-8cb7b9e01076]
 padding=4
 tiles={"layoutDirection":"horizontal","tiles":[{"width":0.25},{"width":0.5},{"width":0.25}]}
@@ -62,6 +69,10 @@ padding=4
 tiles={"layoutDirection":"horizontal","tiles":[{"width":0.25},{"width":0.5},{"width":0.25}]}
 
 [Tiling][0b3ca394-c1c1-4ac7-9a63-144aac5d4c50][f3337923-20c9-46eb-9ca6-bccc130bd4cf]
+padding=4
+tiles={"layoutDirection":"horizontal","tiles":[{"width":0.25},{"width":0.5},{"width":0.25}]}
+
+[Tiling][16500a0f-798c-4b72-bf6b-b3f3a5d138d2][]
 padding=4
 tiles={"layoutDirection":"horizontal","tiles":[{"width":0.25},{"width":0.5},{"width":0.25}]}
 
@@ -95,6 +106,10 @@ tiles={"layoutDirection":"horizontal","tiles":[{"width":0.25},{"width":0.5},{"wi
 [Tiling][3b32a87c-22d1-533a-92f1-e97ca53b9395]
 tiles={"layoutDirection":"horizontal","tiles":[{"width":0.25},{"width":0.5},{"width":0.25}]}
 
+[Tiling][b4736d13-ccd8-4d4e-8ca9-3dd6809c83b2][]
+padding=4
+tiles={"layoutDirection":"horizontal","tiles":[{"width":0.25},{"width":0.5},{"width":0.25}]}
+
 [Tiling][b4736d13-ccd8-4d4e-8ca9-3dd6809c83b2][445a1d8e-a1bf-4e0d-897a-8cb7b9e01076]
 padding=4
 tiles={"layoutDirection":"horizontal","tiles":[{"width":0.25},{"width":0.5},{"width":0.25}]}
@@ -117,6 +132,12 @@ tiles={"layoutDirection":"horizontal","tiles":[{"width":0.25},{"width":0.5},{"wi
 
 [Tiling][b4736d13-ccd8-4d4e-8ca9-3dd6809c83b2][f3337923-20c9-46eb-9ca6-bccc130bd4cf]
 padding=4
+tiles={"layoutDirection":"horizontal","tiles":[{"width":0.25},{"width":0.5},{"width":0.25}]}
+
+[Tiling][e72fba85-5921-551b-89a8-8193666942e1]
+tiles={"layoutDirection":"horizontal","tiles":[{"width":0.25},{"width":0.5},{"width":0.25}]}
+
+[Tiling][e9d8d2aa-c687-54b6-97e8-ed01ed386340]
 tiles={"layoutDirection":"horizontal","tiles":[{"width":0.25},{"width":0.5},{"width":0.25}]}
 
 [Wayland]

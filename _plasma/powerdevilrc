@@ -1,5 +1,5 @@
 [AC][Display]
-DimDisplayIdleTimeoutSec=600
+TurnOffDisplayIdleTimeoutWhenLockedSec=300
 
 [AC][Performance]
 PowerProfile=performance
