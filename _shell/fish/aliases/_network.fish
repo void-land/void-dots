@@ -13,3 +13,5 @@ abbr mtru "mtr --udp -P 53"
 abbr mtrt "mtr --tcp -P 443"
 abbr trt "sudo traceroute --tcp --port=443"
 abbr tru "sudo traceroute --udp --port=53"
+
+abbr --position anywhere --add socksproxy "https_proxy='socks5h://localhost:1080' http_proxy='socks5h://localhost:1080'"
