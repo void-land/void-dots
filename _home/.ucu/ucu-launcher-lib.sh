@@ -112,7 +112,8 @@ _umu_setup_environment() {
 	export WINEPREFIX="$WINE_PREFIX"
 	export STEAM_COMPAT_APP_ID="$STEAM_APP_ID"
 	export UMU_RUNTIME_UPDATE=0
-	export PROTON_USE_STEAM_STUB=0
+	export UMU_HTTP_RETRIES=0
+	export UMU_HTTP_TIMEOUT=3
 
 	# Graphics caching — opt out per-game with: DXVK_STATE_CACHE_PATH="" umu_launch_game
 	# export DXVK_STATE_CACHE_PATH="${DXVK_STATE_CACHE_PATH:-$WINE_PREFIX}"
