@@ -6,6 +6,16 @@
 #         without any warranty.
 #         Copyright 2012— Gregory Pakosz (@gpakosz).
 
+# -- user customizations -------------------------------------------------------
+
+# this is the place to override or undo settings
+
+# increase history size
+set -g history-limit 8000
+
+# start with mouse mode enabled
+set -g mouse on
+
 # -- bindings ------------------------------------------------------------------
 
 unbind C-c
