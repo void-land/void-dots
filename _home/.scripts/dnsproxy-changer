@@ -16,16 +16,6 @@ DNSPROXY_SERVICE="dnsproxy"
 
 declare -A DNS_PROFILES=(
 	["Local"]="udp://127.0.0.1:53"
-
-	["Quad9"]="udp://9.9.9.10:53|udp://149.112.112.10:53"
-	["Quad9-DOH"]="https://dns10.quad9.net/dns-query|https://dns.quad9.net/dns-query"
-
-	["JoinDNS4"]="udp://86.54.11.100:53|udp://86.54.11.200:53"
-	["JoinDNS4-DOH"]="https://unfiltered.joindns4.eu/dns-query"
-
-	["XboxDNS-DOH"]="https://xbox-dns.ru/dns-query"
-	["GeoHide-DOH"]="https://dns.geohide.ru:444/dns-query"
-
 	["Google"]="udp://8.8.8.8:53|udp://8.8.4.4:53"
 	["CloudFlare"]="udp://1.1.1.1:53|udp://1.0.0.1:53"
 	["MCI"]="udp://10.185.68.114:53|udp://10.185.68.113:53"
@@ -33,6 +23,18 @@ declare -A DNS_PROFILES=(
 	["Shecan"]="udp://178.22.122.101:53|udp://185.51.200.1:53"
 	["SteamDL"]="udp://88.218.16.124:53"
 	["FireOps"]="udp://78.158.166.131:53|udp://78.158.166.132:53"
+	["JoinDNS4"]="udp://86.54.11.100:53|udp://86.54.11.200:53"
+	["JoinDNS4-DOH"]="https://unfiltered.joindns4.eu/dns-query"
+	["XboxDNS-DOH"]="https://xbox-dns.ru/dns-query"
+	["GeoHide-DOH"]="https://dns.geohide.ru:444/dns-query"
+)
+
+DNS_PROFILE_ORDER=(
+	Local
+	Google CloudFlare
+	MCI Irancell Shecan SteamDL FireOps
+	JoinDNS4 JoinDNS4-DOH
+	XboxDNS-DOH GeoHide-DOH
 )
 
 # ─────────────────────────────────────────────
@@ -80,7 +82,7 @@ display_profiles() {
 	echo -e "\n  Available DNS Profiles"
 	echo "  ─────────────────────────────────────────────────────────────"
 	local i=1
-	for name in "${!DNS_PROFILES[@]}"; do
+	for name in "${DNS_PROFILE_ORDER[@]}"; do
 		printf "  %2d.  %-14s  %s\n" "$i" "$name" "${DNS_PROFILES[$name]}"
 		((i++))
 	done
@@ -88,11 +90,9 @@ display_profiles() {
 }
 
 get_profile_by_index() {
-	local idx=1
-	for name in "${!DNS_PROFILES[@]}"; do
-		((idx++ == $1)) && echo "$name" && return 0
-	done
-	return 1
+	local idx="$1"
+	[[ $idx -ge 1 && $idx -le ${#DNS_PROFILE_ORDER[@]} ]] || return 1
+	echo "${DNS_PROFILE_ORDER[$((idx - 1))]}"
 }
 
 select_profile() {
