@@ -18,23 +18,26 @@ declare -A DNS_PROFILES=(
 	["Local"]="udp://127.0.0.1:53"
 	["Google"]="udp://8.8.8.8:53|udp://8.8.4.4:53"
 	["CloudFlare"]="udp://1.1.1.1:53|udp://1.0.0.1:53"
+	["JoinDNS4"]="udp://86.54.11.100:53|udp://86.54.11.200:53"
+
 	["MCI"]="udp://10.185.68.114:53|udp://10.185.68.113:53"
 	["Irancell"]="udp://10.255.255.254:53|udp://10.10.10.10:53"
+
+	["Shelter"]="udp://2.189.86.32:53|udp://2.189.86.10:53"
+	["FireOps"]="udp://78.158.166.131:53|udp://78.158.166.132:53"
 	["Shecan"]="udp://178.22.122.101:53|udp://185.51.200.1:53"
 	["SteamDL"]="udp://88.218.16.124:53"
-	["FireOps"]="udp://78.158.166.131:53|udp://78.158.166.132:53"
-	["JoinDNS4"]="udp://86.54.11.100:53|udp://86.54.11.200:53"
+
 	["JoinDNS4-DOH"]="https://unfiltered.joindns4.eu/dns-query"
 	["XboxDNS-DOH"]="https://xbox-dns.ru/dns-query"
 	["GeoHide-DOH"]="https://dns.geohide.ru:444/dns-query"
 )
 
 DNS_PROFILE_ORDER=(
-	Local
-	Google CloudFlare
-	MCI Irancell Shecan SteamDL FireOps
-	JoinDNS4 JoinDNS4-DOH
-	XboxDNS-DOH GeoHide-DOH
+	Google CloudFlare JoinDNS4
+	MCI Irancell
+	Shelter FireOps Shecan SteamDL
+	JoinDNS4-DOH XboxDNS-DOH GeoHide-DOH
 )
 
 # ─────────────────────────────────────────────
