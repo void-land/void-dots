@@ -15,20 +15,24 @@ DNSPROXY_SERVICE="dnsproxy"
 # ─────────────────────────────────────────────
 
 declare -A DNS_PROFILES=(
-    ["LOCAL"]="udp://127.0.0.1:53"
+	["Local"]="udp://127.0.0.1:53"
 
-    ["QUAD9"]="udp://9.9.9.10:53|udp://149.112.112.10:53"
-    ["QUAD9-DOH"]="https://dns10.quad9.net/dns-query|https://dns.quad9.net/dns-query"
-    ["JOINDNS4"]="udp://86.54.11.100:53|udp://86.54.11.200:53"
-    ["JOINDNS4-DOH"]="https://unfiltered.joindns4.eu/dns-query"
-    ["MCI"]="udp://10.185.68.114:53|udp://10.185.68.113:53"
-    ["IRANCELL"]="udp://10.255.255.254:53|udp://10.10.10.10:53"
-    ["SHECAN"]="udp://178.22.122.101:53|udp://185.51.200.1:53"
-    ["STEAMDL"]="udp://88.218.16.124:53"
-    ["FIREOPS"]="udp://78.158.166.131:53|udp://78.158.166.132:53"
-    ["RADAR"]="udp://78.158.166.131:53|udp://78.158.166.132:53"
-    ["GOOGLE"]="udp://8.8.8.8:53|udp://8.8.4.4:53"
-    ["CLOUDFLARE"]="udp://1.1.1.1:53|udp://1.0.0.1:53"
+	["Quad9"]="udp://9.9.9.10:53|udp://149.112.112.10:53"
+	["Quad9-DOH"]="https://dns10.quad9.net/dns-query|https://dns.quad9.net/dns-query"
+
+	["JoinDNS4"]="udp://86.54.11.100:53|udp://86.54.11.200:53"
+	["JoinDNS4-DOH"]="https://unfiltered.joindns4.eu/dns-query"
+
+	["XboxDNS-DOH"]="https://xbox-dns.ru/dns-query"
+	["GeoHide-DOH"]="https://dns.geohide.ru:444/dns-query"
+
+	["Google"]="udp://8.8.8.8:53|udp://8.8.4.4:53"
+	["CloudFlare"]="udp://1.1.1.1:53|udp://1.0.0.1:53"
+	["MCI"]="udp://10.185.68.114:53|udp://10.185.68.113:53"
+	["Irancell"]="udp://10.255.255.254:53|udp://10.10.10.10:53"
+	["Shecan"]="udp://178.22.122.101:53|udp://185.51.200.1:53"
+	["SteamDL"]="udp://88.218.16.124:53"
+	["FireOps"]="udp://78.158.166.131:53|udp://78.158.166.132:53"
 )
 
 # ─────────────────────────────────────────────
@@ -36,7 +40,7 @@ declare -A DNS_PROFILES=(
 # ─────────────────────────────────────────────
 
 DEFAULT_CACHE_ENABLED=true
-DEFAULT_CACHE_SIZE=10485760      # 10 MB
+DEFAULT_CACHE_SIZE=10485760 # 10 MB
 DEFAULT_CACHE_MIN_TTL=3600
 DEFAULT_CACHE_MAX_TTL=3600
 DEFAULT_TIMEOUT="4s"
@@ -54,15 +58,18 @@ DEFAULT_BOOTSTRAP="8.8.8.8:53|1.1.1.1:53"
 #  Helpers
 # ─────────────────────────────────────────────
 
-info()    { echo "[*] $*"; }
+info() { echo "[*] $*"; }
 success() { echo "[✓] $*"; }
-warn()    { echo "[!] $*" >&2; }
-die()     { echo "[✗] $*" >&2; exit 1; }
+warn() { echo "[!] $*" >&2; }
+die() {
+	echo "[✗] $*" >&2
+	exit 1
+}
 
 require_root() {
-    [[ $EUID -eq 0 ]] && return
-    info "Re-launching with root privileges..."
-    exec sudo bash "$0" "$@"
+	[[ $EUID -eq 0 ]] && return
+	info "Re-launching with root privileges..."
+	exec sudo bash "$0" "$@"
 }
 
 # ─────────────────────────────────────────────
@@ -70,37 +77,37 @@ require_root() {
 # ─────────────────────────────────────────────
 
 display_profiles() {
-    echo -e "\n  Available DNS Profiles"
-    echo "  ─────────────────────────────────────────────────────────────"
-    local i=1
-    for name in "${!DNS_PROFILES[@]}"; do
-        printf "  %2d.  %-14s  %s\n" "$i" "$name" "${DNS_PROFILES[$name]}"
-        ((i++))
-    done
-    echo -e "  ─────────────────────────────────────────────────────────────\n"
+	echo -e "\n  Available DNS Profiles"
+	echo "  ─────────────────────────────────────────────────────────────"
+	local i=1
+	for name in "${!DNS_PROFILES[@]}"; do
+		printf "  %2d.  %-14s  %s\n" "$i" "$name" "${DNS_PROFILES[$name]}"
+		((i++))
+	done
+	echo -e "  ─────────────────────────────────────────────────────────────\n"
 }
 
 get_profile_by_index() {
-    local idx=1
-    for name in "${!DNS_PROFILES[@]}"; do
-        ((idx++ == $1)) && echo "$name" && return 0
-    done
-    return 1
+	local idx=1
+	for name in "${!DNS_PROFILES[@]}"; do
+		((idx++ == $1)) && echo "$name" && return 0
+	done
+	return 1
 }
 
 select_profile() {
-    local input name
-    while true; do
-        read -rp "  Select profile (name or number): " input
-        if [[ $input =~ ^[0-9]+$ ]]; then
-            name=$(get_profile_by_index "$input")
-        elif [[ -n "${DNS_PROFILES[$input]}" ]]; then
-            name="$input"
-        fi
-        [[ -n "$name" ]] && echo "$name" && return
-        warn "Invalid selection, try again."
-        name=""
-    done
+	local input name
+	while true; do
+		read -rp "  Select profile (name or number): " input
+		if [[ $input =~ ^[0-9]+$ ]]; then
+			name=$(get_profile_by_index "$input")
+		elif [[ -n "${DNS_PROFILES[$input]}" ]]; then
+			name="$input"
+		fi
+		[[ -n "$name" ]] && echo "$name" && return
+		warn "Invalid selection, try again."
+		name=""
+	done
 }
 
 # ─────────────────────────────────────────────
@@ -108,51 +115,51 @@ select_profile() {
 # ─────────────────────────────────────────────
 
 prompt_settings() {
-    echo -e "\n  Advanced Settings  (press Enter to keep default)"
-    echo "  ─────────────────────────────────────────────────────────────"
+	echo -e "\n  Advanced Settings  (press Enter to keep default)"
+	echo "  ─────────────────────────────────────────────────────────────"
 
-    read -rp "  Timeout            [${DEFAULT_TIMEOUT}]: " input
-    TIMEOUT="${input:-$DEFAULT_TIMEOUT}"
+	read -rp "  Timeout            [${DEFAULT_TIMEOUT}]: " input
+	TIMEOUT="${input:-$DEFAULT_TIMEOUT}"
 
-    read -rp "  Cache enabled      [${DEFAULT_CACHE_ENABLED}]: " input
-    CACHE_ENABLED="${input:-$DEFAULT_CACHE_ENABLED}"
+	read -rp "  Cache enabled      [${DEFAULT_CACHE_ENABLED}]: " input
+	CACHE_ENABLED="${input:-$DEFAULT_CACHE_ENABLED}"
 
-    if [[ "$CACHE_ENABLED" == "true" ]]; then
-        read -rp "  Cache size (bytes) [${DEFAULT_CACHE_SIZE}]: " input
-        CACHE_SIZE="${input:-$DEFAULT_CACHE_SIZE}"
+	if [[ "$CACHE_ENABLED" == "true" ]]; then
+		read -rp "  Cache size (bytes) [${DEFAULT_CACHE_SIZE}]: " input
+		CACHE_SIZE="${input:-$DEFAULT_CACHE_SIZE}"
 
-        read -rp "  Cache min TTL (s)  [${DEFAULT_CACHE_MIN_TTL}]: " input
-        CACHE_MIN_TTL="${input:-$DEFAULT_CACHE_MIN_TTL}"
+		read -rp "  Cache min TTL (s)  [${DEFAULT_CACHE_MIN_TTL}]: " input
+		CACHE_MIN_TTL="${input:-$DEFAULT_CACHE_MIN_TTL}"
 
-        read -rp "  Cache max TTL (s)  [${DEFAULT_CACHE_MAX_TTL}]: " input
-        CACHE_MAX_TTL="${input:-$DEFAULT_CACHE_MAX_TTL}"
-    else
-        CACHE_SIZE=$DEFAULT_CACHE_SIZE
-        CACHE_MIN_TTL=$DEFAULT_CACHE_MIN_TTL
-        CACHE_MAX_TTL=$DEFAULT_CACHE_MAX_TTL
-    fi
+		read -rp "  Cache max TTL (s)  [${DEFAULT_CACHE_MAX_TTL}]: " input
+		CACHE_MAX_TTL="${input:-$DEFAULT_CACHE_MAX_TTL}"
+	else
+		CACHE_SIZE=$DEFAULT_CACHE_SIZE
+		CACHE_MIN_TTL=$DEFAULT_CACHE_MIN_TTL
+		CACHE_MAX_TTL=$DEFAULT_CACHE_MAX_TTL
+	fi
 
-    read -rp "  Rate limit (0=off) [${DEFAULT_RATELIMIT}]: " input
-    RATELIMIT="${input:-$DEFAULT_RATELIMIT}"
+	read -rp "  Rate limit (0=off) [${DEFAULT_RATELIMIT}]: " input
+	RATELIMIT="${input:-$DEFAULT_RATELIMIT}"
 
-    read -rp "  EDNS               [${DEFAULT_EDNS}]: " input
-    EDNS="${input:-$DEFAULT_EDNS}"
+	read -rp "  EDNS               [${DEFAULT_EDNS}]: " input
+	EDNS="${input:-$DEFAULT_EDNS}"
 
-    read -rp "  HTTP/3             [${DEFAULT_HTTP3}]: " input
-    HTTP3="${input:-$DEFAULT_HTTP3}"
+	read -rp "  HTTP/3             [${DEFAULT_HTTP3}]: " input
+	HTTP3="${input:-$DEFAULT_HTTP3}"
 
-    echo ""
+	echo ""
 }
 
 use_defaults() {
-    TIMEOUT="$DEFAULT_TIMEOUT"
-    CACHE_ENABLED="$DEFAULT_CACHE_ENABLED"
-    CACHE_SIZE="$DEFAULT_CACHE_SIZE"
-    CACHE_MIN_TTL="$DEFAULT_CACHE_MIN_TTL"
-    CACHE_MAX_TTL="$DEFAULT_CACHE_MAX_TTL"
-    RATELIMIT="$DEFAULT_RATELIMIT"
-    EDNS="$DEFAULT_EDNS"
-    HTTP3="$DEFAULT_HTTP3"
+	TIMEOUT="$DEFAULT_TIMEOUT"
+	CACHE_ENABLED="$DEFAULT_CACHE_ENABLED"
+	CACHE_SIZE="$DEFAULT_CACHE_SIZE"
+	CACHE_MIN_TTL="$DEFAULT_CACHE_MIN_TTL"
+	CACHE_MAX_TTL="$DEFAULT_CACHE_MAX_TTL"
+	RATELIMIT="$DEFAULT_RATELIMIT"
+	EDNS="$DEFAULT_EDNS"
+	HTTP3="$DEFAULT_HTTP3"
 }
 
 # ─────────────────────────────────────────────
@@ -160,26 +167,26 @@ use_defaults() {
 # ─────────────────────────────────────────────
 
 upstreams_yaml() {
-    IFS='|' read -ra arr <<< "$1"
-    for u in "${arr[@]}"; do
-        echo "  - \"$u\""
-    done
+	IFS='|' read -ra arr <<<"$1"
+	for u in "${arr[@]}"; do
+		echo "  - \"$u\""
+	done
 }
 
 bootstrap_yaml() {
-    IFS='|' read -ra arr <<< "$DEFAULT_BOOTSTRAP"
-    for b in "${arr[@]}"; do
-        echo "  - \"$b\""
-    done
+	IFS='|' read -ra arr <<<"$DEFAULT_BOOTSTRAP"
+	for b in "${arr[@]}"; do
+		echo "  - \"$b\""
+	done
 }
 
 write_config() {
-    local profile_name="$1"
-    local upstreams="${DNS_PROFILES[$profile_name]}"
+	local profile_name="$1"
+	local upstreams="${DNS_PROFILES[$profile_name]}"
 
-    mkdir -p "$(dirname "$DNSPROXY_CONF")"
+	mkdir -p "$(dirname "$DNSPROXY_CONF")"
 
-    cat > "$DNSPROXY_CONF" <<EOF
+	cat >"$DNSPROXY_CONF" <<EOF
 # dnsproxy-switcher — profile: ${profile_name}
 # updated: $(date '+%Y-%m-%d %H:%M:%S')
 
@@ -217,7 +224,7 @@ hosts-files:
 # output: "/var/log/dnsproxy.log"
 EOF
 
-    [[ $? -eq 0 ]] || die "Failed to write $DNSPROXY_CONF."
+	[[ $? -eq 0 ]] || die "Failed to write $DNSPROXY_CONF."
 }
 
 # ─────────────────────────────────────────────
@@ -225,15 +232,15 @@ EOF
 # ─────────────────────────────────────────────
 
 restart_service() {
-    if systemctl is-active --quiet "$DNSPROXY_SERVICE" 2>/dev/null; then
-        info "Restarting $DNSPROXY_SERVICE..."
-        systemctl restart "$DNSPROXY_SERVICE" \
-            && success "$DNSPROXY_SERVICE restarted." \
-            || warn "Failed to restart $DNSPROXY_SERVICE — check 'systemctl status $DNSPROXY_SERVICE'."
-    else
-        warn "$DNSPROXY_SERVICE is not running (skipping restart)."
-        info "Start it manually: systemctl start $DNSPROXY_SERVICE"
-    fi
+	if systemctl is-active --quiet "$DNSPROXY_SERVICE" 2>/dev/null; then
+		info "Restarting $DNSPROXY_SERVICE..."
+		systemctl restart "$DNSPROXY_SERVICE" &&
+			success "$DNSPROXY_SERVICE restarted." ||
+			warn "Failed to restart $DNSPROXY_SERVICE — check 'systemctl status $DNSPROXY_SERVICE'."
+	else
+		warn "$DNSPROXY_SERVICE is not running (skipping restart)."
+		info "Start it manually: systemctl start $DNSPROXY_SERVICE"
+	fi
 }
 
 # ─────────────────────────────────────────────
@@ -241,18 +248,18 @@ restart_service() {
 # ─────────────────────────────────────────────
 
 apply_profile() {
-    local name="$1"
+	local name="$1"
 
-    write_config "$name"
+	write_config "$name"
 
-    echo ""
-    success "Applied profile '$name' → ${DNS_PROFILES[$name]//|/ , }"
-    echo -e "\n  $DNSPROXY_CONF now contains:"
-    echo "  ─────────────────────────────────────────────────────────────"
-    sed 's/^/  /' "$DNSPROXY_CONF"
-    echo -e "  ─────────────────────────────────────────────────────────────\n"
+	echo ""
+	success "Applied profile '$name' → ${DNS_PROFILES[$name]//|/ , }"
+	echo -e "\n  $DNSPROXY_CONF now contains:"
+	echo "  ─────────────────────────────────────────────────────────────"
+	sed 's/^/  /' "$DNSPROXY_CONF"
+	echo -e "  ─────────────────────────────────────────────────────────────\n"
 
-    restart_service
+	restart_service
 }
 
 # ─────────────────────────────────────────────
@@ -260,7 +267,7 @@ apply_profile() {
 # ─────────────────────────────────────────────
 
 usage() {
-    cat <<EOF
+	cat <<EOF
 
   Usage: $(basename "$0") [OPTIONS]
 
@@ -276,7 +283,7 @@ usage() {
     $(basename "$0") -p GOOGLE -a     # apply GOOGLE, prompt for settings
 
 EOF
-    exit 0
+	exit 0
 }
 
 # ─────────────────────────────────────────────
@@ -284,38 +291,38 @@ EOF
 # ─────────────────────────────────────────────
 
 main() {
-    require_root "$@"
+	require_root "$@"
 
-    local profile="" advanced=false list_only=false
+	local profile="" advanced=false list_only=false
 
-    while getopts "p:alh" opt; do
-        case $opt in
-            p) profile="$OPTARG" ;;
-            a) advanced=true ;;
-            l) list_only=true ;;
-            h) usage ;;
-            *) usage ;;
-        esac
-    done
+	while getopts "p:alh" opt; do
+		case $opt in
+		p) profile="$OPTARG" ;;
+		a) advanced=true ;;
+		l) list_only=true ;;
+		h) usage ;;
+		*) usage ;;
+		esac
+	done
 
-    if $list_only; then
-        display_profiles
-        exit 0
-    fi
+	if $list_only; then
+		display_profiles
+		exit 0
+	fi
 
-    if $advanced; then
-        prompt_settings
-    else
-        use_defaults
-    fi
+	if $advanced; then
+		prompt_settings
+	else
+		use_defaults
+	fi
 
-    if [[ -n "$profile" ]]; then
-        [[ -n "${DNS_PROFILES[$profile]}" ]] || die "Unknown profile: '$profile'. Use -l to list."
-        apply_profile "$profile"
-    else
-        display_profiles
-        apply_profile "$(select_profile)"
-    fi
+	if [[ -n "$profile" ]]; then
+		[[ -n "${DNS_PROFILES[$profile]}" ]] || die "Unknown profile: '$profile'. Use -l to list."
+		apply_profile "$profile"
+	else
+		display_profiles
+		apply_profile "$(select_profile)"
+	fi
 }
 
 main "$@"
