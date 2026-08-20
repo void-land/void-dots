@@ -1,5 +1,5 @@
 function myip --description 'Retrieve IP information using ip-api.com'
-    set URL "https://ifconfig.me/"
+    set URL "http://chabokan.net/ip/"
 
     check_command curl
 
