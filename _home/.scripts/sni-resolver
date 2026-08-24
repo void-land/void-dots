@@ -1,25 +1,19 @@
 #!/bin/bash
 
 declare -A DNS=(
-	["SHECAN PRO"]="178.22.122.101,185.51.200.1"
-	["FIRE OPS"]="78.158.166.131,78.158.166.132"
+	["ShecanPro"]="178.22.122.101,185.51.200.1"
+	["ShelterPrimary"]="2.189.86.32,2.189.86.10"
+	["ShelterSecondary"]="94.183.166.195,94.183.166.209"
 )
 
 DOMAINS=(
-	"shecan.ir"
 	"google.com"
 	"claude.ai"
 	"chatgpt.com"
-	"github.com"
-	"cdnjs.com"
-	"microsoft.com"
-	"vercel.com"
-	"deepseek.com"
-	"nextjs.org"
-	"speedtest.org"
-	"sourceforge.net"
-	"codeassist.google"
 	"gemini.google.com"
+	"github.com"
+	"microsoft.com"
+	"speedtest.org"
 
 	"spotify.com"
 	"callofduty.com"
