@@ -22,7 +22,7 @@ declare -a ORDERS_LIST=(
 
 declare -A PACKAGES_LIST=(
 	["UTILITIES"]="turbostat iotop-c glances htop btop nvtop amdgpu_top stress-ng cpu-x"
-	["BASE_PACKAGES"]="base-devel fish tmux jq git curl axel xz zstd fzf bandwhich vortix net-tools dnsproxy networkmanager bluez bluez-utils xdg-utils wl-clipboard alacritty evince"
+	["BASE_PACKAGES"]="base-devel emptty fish tmux jq git curl axel xz zstd fzf bandwhich vortix net-tools dnsproxy networkmanager bluez bluez-utils xdg-utils wl-clipboard alacritty evince"
 	["AUDIO_PACKAGES"]="pipewire wireplumber pipewire-pulse pipewire-alsa pipewire-jack pavucontrol"
 	["GPU_DRIVERS"]="mesa lib32-mesa vulkan-radeon lib32-vulkan-radeon vulkan-icd-loader lib32-vulkan-icd-loader vulkan-mesa-layers vulkan-extra-layers vulkan-tools xf86-video-amdgpu"
 	["GAMING_PACKAGES"]="steam umu-launcher gamescope mangohud gamemode lib32-mangohud lib32-gamemode goverlay"
@@ -53,6 +53,7 @@ declare -a STEP_NAMES=(
 	"Install pacman packages"
 	"Enable system services"
 	"Enable user services"
+	"Enable emptty display manager (disables SDDM/others)"
 	"Install AUR packages"
 	"Setup Persian locale (fa_IR UTF-8)"
 	"Setup Fish shell as default"
@@ -65,6 +66,7 @@ declare -a STEP_FUNCS=(
 	setup_packages
 	setup_services
 	setup_user_services
+	setup_emptty
 	setup_aur_packages
 	setup_locales
 	setup_fish_shell
@@ -143,7 +145,7 @@ select_exclusions() {
 }
 
 display_help() {
-	echo "Usage: $0 [-s | -a | -p | -m | -l | -f | -k] [-h]"
+	echo "Usage: $0 [-s | -a | -p | -m | -l | -f | -k | -g | -e] [-h]"
 	echo " -s  Full system setup"
 	echo " -a  Install AUR packages only"
 	echo " -p  Install pacman packages only"
@@ -152,6 +154,7 @@ display_help() {
 	echo " -f  Setup fish shell"
 	echo " -k  Apply KWin / Graphics performance tweaks"
 	echo " -g  Configure gaming environment (GameMode group, NTSync)"
+	echo " -e  Setup emptty (disable SDDM/other display managers)"
 	echo " -h  Show this help"
 }
 
@@ -292,6 +295,41 @@ setup_user_services() {
 			echo "User service $service enabled"
 		fi
 	done
+}
+
+setup_emptty() {
+	log "Setting up emptty display manager..."
+	if ! ask_prompt "Do you want to disable conflicting display managers and enable emptty?"; then
+		error "Action cancelled..."
+		return 0
+	fi
+
+	# Common display manager services that conflict with emptty
+	local conflicting_dms=(
+		"sddm"
+		"gdm"
+		"lightdm"
+		"ly"
+		"lxdm"
+		"greetd"
+	)
+
+	log "Checking for active/enabled display managers..."
+	for dm in "${conflicting_dms[@]}"; do
+		if systemctl is-enabled "$dm.service" &>/dev/null || systemctl is-active "$dm.service" &>/dev/null; then
+			echo "Found conflicting display manager: $dm. Disabling and stopping..."
+			sudo systemctl disable --now "$dm.service" 2>/dev/null
+			echo "Disabled $dm.service"
+		fi
+	done
+
+	if systemctl is-enabled emptty.service &>/dev/null; then
+		echo "emptty is already enabled."
+	else
+		log "Enabling emptty service..."
+		sudo systemctl enable emptty.service
+		echo "emptty.service enabled successfully."
+	fi
 }
 
 setup_locales() {
@@ -442,7 +480,7 @@ full_setup() {
 	log "Setup completed! Please reboot your system to ensure all changes take effect."
 }
 
-while getopts "sapmlhfkg" opt; do
+while getopts "sapmlhfke" opt; do
 	case $opt in
 	s)
 		full_setup
@@ -474,6 +512,10 @@ while getopts "sapmlhfkg" opt; do
 	g)
 		check_root
 		setup_gaming_config
+		;;
+	e)
+		check_root
+		setup_emptty
 		;;
 	h)
 		display_help
