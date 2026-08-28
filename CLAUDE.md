@@ -45,6 +45,7 @@ Consequences:
 
 **Library + thin wrapper.** Shared logic lives in a `*-lib.sh` that refuses to run when executed directly (`BASH_SOURCE[0] == $0` guard); callers source it, set config variables, then call one entry point:
 - `_home/.vpn/ovpn-lib.sh` ← `eliteping-ovpn`, `vpnbaz-ovpn` set `VPN_CONFIG_DIR`/`VPN_AUTH_FILE`/`VPN_EXTRA_ARGS`, then `vpn_connect_interactive`.
+- `_home/.vpn/openconnect-lib.sh` ← `vpnbaz-openconnect`, `openconnect-connect.sh` set `VPN_SERVERS`/`VPN_AUTH_FILE`/`VPN_EXTRA_ARGS`, then `vpn_connect_interactive`.
 - `_home/.ucu/ucu-launcher-lib.sh` ← per-game scripts (see `ucu-example`) set `GAME_*`/`WINE_PREFIX`/`PROTONPATH`, define an `umu_env_hook` for Proton env vars, then call `umu_launch_game`.
 
 **Script conventions in `_home/.scripts/`:** `info`/`success`/`warn`/`die` helpers, `require_root` that re-execs via `exec sudo bash "$0" "$@"`, a `usage()` heredoc, `getopts` main, and box-drawing `# ─────` section separators. Interactive by default with non-interactive flags (`-p <profile>`, `-l`). These scripts are on `PATH` via `fish_add_path $HOME/.scripts` and `$HOME/.vpn` in `_shell/fish/_env.fish`.

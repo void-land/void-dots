@@ -1,0 +1,15 @@
+#!/usr/bin/env bash
+source "$HOME/.vpn/openconnect-lib.sh"
+
+VPN_AUTH_FILE="$HOME/.vpn/ovpn-servers/vpnbaz.auth"
+VPN_EXTRA_ARGS="--no-dtls"
+
+TciProfiles=(
+	"TCI.apibaz.org"
+	"TCIS1.apibaz.org"
+	"TCIS2.apibaz.org"
+	"TCIS3.apibaz.org"
+	"TCIS4.apibaz.org"
+)
+
+vpn_connect_interactive
