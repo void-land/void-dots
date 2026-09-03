@@ -15,3 +15,4 @@ abbr trt "sudo traceroute --tcp --port=443"
 abbr tru "sudo traceroute --udp --port=53"
 
 abbr --position anywhere --add socksproxy "https_proxy='socks5h://localhost:1080' http_proxy='socks5h://localhost:1080'"
+abbr --position anywhere --add httpproxy "https_proxy='http://localhost:3080' http_proxy='http://localhost:3080'"
