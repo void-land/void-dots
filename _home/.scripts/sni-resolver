@@ -2,8 +2,8 @@
 
 declare -A DNS=(
 	["ShecanPro"]="178.22.122.101,185.51.200.1"
-	["ShelterPrimary"]="2.189.86.32,2.189.86.10"
-	["ShelterSecondary"]="94.183.166.195,94.183.166.209"
+	["ShelterPrimary"]="95.38.140.43,2.189.86.10"
+	["ShelterSecondary"]="2.189.86.32,95.38.140.44"
 )
 
 DOMAINS=(
