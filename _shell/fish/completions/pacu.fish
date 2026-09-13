@@ -1,52 +1,41 @@
-function __arch_services
-    systemctl list-unit-files --type=service --no-pager --no-legend | awk '{print $1}'
+if not set -q pacu_helper_commands
+    set -l conf_file (status dirname)/../conf.d/pacu.fish
+    test -f $conf_file; and source $conf_file
 end
 
-function __arch_active_services
-    systemctl list-units --type=service --state=active --no-pager --plain --no-legend | awk '{print $1}'
-end
-
-function __arch_user_services
-    systemctl --user list-unit-files --type=service --no-pager --no-legend | awk '{print $1}'
-end
-
-function __arch_active_user_services
-    systemctl --user list-units --type=service --state=active --no-pager --plain --no-legend | awk '{print $1}'
-end
-
-complete -c pacu -n "not __fish_use_subcommand" -s h -l help -d "Show help"
+complete -c pacu -s h -l help -d "Show help"
 
 for cmd in $pacu_helper_commands
     set -l command (string split ':' $cmd)
     complete -c pacu -n __fish_use_subcommand -a $command[1] -f -d "$command[2]"
 end
 
-set -l pkg_commands install reinstall info search
-
-for cmd in $pkg_commands
+# Remote packages completion
+set -l repo_pkg_commands install reinstall info deps revdeps
+for cmd in $repo_pkg_commands
     complete -c pacu -n "__fish_seen_subcommand_from $cmd" -xa "(pacman -Slq)" -f
 end
 
-set -l installed_pkg_commands files remove update
-
+# Installed packages completion
+set -l installed_pkg_commands remove files info-installed hold
 for cmd in $installed_pkg_commands
     complete -c pacu -n "__fish_seen_subcommand_from $cmd" -xa "(pacman -Qq)" -f
 end
 
-set -l service_commands start status stop restart reload disable disable-now
+# Held packages completion
+complete -c pacu -n "__fish_seen_subcommand_from unhold" -xa "(pacman-conf IgnorePkg 2>/dev/null | string split ' ')" -f
 
-for cmd in $service_commands
-    complete -c pacu -n "__fish_seen_subcommand_from $cmd" -xa "(__arch_active_services)" -f
+# Local package files
+complete -c pacu -n "__fish_seen_subcommand_from install-local local" -r -k -a "(__fish_complete_suffix .pkg.tar.zst .pkg.tar.xz)"
+
+# File ownership queries
+complete -c pacu -n "__fish_seen_subcommand_from owns" -F
+
+# Search queries (freeform)
+complete -c pacu -n "__fish_seen_subcommand_from search search-installed search-file locate" -f
+
+# Subcommands taking no additional arguments
+set -l no_arg_commands update upgrade sync check list list-all orphans autoremove clean-cache clean-cache-all prune-cache list-held
+for cmd in $no_arg_commands
+    complete -c pacu -n "__fish_seen_subcommand_from $cmd" -f
 end
-
-complete -c pacu -n "__fish_seen_subcommand_from enable" -xa "(__arch_services)" -f
-complete -c pacu -n "__fish_seen_subcommand_from enable-now" -xa "(__arch_services)" -f
-
-set -l user_service_commands start-user status-user stop-user restart-user reload-user disable-user disable-now-user
-
-for cmd in $user_service_commands
-    complete -c pacu -n "__fish_seen_subcommand_from $cmd" -xa "(__arch_active_user_services)" -f
-end
-
-complete -c pacu -n "__fish_seen_subcommand_from enable-user" -xa "(__arch_user_services)" -f
-complete -c pacu -n "__fish_seen_subcommand_from enable-now-user" -xa "(__arch_user_services)" -f

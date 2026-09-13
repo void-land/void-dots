@@ -1,36 +1,28 @@
 set --query pacu_helper_commands || set --global pacu_helper_commands \
-    "install:Install new package" \
-    "reinstall:Reinstall package" \
-    "remove:Remove packages and dependencies" \
-    "upgrade:Upgrade all installed packages" \
-    "update:Update the system and installed packages" \
-    "sync:Force database refresh + system update" \
-    "autoremove:Remove orphans packages" \
-    "search:Search for packages" \
-    "info:Show package information" \
-    "files:List only explicitly installed packages" \
+    "install:Install package(s)" \
+    "install-local:Install local package file(s) (.pkg.tar.zst)" \
+    "reinstall:Reinstall package(s) without confirmation" \
+    "remove:Remove package(s) and unused dependencies" \
+    "update:Refresh package databases" \
+    "upgrade:Full system upgrade" \
+    "sync:Force refresh databases and upgrade system" \
+    "check:Check for available updates" \
+    "search:Search for packages in remote repositories" \
+    "search-installed:Search among installed packages" \
+    "search-file:Find which package owns a remote file" \
+    "owns:Find which installed package owns a local file" \
+    "info:Show detailed repository package information" \
+    "info-installed:Show information for an installed package" \
+    "files:List all files installed by a package" \
     "list:List explicitly installed packages" \
-    "clean-cache:Remove old cached packages" \
-    "prune-cache:Remove all cached packages" \
-    "hold:Hold a package to prevent updates" \
-    "unhold:Unhold a package to allow updates" \
-    "services:List all systemd services" \
-    "active-services:List active systemd services" \
-    "restart:Restart a system service" \
-    "restart-user:Restart a user service" \
-    "reload:Reload a system service" \
-    "reload-user:Reload a user service" \
-    "status:Show the status of a system service" \
-    "status-user:Show the status of a user service" \
-    "start:Start a system service" \
-    "start-user:Start a user service" \
-    "stop:Stop a system service" \
-    "stop-user:Stop a user service" \
-    "enable:Enable a system service after reboot" \
-    "enable-user:Enable a user service after reboot" \
-    "disable:Disable a system service after reboot" \
-    "disable-user:Disable a user service after reboot" \
-    "enable-now:Enable and start a system service" \
-    "enable-now-user:Enable and start a user service" \
-    "disable-now:Disable and stop a system service" \
-    "disable-now-user:Disable and stop a user service" \
+    "list-all:List all installed packages" \
+    "deps:Show package dependency tree" \
+    "revdeps:Show reverse dependency tree for a package" \
+    "orphans:List orphaned packages" \
+    "autoremove:Remove all orphaned packages" \
+    "clean-cache:Remove uninstalled packages from cache" \
+    "clean-cache-all:Remove all packages from cache" \
+    "prune-cache:Prune pacman package cache" \
+    "hold:Hold package(s) from system upgrades" \
+    "unhold:Unhold package(s) to allow upgrades" \
+    "list-held:List packages held from upgrades"
