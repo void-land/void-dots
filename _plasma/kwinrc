@@ -145,3 +145,4 @@ VirtualKeyboardMode=2
 
 [Xwayland]
 Scale=1
+XwaylandEisNoPromptApps=xdotool

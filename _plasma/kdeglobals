@@ -21,13 +21,13 @@ IntensityAmount=0
 IntensityEffect=0
 
 [Colors:Button]
-BackgroundAlternate=114,90,174
+BackgroundAlternate=114,78,146
 BackgroundNormal=41,44,48
-DecorationFocus=146,110,228
-DecorationHover=146,110,228
-ForegroundActive=146,110,228
+DecorationFocus=146,93,189
+DecorationHover=146,93,189
+ForegroundActive=146,93,189
 ForegroundInactive=161,169,177
-ForegroundLink=209,199,242
+ForegroundLink=209,195,225
 ForegroundNegative=218,68,83
 ForegroundNeutral=246,116,0
 ForegroundNormal=252,252,252
@@ -37,11 +37,11 @@ ForegroundVisited=155,89,182
 [Colors:Complementary]
 BackgroundAlternate=30,87,116
 BackgroundNormal=32,35,38
-DecorationFocus=146,110,228
-DecorationHover=146,110,228
-ForegroundActive=146,110,228
+DecorationFocus=146,93,189
+DecorationHover=146,93,189
+ForegroundActive=146,93,189
 ForegroundInactive=161,169,177
-ForegroundLink=209,199,242
+ForegroundLink=209,195,225
 ForegroundNegative=218,68,83
 ForegroundNeutral=246,116,0
 ForegroundNormal=252,252,252
@@ -51,11 +51,11 @@ ForegroundVisited=155,89,182
 [Colors:Header]
 BackgroundAlternate=32,35,38
 BackgroundNormal=41,44,48
-DecorationFocus=146,110,228
-DecorationHover=146,110,228
-ForegroundActive=146,110,228
+DecorationFocus=146,93,189
+DecorationHover=146,93,189
+ForegroundActive=146,93,189
 ForegroundInactive=161,169,177
-ForegroundLink=209,199,242
+ForegroundLink=209,195,225
 ForegroundNegative=218,68,83
 ForegroundNeutral=246,116,0
 ForegroundNormal=252,252,252
@@ -77,13 +77,13 @@ ForegroundPositive=39,174,96
 ForegroundVisited=155,89,182
 
 [Colors:Selection]
-BackgroundAlternate=108,83,166
-BackgroundNormal=108,83,166
-DecorationFocus=146,110,228
-DecorationHover=146,110,228
-ForegroundActive=146,110,228
+BackgroundAlternate=108,71,139
+BackgroundNormal=108,71,139
+DecorationFocus=146,93,189
+DecorationHover=146,93,189
+ForegroundActive=146,93,189
 ForegroundInactive=255,255,255
-ForegroundLink=118,54,221
+ForegroundLink=108,67,141
 ForegroundNegative=176,55,69
 ForegroundNeutral=198,92,0
 ForegroundNormal=255,255,255
@@ -93,11 +93,11 @@ ForegroundVisited=155,89,182
 [Colors:Tooltip]
 BackgroundAlternate=32,35,38
 BackgroundNormal=41,44,48
-DecorationFocus=146,110,228
-DecorationHover=146,110,228
-ForegroundActive=146,110,228
+DecorationFocus=146,93,189
+DecorationHover=146,93,189
+ForegroundActive=146,93,189
 ForegroundInactive=161,169,177
-ForegroundLink=209,199,242
+ForegroundLink=209,195,225
 ForegroundNegative=218,68,83
 ForegroundNeutral=246,116,0
 ForegroundNormal=252,252,252
@@ -107,11 +107,11 @@ ForegroundVisited=155,89,182
 [Colors:View]
 BackgroundAlternate=29,31,34
 BackgroundNormal=20,22,24
-DecorationFocus=146,110,228
-DecorationHover=146,110,228
-ForegroundActive=146,110,228
+DecorationFocus=146,93,189
+DecorationHover=146,93,189
+ForegroundActive=146,93,189
 ForegroundInactive=161,169,177
-ForegroundLink=146,110,228
+ForegroundLink=209,195,225
 ForegroundNegative=218,68,83
 ForegroundNeutral=246,116,0
 ForegroundNormal=252,252,252
@@ -121,11 +121,11 @@ ForegroundVisited=155,89,182
 [Colors:Window]
 BackgroundAlternate=41,44,48
 BackgroundNormal=32,35,38
-DecorationFocus=146,110,228
-DecorationHover=146,110,228
-ForegroundActive=146,110,228
+DecorationFocus=146,93,189
+DecorationHover=146,93,189
+ForegroundActive=146,93,189
 ForegroundInactive=161,169,177
-ForegroundLink=209,199,242
+ForegroundLink=209,195,225
 ForegroundNegative=218,68,83
 ForegroundNeutral=246,116,0
 ForegroundNormal=252,252,252
@@ -133,10 +133,12 @@ ForegroundPositive=39,174,96
 ForegroundVisited=155,89,182
 
 [General]
+AccentColor=146,93,189
 BrowserApplication=google-chrome.desktop
-ColorSchemeHash=9d38eb71ded8ff549da26d57d7cbab9164da243a
+ColorSchemeHash=0efb452114ece4d3338057cb89f434aff85d80d0
 TerminalApplication=alacritty
 TerminalService=Alacritty.desktop
+accentColorFromWallpaper=true
 
 [KDE]
 LookAndFeelPackage=org.kde.breezedark.desktop
@@ -157,7 +159,7 @@ Sort by=Name
 Sort directories first=true
 Sort hidden files last=false
 Sort reversed=false
-Speedbar Width=140
+Speedbar Width=170
 View Style=DetailTree
 
 [WM]

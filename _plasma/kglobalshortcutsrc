@@ -273,3 +273,7 @@ toggle do not disturb=none,none,Toggle do not disturb
 
 [services][Alacritty.desktop]
 New=Meta+Q
+
+[services][org.kde.spectacle.desktop]
+CurrentMonitorScreenShot=none
+OpenWithoutScreenshot=none
