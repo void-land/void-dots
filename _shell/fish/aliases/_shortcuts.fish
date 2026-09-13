@@ -40,7 +40,6 @@ abbr sshkey "ssh-keygen -t rsa -b 4096 -C 'hesam.init@gmail.com'"
 abbr kssh "kitty +kitten ssh -o TCPKeepAlive=yes -o ServerAliveInterval=30"
 
 abbr scode "SUDO_EDITOR='code -nw' sudo -e"
-abbr agy "https_proxy='http://localhost:3080' http_proxy='http://localhost:3080' agy"
 abbr coder "code ./ -r"
 abbr coden "code ./ -n"
 
