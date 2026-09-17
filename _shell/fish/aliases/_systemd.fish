@@ -76,6 +76,7 @@ abbr jcyesterday "journalctl --since yesterday"
 
 # One-Liners & Fast Debugging (--no-pager)
 abbr jcp3 "journalctl -p 3 --no-pager"
+abbr jcamd "journalctl -b 0 --no-pager | grep 'amdgpu'"
 abbr jcnow "journalctl -f --no-pager"
 
 # Boots & Kernel
