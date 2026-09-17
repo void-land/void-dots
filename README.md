@@ -17,9 +17,9 @@
 
 | Path | Description |
 | --- | --- |
-| `_dotfiles/` | Base application configs (`~/.config/`). Theme sets for **Alacritty** and **btop**, **Kitty** and **Rio** terminal setups, **Pipewire** audio routing, and **MangoHud** performance overlay. |
-| `_shell/` | Shell configuration centered on **Fish** — modularized aliases, custom completions, `fzf` plugins via `fisher`, plus **Tmux** and **Zellij** multiplexer setups. |
-| `_plasma/` | **KDE Plasma** configuration: hardware profiles and default app behavior (`dolphinrc`, `kwinrc`, etc.). |
+| `dotfiles/` | Base application configs (`~/.config/`). Theme sets for **Alacritty** and **btop**, **Kitty** and **Rio** terminal setups, **Pipewire** audio routing, and **MangoHud** performance overlay. |
+| `shell/` | Shell configuration centered on **Fish** — modularized aliases, custom completions, `fzf` plugins via `fisher`, plus **Tmux** and **Zellij** multiplexer setups. |
+| `plasma/` | **KDE Plasma** configuration: hardware profiles and default app behavior (`dolphinrc`, `kwinrc`, etc.). |
 | `editors/` | Editor setups for **Zed** (custom TSX/C snippets and themes) and standard **Vim**. |
 
 ## Quick start
@@ -109,7 +109,7 @@ Type numbers, a range (`7-9`), or `^4`, and press Enter — everything else runs
 
 ## 🔗 Managing Configuration (`stow.sh`)
 
-Symlinks the contents of `_dotfiles/`, `_shell/`, `_plasma/`, and `editors/` into their target locations under `$HOME` and `~/.config/`.
+Symlinks the contents of `dotfiles/`, `shell/`, `plasma/`, and `editors/` into their target locations under `$HOME` and `~/.config/`.
 
 **Link (stow) configurations:**
 
