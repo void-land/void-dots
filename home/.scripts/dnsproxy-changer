@@ -5,6 +5,8 @@
 #  Manages /etc/dnsproxy/dnsproxy.yaml
 # ─────────────────────────────────────────────
 
+source "$(dirname "${BASH_SOURCE[0]}")/scripts-lib.sh"
+
 DNSPROXY_CONF="/etc/dnsproxy/dnsproxy.yaml"
 DNSPROXY_SERVICE="dnsproxy"
 
@@ -59,24 +61,6 @@ DEFAULT_HOSTS_FILE_ENABLED=true
 DEFAULT_HOSTS_FILE="/etc/hosts"
 DEFAULT_BOOTSTRAP="8.8.8.8:53|1.1.1.1:53"
 # DEFAULT_BOOTSTRAP=""
-
-# ─────────────────────────────────────────────
-#  Helpers
-# ─────────────────────────────────────────────
-
-info() { echo "[*] $*"; }
-success() { echo "[✓] $*"; }
-warn() { echo "[!] $*" >&2; }
-die() {
-	echo "[✗] $*" >&2
-	exit 1
-}
-
-require_root() {
-	[[ $EUID -eq 0 ]] && return
-	info "Re-launching with root privileges..."
-	exec sudo bash "$0" "$@"
-}
 
 # ─────────────────────────────────────────────
 #  Display & Selection

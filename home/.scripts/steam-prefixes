@@ -1,9 +1,6 @@
 #!/bin/bash
 
-RED='\033[0;31m'
-GREEN='\033[0;32m'
-BLUE='\033[0;34m'
-NC='\033[0m'
+source "$(dirname "${BASH_SOURCE[0]}")/scripts-lib.sh"
 
 declare -A MANIFEST_PATHS=(
 	["Default"]="$HOME/.local/share/Steam/steamapps"
@@ -12,7 +9,7 @@ declare -A MANIFEST_PATHS=(
 
 display_path_list() {    
 	for steam_path in "${!MANIFEST_PATHS[@]}"; do
-		echo -e "${RED}Steam Prefix: ${MANIFEST_PATHS[$steam_path]}:${NC} \n"
+		echo -e "${C_RED}Steam Prefix: ${MANIFEST_PATHS[$steam_path]}:${C_NC} \n"
 
 		for file in "${MANIFEST_PATHS[$steam_path]}"/appmanifest_*.acf; do
 			appid=$(awk -F'"' '/"appid"[[:space:]]+"[0-9]+"/ {print $4}' "$file")
@@ -21,8 +18,8 @@ display_path_list() {
 			# Check if both values are non-empty
 			if [[ -n "$appid" && -n "$name" ]]; then
 				echo -e "Game: $name"
-				echo -e "${BLUE}Prefix${NC}: ${MANIFEST_PATHS[$steam_path]}/compatdata/$appid"
-				echo -e "${GREEN}Prefix User${NC}: ${MANIFEST_PATHS[$steam_path]}/compatdata/$appid/pfx/drive_c/users/steamuser\n"
+				echo -e "${C_BLUE}Prefix${C_NC}: ${MANIFEST_PATHS[$steam_path]}/compatdata/$appid"
+				echo -e "${C_GREEN}Prefix User${C_NC}: ${MANIFEST_PATHS[$steam_path]}/compatdata/$appid/pfx/drive_c/users/steamuser\n"
 			fi
 		done
 	done

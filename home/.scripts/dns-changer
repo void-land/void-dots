@@ -4,6 +4,8 @@
 #  DNS Switcher
 # ─────────────────────────────────────────────
 
+source "$(dirname "${BASH_SOURCE[0]}")/scripts-lib.sh"
+
 RESOLV_CONF="/etc/resolv.conf"
 
 declare -A DNS_SERVERS=(
@@ -30,35 +32,13 @@ DNS_PROFILE_ORDER=(
 )
 
 # ─────────────────────────────────────────────
-#  Helpers
-# ─────────────────────────────────────────────
-
-info() { echo "[*] $*"; }
-success() { echo "[✓] $*"; }
-warn() { echo "[!] $*" >&2; }
-die() {
-	echo "[✗] $*" >&2
-	exit 1
-}
-
-require_root() {
-	[[ $EUID -eq 0 ]] && return
-	info "Re-launching with root privileges..."
-	exec sudo bash "$0" "$@"
-}
-
-# ─────────────────────────────────────────────
 #  systemd-resolved conflict check
 # ─────────────────────────────────────────────
 
 check_resolved_conflict() {
 	systemctl is-active --quiet systemd-resolved || return 0
 
-	echo ""
-	echo "  ╔══════════════════════════════════════╗"
-	echo "  ║  ⚠  systemd-resolved is active!      ║"
-	echo "  ╚══════════════════════════════════════╝"
-	echo ""
+	warn_box "systemd-resolved is active!"
 	warn "systemd-resolved is running and controls /etc/resolv.conf."
 	warn "It will override any changes this script makes."
 	echo ""
@@ -68,8 +48,7 @@ check_resolved_conflict() {
 	echo "    sudo systemctl mask systemd-resolved"
 	echo "    sudo pacman -Rns netctl"
 	echo ""
-	read -rp "  Continue anyway? [y/N]: " ans
-	[[ "${ans,,}" == "y" ]] || die "Aborted."
+	confirm "Continue anyway?" || die "Aborted."
 	echo ""
 }
 

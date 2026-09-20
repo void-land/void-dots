@@ -4,6 +4,8 @@
 #  DNS Switcher — systemd-resolved edition
 # ─────────────────────────────────────────────
 
+source "$(dirname "${BASH_SOURCE[0]}")/scripts-lib.sh"
+
 declare -A DNS_SERVERS=(
     ["LOCAL"]="127.0.0.1"
     ["MCI"]="10.185.68.113 10.185.68.114"
@@ -22,26 +24,10 @@ COMPAT_LINK="/run/systemd/resolve/resolv.conf"
 # Set to "no"  to leave /etc/resolv.conf untouched.
 USE_SYMLINK="yes"
 
-# ─────────────────────────────────────────────
-#  Helpers
-# ─────────────────────────────────────────────
-
-info()    { echo "[*] $*"; }
-success() { echo "[✓] $*"; }
-warn()    { echo "[!] $*" >&2; }
-die()     { echo "[✗] $*" >&2; exit 1; }
-
-require_root() {
-    [[ $EUID -eq 0 ]] && return
-    info "Re-launching with root privileges..."
-    exec sudo bash "$0" "$@"
-}
-
 check_resolved() {
     if ! systemctl is-active --quiet systemd-resolved; then
         warn "systemd-resolved is not running."
-        read -rp "  Start and enable it now? [Y/n]: " ans
-        [[ "${ans,,}" == "n" ]] && die "Cannot continue without systemd-resolved."
+        confirm "Start and enable it now?" y || die "Cannot continue without systemd-resolved."
         systemctl enable --now systemd-resolved \
             || die "Failed to start systemd-resolved."
         success "systemd-resolved started."
