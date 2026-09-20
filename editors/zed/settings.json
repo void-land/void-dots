@@ -7,8 +7,28 @@
 // custom settings, run the `zed: Open Default Settings` command
 // from the command palette
 {
+  "instrumentation": {
+    "performance_profiler": {
+      "enabled": false
+    }
+  },
+  "disable_ai": true,
+  "accessible_mode": true,
+  "icon_theme": "VSCode Great Icons Theme",
+  "mouse_wheel_zoom": true,
+  "proxy": "http://localhost:3080",
   "cli_default_open_behavior": "existing_window",
   "agent_servers": {
+    "claude-acp": {
+      "favorite_config_option_values": {
+        "mode": [
+          "acceptEdits",
+          "plan",
+          "auto"
+        ]
+      },
+      "type": "registry"
+    },
     "gemini": {
       "type": "registry"
     }
@@ -20,20 +40,31 @@
     "dock": "left"
   },
   "git_panel": {
-    "dock": "right"
+    "dock": "left"
   },
   "agent": {
     "dock": "right",
     "enabled": true
   },
   "project_panel": {
+    "git_status_indicator": false,
+    "diagnostic_badges": false,
+    "bold_folder_labels": false,
+    "starts_open": true,
+    "auto_reveal_entries": true,
+    "indent_size": 16.0,
+    "git_status": true,
+    "folder_indicator": "both",
+    "entry_spacing": "standard",
+    "default_width": 261.0,
+    "button": true,
     "dock": "left",
     "auto_fold_dirs": false
   },
   "outline_panel": {
+    "folder_indicator": "chevron",
     "dock": "left",
-    "file_icons": false,
-    "folder_icons": false
+    "file_icons": false
   },
   "preview_tabs": {
     "enabled": true
@@ -47,8 +78,6 @@
   "cursor_shape": "bar",
   "cursor_blink": true,
   "buffer_font_size": 14.0,
-  "buffer_font_family": "Cascadia Code",
-  "ui_font_family": "Cascadia Code",
   "file_types": {
     "env": [
       "*.env.development",
@@ -130,14 +159,11 @@
   "base_keymap": "VSCode",
   "language_models": {},
   "terminal": {
+    "button": true,
     "max_scroll_history_lines": 50000,
     // "font_family": "",
     "font_size": 12
   },
-  "theme": {
-    "mode": "dark",
-    "light": "One Light",
-    "dark": "VSCode Dark Modern"
-  },
+  "theme": "VSCode Dark Modern",
   "auto_update": false
 }
