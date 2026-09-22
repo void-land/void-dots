@@ -4,54 +4,100 @@ source "$(dirname "${BASH_SOURCE[0]}")/scripts-lib.sh"
 
 declare -A DNS=(
 	["ShecanPro"]="178.22.122.101,185.51.200.1"
+	["Shelter"]="87.107.206.7,87.107.206.3"
 	["ShelterPrimary"]="95.38.140.43,2.189.86.10"
 	["ShelterSecondary"]="2.189.86.32,95.38.140.44"
 )
 
+DNS_PROFILE_ORDER=(
+	ShecanPro
+	Shelter
+	ShelterPrimary
+	ShelterSecondary
+)
+
 DOMAINS=(
-	"google.com"
 	"claude.ai"
 	"chatgpt.com"
 	"gemini.google.com"
 	"github.com"
 	"microsoft.com"
-	"speedtest.org"
-
-	"spotify.com"
-	"callofduty.com"
 	"store.steampowered.com"
 	"epicgames.com"
 	"playstation.com"
-	"nexusmods.com"
 	"xbox.com"
-	"gog.com"
 )
 
-query_dns() {
-	local name="$1" ips="$2"
-	IFS=',' read -ra IP_ARRAY <<<"$ips"
+# dig timeout/retry — bounds worst-case per query to ~2s instead of dig's
+# default ~15s (5s timeout x 3 tries) when a server is dead/unreachable.
+DIG_TIME=2
+DIG_TRIES=1
 
-	for ip in "${IP_ARRAY[@]}"; do
-		ip=$(echo "$ip" | xargs) # Trim whitespace
-		echo -e "\n═══ $name: ($ip) ═══"
-		parallel --keep-order --tag "dig +udp +short @$ip {} A | head -1" ::: "${DOMAINS[@]}" | column -t -s $'\t'
+# _dig_one IP DOMAIN — resolve DOMAIN via IP, print exactly one line
+# (possibly empty) so job count and result-line count always match.
+_dig_one() {
+	local ip="$1" domain="$2" r
+	r=$(dig +time="$DIG_TIME" +tries="$DIG_TRIES" +udp +short "@$ip" "$domain" A 2>/dev/null | head -1)
+	[[ $r == ";;"* ]] && r="" # dig prints comm errors on stdout, not stderr
+	printf '%s\n' "$r"
+}
+export -f _dig_one
+export DIG_TIME DIG_TRIES
+
+# query_groups NAME... — flattens NAME x ip x domain into ONE parallel
+# invocation, then re-walks the same nested order to regroup
+# --keep-order output back into per-(name, ip) sections.
+query_groups() {
+	local names=("$@") name ip domain ips
+	local -a ip_arr jobs=()
+
+	for name in "${names[@]}"; do
+		ips="${DNS[$name]}"
+		IFS=',' read -ra ip_arr <<<"$ips"
+		for ip in "${ip_arr[@]}"; do
+			for domain in "${DOMAINS[@]}"; do
+				jobs+=("$ip"$'\t'"$domain")
+			done
+		done
+	done
+
+	local -a results
+	mapfile -t results < <(
+		printf '%s\n' "${jobs[@]}" |
+			parallel --colsep '\t' --keep-order --jobs 0 _dig_one {1} {2}
+	)
+
+	local width=0
+	for domain in "${DOMAINS[@]}"; do
+		((${#domain} > width)) && width=${#domain}
+	done
+
+	local i=0
+	for name in "${names[@]}"; do
+		ips="${DNS[$name]}"
+		IFS=',' read -ra ip_arr <<<"$ips"
+		for ip in "${ip_arr[@]}"; do
+			echo -e "\n═══ $name: ($ip) ═══"
+			for domain in "${DOMAINS[@]}"; do
+				printf "  %-*s  %s\n" "$width" "$domain" "${results[i]}"
+				((i++))
+			done
+		done
 	done
 }
 
 main() {
 	command -v parallel &>/dev/null || die "Install GNU Parallel: sudo pacman -S parallel"
 
-	info "DNS Resolver - Testing ${#DOMAINS[@]} domains on ${#DNS[@]} server groups"
+	info "DNS Resolver - Testing ${#DOMAINS[@]} domains on ${#DNS_PROFILE_ORDER[@]} server groups"
 
-	read -p "Query [a]ll or [s]ingle DNS group? (a/s): " choice
+	read -rp "Query [a]ll or [s]ingle DNS group? (a/s): " choice
 
 	if [[ $choice == "a" ]]; then
-		for name in "${!DNS[@]}"; do
-			query_dns "$name" "${DNS[$name]}"
-		done
+		query_groups "${DNS_PROFILE_ORDER[@]}"
 	else
-		select name in "${!DNS[@]}"; do
-			[[ -n $name ]] && query_dns "$name" "${DNS[$name]}" && break
+		select name in "${DNS_PROFILE_ORDER[@]}"; do
+			[[ -n $name ]] && query_groups "$name" && break
 		done
 	fi
 }
