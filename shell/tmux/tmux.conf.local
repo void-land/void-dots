@@ -58,13 +58,45 @@ bind -n M-J swap-pane -s '{down-of}'
 bind -n M-K swap-pane -s '{up-of}'
 bind -n M-L swap-pane -s '{right-of}'
 
+# More pane management
+bind -n M-z resize-pane -Z            # toggle pane zoom
+bind -n M-v break-pane                # pop pane out into its own window
+bind -n M-X kill-pane -a              # close all other panes
+bind -n M-a next-layout
+bind -n M-A previous-layout
+
+# -- window management ----------------------------------------------------
+
 bind -n M-s select-pane -t :.+
 
-bind -n M-PageUp previous-window # Alt + Page Up: Move to the previous window
-bind -n M-PageDown next-window   # Alt + Page Down: Move to the next window
+bind -n M-PageUp swap-window -t -1 \; select-window -t -1   # move window left
+bind -n M-PageDown swap-window -t +1 \; select-window -t +1 # move window right
 
-bind -n C-PageUp previous-window # Alt + Page Up: Move to the previous window
-bind -n C-PageDown next-window   # Alt + Page Down: Move to the next window
+bind -n C-PageUp previous-window # Ctrl + Page Up: Move to the previous window
+bind -n C-PageDown next-window   # Ctrl + Page Down: Move to the next window
+
+bind -n M-w new-window -c '#{pane_current_path}'                   # new window in current path
+bind -n M-x confirm-before -p "kill-window #W? (y/n)" kill-window  # close window
+bind -n M-, command-prompt -I "#W" "rename-window '%%'"            # rename window
+bind -n M-Tab last-window                                          # toggle to last active window
+bind -n M-o join-pane -t :+                                        # move current pane to next window
+bind -n M-O join-pane -t :-                                        # move current pane to previous window
+bind -n M-1 select-window -t :1
+bind -n M-2 select-window -t :2
+bind -n M-3 select-window -t :3
+bind -n M-4 select-window -t :4
+bind -n M-5 select-window -t :5
+bind -n M-6 select-window -t :6
+bind -n M-7 select-window -t :7
+bind -n M-8 select-window -t :8
+bind -n M-9 select-window -t :9
+
+# -- session management -----------------------------------------------------
+
+bind -n M-` switch-client -l                                # jump to last session
+bind -n M-( switch-client -p                                # previous session
+bind -n M-) switch-client -n                                # next session
+bind -n M-. command-prompt -I "#S" "rename-session '%%'"    # rename session
 
 # if you don't want Oh my tmux! to alter a binding, use #!important
 # bind c new-window -c '#{pane_current_path}' #!important
@@ -479,7 +511,10 @@ tmux_conf_urlscan_options="--compact --dedupe"
 # force Vi mode
 #   really you should export VISUAL or EDITOR environment variable, see manual
 #set -g status-keys vi
-#set -g mode-keys vi
+set -g mode-keys vi
+
+# enter copy mode without the prefix key
+bind -n M-Space copy-mode
 
 # replace C-b by C-a instead of using both prefixes
 # set -gu prefix2
