@@ -1,0 +1,6 @@
+[
+    {
+        "key": "alt+v",
+        "command": "workbench.files.action.showActiveFileInExplorer"
+    }
+]

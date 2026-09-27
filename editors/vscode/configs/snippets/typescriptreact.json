@@ -1,0 +1,13 @@
+{
+	"General React Component": {
+		"prefix": "rct",
+		"body": [
+			"interface Props {}",
+			"",
+			"export default function $1({}: Props) {",
+			"  return <div>$1 component</div>;",
+			"}"
+		],
+		"description": "General React Component"
+	}
+}

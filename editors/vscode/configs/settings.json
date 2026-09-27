@@ -1,0 +1,328 @@
+{
+    /* ----------------------------- Animation Settings ------------------------------ */
+    "animations.Active": "Scale",
+    "animations.Smooth-Mode": true,
+    "animations.CursorAnimationOptions": {
+        "Color": "#ffffff",
+        "CursorStyle": "block",
+        "TrailLength": 8
+    },
+    /* ----------------------------- Reduce Memory ------------------------------ */
+    // "files.exclude": {
+    //   "**/.git": true,
+    //   "**/.DS_Store": true,
+    //   "**/.vscode": true,
+    //   "**/__pycache__": true,
+    //   "**/.pytest_cache": true,
+    //   "**/node_modules": true,
+    //   "node_modules": true,
+    //   "venv": true,
+    //   "*.sublime-*": true,
+    //   "env*": true
+    // },
+    "search.exclude": {
+        "**/node_modules": true,
+        "**/bower_components": true,
+        "**/env": true,
+        "**/venv": true
+    },
+    "files.watcherExclude": {
+        "**/.git/objects/**": true,
+        "**/.git/subtree-cache/**": true,
+        "**/node_modules/**": true,
+        "**/env/**": true,
+        "**/venv/**": true,
+        "env-*": true
+    },
+    "terminal.integrated.rightClickBehavior": "selectWord",
+    "http.proxy": "http://localhost:3080",
+    /* ----------------------------- Editor Settings ---------------------------- */
+    "search.defaultViewMode": "tree",
+    "files.associations": {
+        "*.env.development": "env",
+        "*.env.production": "env",
+        "*.zig": "c"
+    },
+    "outline.icons": false,
+    "breadcrumbs.icons": false,
+    "editor.accessibilitySupport": "off",
+    "editor.bracketPairColorization.enabled": true,
+    "editor.cursorBlinking": "blink",
+    // "editor.cursorSmoothCaretAnimation": "on",
+    "editor.cursorStyle": "line",
+    "editor.cursorWidth": 3,
+    "editor.cursorSurroundingLines": 0,
+    "editor.formatOnSave": true,
+    "editor.formatOnType": true,
+    "editor.minimap.maxColumn": 140,
+    "editor.minimap.renderCharacters": false,
+    "editor.minimap.scale": 1,
+    "editor.mouseWheelZoom": true,
+    "editor.inlineSuggest.enabled": true,
+    // "editor.quickSuggestions": {
+    //   "comments": false,
+    //   "other": true,
+    //   "strings": false
+    // },
+    "editor.suggest.snippetsPreventQuickSuggestions": false,
+    "editor.snippetSuggestions": "inline",
+    "editor.suggest.showIcons": true,
+    "editor.renderWhitespace": "selection",
+    "editor.semanticHighlighting.enabled": false,
+    "editor.tabCompletion": "on",
+    "editor.tabSize": 3,
+    "editor.unicodeHighlight.ambiguousCharacters": false,
+    "editor.unicodeHighlight.invisibleCharacters": false,
+    /* ------------------------------ Font Settings ----------------------------- */
+    // https://github.com/microsoft/cascadia-code
+    "editor.fontFamily": "\"Cascadia\"",
+    "editor.fontLigatures": true,
+    "editor.fontSize": 14,
+    "editor.fontWeight": "bold",
+    /* ------------------------------ Theme Settings ---------------------------- */
+    "workbench.iconTheme": "vs-minimal",
+    "workbench.colorCustomizations": {
+        "tree.indentGuidesStroke": "#ffff"
+    },
+    "workbench.reduceMotion": "off",
+    "workbench.startupEditor": "none",
+    "workbench.tree.expandMode": "singleClick",
+    "workbench.tree.renderIndentGuides": "always",
+    "workbench.editor.enablePreview": true,
+    "window.commandCenter": true,
+    "window.titleBarStyle": "custom",
+    /* ------------------------------ Emmet Settings ---------------------------- */
+    "emmet.includeLanguages": {
+        "javascript": "javascriptreact"
+    },
+    "emmet.triggerExpansionOnTab": false,
+    /* ------------------- Default Formatter and Lang Settings ------------------ */
+    // "editor.defaultFormatter": "esbenp.prettier-vscode",
+    "C_Cpp.clang_format_style": "file",
+    "C_Cpp.clang_format_path": "/usr/bin/clang-format",
+    "C_Cpp.default.compilerPath": "/usr/bin/gcc",
+    "[c]": {
+        "editor.defaultFormatter": "ms-vscode.cpptools"
+    },
+    "[cpp]": {
+        "editor.defaultFormatter": "ms-vscode.cpptools"
+    },
+    "[shellscript]": {
+        "editor.defaultFormatter": "mkhl.shfmt"
+    },
+    "[css]": {
+        "editor.defaultFormatter": "esbenp.prettier-vscode"
+    },
+    "[typescriptreact]": {
+        "editor.defaultFormatter": "esbenp.prettier-vscode"
+    },
+    "editor.codeActionsOnSave": {
+        "source.organizeImports": "explicit",
+        "source.fixAll": "explicit"
+    },
+    "[properties]": {
+        "editor.defaultFormatter": "foxundermoon.shell-format"
+    },
+    "[html]": {
+        // "editor.defaultFormatter": "esbenp.prettier-vscode"
+    },
+    "[javascriptreact]": {
+        "editor.defaultFormatter": "esbenp.prettier-vscode"
+    },
+    "[javascript]": {
+        "editor.defaultFormatter": "esbenp.prettier-vscode"
+    },
+    "[dotenv]": {
+        "editor.defaultFormatter": "foxundermoon.shell-format"
+    },
+    "[typescript]": {
+        "editor.defaultFormatter": "vscode.typescript-language-features"
+    },
+    "[ignore]": {
+        "editor.defaultFormatter": "foxundermoon.shell-format"
+    },
+    "[jsonc]": {
+        "editor.defaultFormatter": "vscode.json-language-features"
+    },
+    "editor.tokenColorCustomizations": {
+        "[Theme Name]": {
+            "textMateRules": [
+                {
+                    "scope": "variable.other.rust",
+                    "settings": {
+                        "foreground": "#ffff00"
+                    }
+                }
+            ]
+        }
+    },
+    /* ------------------------------ Terminal Settings -------------------------- */
+    "terminal.integrated.defaultProfile.windows": "PowerShell",
+    "terminal.integrated.enableMultiLinePasteWarning": false,
+    "terminal.integrated.gpuAcceleration": "on",
+    "terminal.integrated.scrollback": 50000,
+    "terminal.integrated.tabs.defaultIcon": "zap",
+    "terminal.integrated.tabs.enableAnimation": true,
+    /* ------------------------------ cSpell Settings ------------------------------ */
+    "cSpell.userWords": [
+        "atlascode",
+        "autofetch",
+        "Cascadia",
+        "colourless",
+        "Consolas",
+        "donot",
+        "esbenp",
+        "Etebar",
+        "faryanic",
+        "foxundermoon",
+        "headlessui",
+        "indenticator",
+        "Sanji",
+        "screencast",
+        "scrollback",
+        "tailwindcss",
+        "verison",
+        "woocommerce"
+    ],
+    "cSpell.language": "en,fa",
+    /* ------------------------------ Explorer Settings ------------------------- */
+    "explorer.compactFolders": false,
+    "explorer.confirmDelete": true,
+    "explorer.confirmDragAndDrop": false,
+    "explorer.decorations.colors": true,
+    "explorer.sortOrder": "type",
+    /* ------------------------------ Git Settings ------------------------------ */
+    "git.autofetch": true,
+    /* ------------------------------ GitHub Issues Settings --------------------- */
+    "githubIssues.queries": [
+        {
+            "label": "My Issues",
+            "query": "default"
+        },
+        {
+            "label": "Created Issues",
+            "query": "author:${user} state:open repo:${owner}/${repository} sort:created-desc"
+        },
+        {
+            "label": "Recent Issues",
+            "query": "state:open repo:${owner}/${repository} sort:updated-desc"
+        },
+        {
+            "label": "Closed Issues",
+            "query": "state:open repo:${owner}/${repository} is:closed sort:updated-desc"
+        }
+    ],
+    /* ------------------------------ Indenticator Settings ---------------------- */
+    "indenticator.color.dark": "#ffff",
+    /* ------------------------------ Live Server Settings ----------------------- */
+    "liveServer.settings.donotShowInfoMsg": true,
+    "liveServer.settings.donotVerifyTags": true,
+    /* ------------------------------ Red Hat Settings --------------------------- */
+    "redhat.telemetry.enabled": false,
+    /* ------------------------------ Remote SSH Settings ------------------------ */
+    "remote.SSH.enableRemoteCommand": true,
+    /* ------------------------------ SCSS Settings ----------------------------- */
+    "scss.lint.unknownAtRules": "ignore",
+    /* ------------------------------ Search Settings ---------------------------- */
+    "search.sortOrder": "type",
+    /* ------------------------------ TypeScript Settings ------------------------ */
+    "javascript.suggest.paths": true,
+    "typescript.suggest.paths": true,
+    "typescript.updateImportsOnFileMove.enabled": "always",
+    // "typescript.preferences.importModuleSpecifier": "relative",
+    /* ------------------------------ Update Settings ---------------------------- */
+    "update.mode": "manual",
+    /* ------------------------------ YAML Settings ------------------------------ */
+    "yaml.customTags": [
+        "!And",
+        "!And sequence",
+        "!If",
+        "!If sequence",
+        "!Not",
+        "!Not sequence",
+        "!Equals",
+        "!Equals sequence",
+        "!Or",
+        "!Or sequence",
+        "!FindInMap",
+        "!FindInMap sequence",
+        "!Base64",
+        "!Join",
+        "!Join sequence",
+        "!Cidr",
+        "!Ref",
+        "!Sub",
+        "!Sub sequence",
+        "!GetAtt",
+        "!GetAZs",
+        "!ImportValue",
+        "!ImportValue sequence",
+        "!Select",
+        "!Select sequence",
+        "!Split",
+        "!Split sequence"
+    ],
+    "yaml.schemas": {
+        "file:///home/hesam/.vscode/extensions/atlassian.atlascode-3.0.10/resources/schemas/pipelines-schema.json": "bitbucket-pipelines.yml",
+        "file:///home/hesam/.vscode-oss/extensions/continue.continue-1.2.22-linux-x64/config-yaml-schema.json": [
+            ".continue/**/*.yaml"
+        ]
+    },
+    "terminal.integrated.fontFamily": "monospace",
+    "workbench.tree.enableStickyScroll": false,
+    "editor.stickyScroll.scrollWithEditor": false,
+    "editor.stickyScroll.enabled": false,
+    "javascript.updateImportsOnFileMove.enabled": "always",
+    "[json]": {
+        "editor.defaultFormatter": "vscode.json-language-features"
+    },
+    "prisma.showPrismaDataPlatformNotification": false,
+    "workbench.experimental.enableNewProfilesUI": true,
+    "window.customTitleBarVisibility": "auto",
+    "vscode_custom_css.imports": [
+        "file:///home/hesam/.vscode/extensions/brandonkirbyson.vscode-animations-2.0.7/dist/updateHandler.js"
+    ],
+    "animations.Auto-Install": false,
+    "animations.Enabled": false,
+    "database-client.autoSync": true,
+    "explorer.confirmPasteNative": false,
+    "diffEditor.ignoreTrimWhitespace": false,
+    "kotlin.languageServer.enabled": false,
+    "kotlin.debugAdapter.enabled": false,
+    "[gdscript]": {
+        "editor.defaultFormatter": "EddieDover.gdscript-formatter-linter"
+    },
+    "workbench.editorAssociations": {
+        "*.copilotmd": "vscode.markdown.preview.editor",
+        "*.db": "default"
+    },
+    "github.copilot.nextEditSuggestions.enabled": true,
+    "remote.SSH.remotePlatform": {
+        "192.168.1.107": "linux"
+    },
+    "biome.suggestInstallingGlobally": false,
+    "animations.CursorAnimation": true,
+    "workbench.colorTheme": "GitHub Dark Default",
+    "[yaml]": {
+        "editor.defaultFormatter": "redhat.vscode-yaml"
+    },
+    "gitlens.ai.model": "gemini:gemini-2.5-pro",
+    "json.schemaDownload.trustedDomains": {
+        "https://schemastore.azurewebsites.net/": true,
+        "https://raw.githubusercontent.com/": true,
+        "https://www.schemastore.org/": true,
+        "https://json.schemastore.org/": true,
+        "https://json-schema.org/": true,
+        "https://biomejs.dev": true
+    },
+    "[markdown]": {
+        "editor.defaultFormatter": "DavidAnson.vscode-markdownlint"
+    },
+    "[dockercompose]": {
+        "editor.defaultFormatter": "redhat.vscode-yaml"
+    },
+    "workbench.secondarySideBar.defaultVisibility": "hidden",
+    "network.meteredConnection": "off",
+    "telemetry.performance.inputLatencySamplingProbability": 1,
+    "claudeCode.preferredLocation": "panel"
+}

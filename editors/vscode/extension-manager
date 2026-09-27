@@ -1,0 +1,529 @@
+#!/bin/bash
+
+# ─────────────────────────────────────────────
+#  VS Code Extension Manager
+#  Fetch, download and install the extensions listed in oss-extensions.txt
+#  from Open VSX, keeping an offline .vsix cache next to this script.
+# ─────────────────────────────────────────────
+
+set -o pipefail
+shopt -s nullglob
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
+EXTENSIONS_FILE="$SCRIPT_DIR/oss-extensions.txt"
+DOWNLOAD_DIR="$SCRIPT_DIR/downloads"
+INFO_DIR="$SCRIPT_DIR/extension_info"
+INSTALL_LOG="$SCRIPT_DIR/install.log"
+SUMMARY_FILE="$SCRIPT_DIR/extension_summary.txt"
+
+OPENVSX_API="https://open-vsx.org/api"
+PARALLEL_MAX=20
+CURL_PARALLEL_MIN="7.83.0" # first release with --remove-on-error
+
+VSCODE_CANDIDATES=(codium code-oss code code-insiders)
+VSCODE_CMD="${VSCODE_CMD:-}"
+
+ASSUME_YES=false
+TMP_DIR=""
+
+declare -a EXTENSIONS=()
+declare -A LISTED=()
+
+# ─────────────────────────────────────────────
+#  Output helpers
+# ─────────────────────────────────────────────
+
+if [[ -t 1 ]]; then
+	RED=$'\e[0;31m' GREEN=$'\e[0;32m' YELLOW=$'\e[0;33m' BLUE=$'\e[0;34m' BOLD=$'\e[1m' NC=$'\e[0m'
+else
+	RED="" GREEN="" YELLOW="" BLUE="" BOLD="" NC=""
+fi
+
+info() { printf '%s[*]%s %s\n' "$BLUE" "$NC" "$*"; }
+success() { printf '%s[✓]%s %s\n' "$GREEN" "$NC" "$*"; }
+warn() { printf '%s[!]%s %s\n' "$YELLOW" "$NC" "$*" >&2; }
+error() { printf '%s[✗]%s %s\n' "$RED" "$NC" "$*" >&2; }
+die() {
+	error "$*"
+	exit 1
+}
+header() { printf '\n%s==> %s%s\n' "$BOLD" "$*" "$NC"; }
+
+# confirm PROMPT — defaults to yes; skipped entirely once ASSUME_YES is set.
+confirm() {
+	[[ $ASSUME_YES == true ]] && return 0
+
+	local ans
+	read -rp "$1 [Y/n]: " ans
+	[[ ${ans,,} != n* ]]
+}
+
+usage() {
+	cat <<EOF
+
+  Usage: $(basename "$0") [OPTIONS]
+
+  Options:
+    -f   Fetch extension info from Open VSX
+    -p   Download VSIX files in parallel ($PARALLEL_MAX at a time; falls back to -d on old curl)
+    -d   Download VSIX files sequentially
+    -v   Install extensions from the cached VSIX files (offline)
+    -l   List extensions with version and cache status
+    -c   Complete setup: fetch + parallel download + install + list + summary
+    -y   Assume yes for every prompt
+    -h   Show this help
+
+  Options run in the order given. Extensions come from:
+    $EXTENSIONS_FILE
+
+  Environment:
+    VSCODE_CMD   Editor CLI to install into (default: first of ${VSCODE_CANDIDATES[*]})
+
+  Examples:
+    $(basename "$0") -f -p          # refresh info, then download what's missing
+    $(basename "$0") -v             # offline install from downloads/
+    $(basename "$0") -c -y          # everything, no prompts
+
+EOF
+}
+
+# ─────────────────────────────────────────────
+#  Setup
+# ─────────────────────────────────────────────
+
+cleanup() {
+	[[ -n $TMP_DIR ]] && rm -rf "$TMP_DIR"
+	rm -f "$DOWNLOAD_DIR"/*.part
+}
+
+require_cmds() {
+	local cmd missing=()
+	for cmd in "$@"; do
+		command -v "$cmd" &>/dev/null || missing+=("$cmd")
+	done
+
+	((${#missing[@]} == 0)) || die "Missing dependencies: ${missing[*]} (sudo pacman -S ${missing[*]})"
+}
+
+load_extensions() {
+	[[ -f $EXTENSIONS_FILE ]] || die "Extensions list not found: $EXTENSIONS_FILE"
+
+	local line
+	while IFS= read -r line || [[ -n $line ]]; do
+		line="${line%%#*}"
+		line="${line//[[:space:]]/}"
+		[[ -z $line ]] && continue
+
+		if [[ $line != ?*.?* ]]; then
+			warn "Ignoring malformed entry (expected publisher.name): $line"
+			continue
+		fi
+
+		[[ -n ${LISTED[$line]} ]] && continue
+		LISTED[$line]=1
+		EXTENSIONS+=("$line")
+	done <"$EXTENSIONS_FILE"
+
+	((${#EXTENSIONS[@]} > 0)) || die "No extensions listed in $EXTENSIONS_FILE"
+}
+
+detect_vscode() {
+	if [[ -n $VSCODE_CMD ]]; then
+		command -v "$VSCODE_CMD" &>/dev/null || die "VSCODE_CMD not found: $VSCODE_CMD"
+		return 0
+	fi
+
+	local cmd
+	for cmd in "${VSCODE_CANDIDATES[@]}"; do
+		if command -v "$cmd" &>/dev/null; then
+			VSCODE_CMD="$cmd"
+			return 0
+		fi
+	done
+
+	die "No VS Code CLI found (tried: ${VSCODE_CANDIDATES[*]}). Set VSCODE_CMD to override."
+}
+
+curl_version() {
+	curl --version | awk 'NR == 1 { print $2 }'
+}
+
+curl_supports_parallel() {
+	local version
+	version="$(curl_version)"
+	[[ $(printf '%s\n' "$CURL_PARALLEL_MIN" "$version" | sort -V | head -n1) == "$CURL_PARALLEL_MIN" ]]
+}
+
+# ─────────────────────────────────────────────
+#  Cache lookups
+# ─────────────────────────────────────────────
+
+info_file() { echo "$INFO_DIR/$1.json"; }
+
+# cached_vsix EXT — newest cached .vsix for EXT. The "-[0-9]" anchor keeps
+# e.g. graphql.vscode-graphql from matching graphql.vscode-graphql-syntax-*.
+cached_vsix() {
+	local files=("$DOWNLOAD_DIR/$1"-[0-9]*.vsix)
+	((${#files[@]} > 0)) || return 1
+	printf '%s\n' "${files[@]}" | sort -V | tail -n1
+}
+
+# target_vsix EXT — the .vsix path for the version recorded in EXT's info.
+target_vsix() {
+	local file version
+	file="$(info_file "$1")"
+	[[ -f $file ]] || return 1
+	version="$(jq -r '.version // empty' "$file")" || return 1
+	[[ -n $version ]] || return 1
+	echo "$DOWNLOAD_DIR/$1-$version.vsix"
+}
+
+# vsix_owner FILENAME — the listed extension a cached .vsix belongs to.
+vsix_owner() {
+	local ext
+	for ext in "${EXTENSIONS[@]}"; do
+		if [[ $1 == "$ext"-[0-9]*.vsix ]]; then
+			echo "$ext"
+			return 0
+		fi
+	done
+	return 1
+}
+
+# Drop info for extensions no longer listed, .vsix files nobody owns, and
+# every cached version of an extension except the one we'd install.
+prune_cache() {
+	local file name owner keep
+
+	for file in "$INFO_DIR"/*.json; do
+		name="$(basename "$file" .json)"
+		[[ -n ${LISTED[$name]} ]] && continue
+		rm -f "$file"
+		info "Pruned info for unlisted extension: $name"
+	done
+
+	for file in "$DOWNLOAD_DIR"/*.vsix; do
+		name="$(basename "$file")"
+		if ! owner="$(vsix_owner "$name")"; then
+			rm -f "$file"
+			info "Pruned unlisted VSIX: $name"
+			continue
+		fi
+
+		keep="$(target_vsix "$owner")"
+		[[ -f $keep ]] || keep="$(cached_vsix "$owner")"
+		if [[ $file != "$keep" ]]; then
+			rm -f "$file"
+			info "Pruned outdated VSIX: $name"
+		fi
+	done
+}
+
+# ─────────────────────────────────────────────
+#  Actions
+# ─────────────────────────────────────────────
+
+fetch_info() {
+	header "Fetching extension info from Open VSX"
+	confirm "Fetch info for ${#EXTENSIONS[@]} extensions?" || {
+		warn "Skipped."
+		return 0
+	}
+
+	mkdir -p "$INFO_DIR"
+
+	local ext tmp version i=0 ok=0 failed=0 total=${#EXTENSIONS[@]}
+	for ext in "${EXTENSIONS[@]}"; do
+		((++i))
+		tmp="$TMP_DIR/$ext.json"
+
+		if curl -fsSL --retry 2 -H "Accept: application/json" -o "$tmp" \
+			"$OPENVSX_API/${ext%%.*}/${ext#*.}" &&
+			jq -e '.version and .files.download' "$tmp" &>/dev/null; then
+			mv "$tmp" "$(info_file "$ext")"
+			version="$(jq -r '.version' "$(info_file "$ext")")"
+			success "[$i/$total] $ext $version"
+			((++ok))
+		else
+			error "[$i/$total] $ext: not found or invalid response"
+			((++failed))
+		fi
+	done
+
+	prune_cache
+	info "Fetched: $ok, failed: $failed"
+	((failed == 0))
+}
+
+# download_vsix MODE — MODE is "parallel" or "sequential".
+download_vsix() {
+	local mode="$1"
+
+	header "Downloading VSIX files ($mode)"
+	confirm "Download missing VSIX files from Open VSX?" || {
+		warn "Skipped."
+		return 0
+	}
+
+	if [[ $mode == parallel ]] && ! curl_supports_parallel; then
+		warn "curl $(curl_version) is older than $CURL_PARALLEL_MIN, downloading sequentially."
+		mode=sequential
+	fi
+
+	local ext file version url target
+	local -a exts=() targets=() urls=() no_info=()
+	local up_to_date=0
+
+	for ext in "${EXTENSIONS[@]}"; do
+		file="$(info_file "$ext")"
+		if [[ ! -f $file ]]; then
+			no_info+=("$ext")
+			continue
+		fi
+
+		IFS=$'\t' read -r version url < <(jq -r '[.version, .files.download] | @tsv' "$file")
+		target="$DOWNLOAD_DIR/$ext-$version.vsix"
+		if [[ -s $target ]]; then
+			((++up_to_date))
+			continue
+		fi
+
+		exts+=("$ext")
+		targets+=("$target")
+		urls+=("$url")
+	done
+
+	if ((${#no_info[@]} == ${#EXTENSIONS[@]})); then
+		error "No extension info found, run with -f first."
+		return 1
+	elif ((${#no_info[@]} > 0)); then
+		warn "No info for ${#no_info[@]} extensions (run with -f first): ${no_info[*]}"
+	fi
+
+	local i ok=0 failed=0
+	((${#exts[@]} > 0)) && mkdir -p "$DOWNLOAD_DIR"
+	if ((${#exts[@]} == 0)); then
+		info "Nothing to download."
+	elif [[ $mode == parallel ]]; then
+		local config="$TMP_DIR/curl.conf"
+		{
+			printf '%s\n' fail location remove-on-error show-error "retry = 2"
+			for i in "${!exts[@]}"; do
+				printf 'url = "%s"\noutput = "%s.part"\n' "${urls[i]}" "${targets[i]}"
+			done
+		} >"$config"
+
+		info "Downloading ${#exts[@]} files, $PARALLEL_MAX at a time..."
+		curl --parallel --parallel-max "$PARALLEL_MAX" --config "$config"
+	else
+		for i in "${!exts[@]}"; do
+			info "[$((i + 1))/${#exts[@]}] $(basename "${targets[i]}")"
+			curl -fL --retry 2 --progress-bar -o "${targets[i]}.part" "${urls[i]}" ||
+				rm -f "${targets[i]}.part"
+		done
+	fi
+
+	for i in "${!exts[@]}"; do
+		if [[ -s ${targets[i]}.part ]]; then
+			mv "${targets[i]}.part" "${targets[i]}"
+			success "Downloaded: $(basename "${targets[i]}")"
+			((++ok))
+		else
+			rm -f "${targets[i]}.part"
+			error "Failed: $(basename "${targets[i]}")"
+			((++failed))
+		fi
+	done
+
+	prune_cache
+	info "Downloaded: $ok, already cached: $up_to_date, failed: $failed, missing info: ${#no_info[@]}"
+	((failed == 0 && ${#no_info[@]} == 0))
+}
+
+install_vsix() {
+	header "Installing extensions from cached VSIX files"
+
+	[[ -d $DOWNLOAD_DIR ]] || {
+		error "No VSIX cache at $DOWNLOAD_DIR, run with -p or -d first."
+		return 1
+	}
+
+	detect_vscode
+	confirm "Install ${#EXTENSIONS[@]} extensions with $VSCODE_CMD?" || {
+		warn "Skipped."
+		return 0
+	}
+
+	{
+		echo "Extension install log - $(date)"
+		echo "Editor: $VSCODE_CMD"
+		echo ""
+	} >"$INSTALL_LOG"
+
+	local ext vsix name i=0 ok=0 failed=0 missing=0 total=${#EXTENSIONS[@]}
+	for ext in "${EXTENSIONS[@]}"; do
+		((++i))
+		if ! vsix="$(cached_vsix "$ext")"; then
+			warn "[$i/$total] $ext: no cached VSIX"
+			echo "[MISSING] $ext" >>"$INSTALL_LOG"
+			((++missing))
+			continue
+		fi
+
+		name="$(basename "$vsix")"
+		echo "[INSTALL] $name" >>"$INSTALL_LOG"
+		if "$VSCODE_CMD" --install-extension "$vsix" --force >>"$INSTALL_LOG" 2>&1; then
+			success "[$i/$total] $name"
+			((++ok))
+		else
+			error "[$i/$total] $name (see $INSTALL_LOG)"
+			echo "[FAILED] $name" >>"$INSTALL_LOG"
+			((++failed))
+		fi
+	done
+
+	printf '\nSummary: %d installed, %d failed, %d missing\n' "$ok" "$failed" "$missing" >>"$INSTALL_LOG"
+	info "Installed: $ok, failed: $failed, missing: $missing"
+	info "Log saved to: $INSTALL_LOG"
+	((failed == 0 && missing == 0))
+}
+
+list_extensions() {
+	header "Extensions in $(basename "$EXTENSIONS_FILE")"
+
+	local ext file version name vsix mark cached=0
+	printf '\n    %-50s %-20s %s\n' "Extension" "Version" "Display Name"
+	for ext in "${EXTENSIONS[@]}"; do
+		file="$(info_file "$ext")"
+		version="-"
+		name="-"
+		[[ -f $file ]] && IFS=$'\t' read -r version name < <(jq -r '[.version, (.displayName // .name)] | @tsv' "$file")
+
+		if vsix="$(cached_vsix "$ext")"; then
+			mark="${GREEN}✓${NC}"
+			((++cached))
+			if [[ $version == "-" ]]; then
+				version="${vsix##*/"$ext"-}"
+				version="${version%.vsix}"
+			fi
+		else
+			mark="${RED}✗${NC}"
+		fi
+
+		printf '  %s %-50s %-20s %s\n' "$mark" "$ext" "$version" "$name"
+	done
+
+	echo ""
+	info "Total: ${#EXTENSIONS[@]}, cached: $cached"
+}
+
+write_summary() {
+	local ext file
+	{
+		echo "VS Code Extensions Summary"
+		echo "Generated: $(date)"
+		echo "=========================="
+		echo ""
+
+		for ext in "${EXTENSIONS[@]}"; do
+			file="$(info_file "$ext")"
+			[[ -f $file ]] || continue
+			echo "Extension: $ext"
+			jq -r '"Version: \(.version // "N/A")",
+				"Download: \(.files.download // "N/A")",
+				"Description: \(.description // "N/A")"' "$file"
+			echo "---"
+		done
+	} >"$SUMMARY_FILE"
+
+	info "Summary saved to: $SUMMARY_FILE"
+}
+
+complete_setup() {
+	header "Complete setup: fetch, download, install, list"
+	confirm "Run the complete setup?" || {
+		warn "Skipped."
+		return 0
+	}
+
+	local rc=0 saved_assume_yes="$ASSUME_YES"
+	ASSUME_YES=true
+
+	fetch_info || rc=1
+	download_vsix parallel || rc=1
+	install_vsix || rc=1
+	list_extensions
+	write_summary
+
+	ASSUME_YES="$saved_assume_yes"
+	return "$rc"
+}
+
+# ─────────────────────────────────────────────
+#  Main
+# ─────────────────────────────────────────────
+
+main() {
+	(($# > 0)) || {
+		usage
+		exit 0
+	}
+
+	local opt action
+	local -a actions=()
+	while getopts "fpdvlcyh" opt; do
+		case $opt in
+		f) actions+=(fetch) ;;
+		p) actions+=(download_parallel) ;;
+		d) actions+=(download_sequential) ;;
+		v) actions+=(install) ;;
+		l) actions+=(list) ;;
+		c) actions+=(complete) ;;
+		y) ASSUME_YES=true ;;
+		h)
+			usage
+			exit 0
+			;;
+		*)
+			usage >&2
+			exit 1
+			;;
+		esac
+	done
+	shift $((OPTIND - 1))
+
+	if (($# > 0 || ${#actions[@]} == 0)); then
+		usage >&2
+		exit 1
+	fi
+
+	for action in "${actions[@]}"; do
+		case $action in
+		fetch | download_* | complete) require_cmds curl jq ;;
+		list) require_cmds jq ;;
+		esac
+	done
+
+	load_extensions
+
+	TMP_DIR="$(mktemp -d)"
+	trap cleanup EXIT
+	trap 'exit 130' INT TERM
+
+	local rc=0
+	for action in "${actions[@]}"; do
+		case $action in
+		fetch) fetch_info ;;
+		download_parallel) download_vsix parallel ;;
+		download_sequential) download_vsix sequential ;;
+		install) install_vsix ;;
+		list) list_extensions ;;
+		complete) complete_setup ;;
+		esac || rc=1
+	done
+
+	exit "$rc"
+}
+
+main "$@"
