@@ -29,6 +29,7 @@ dotfiles/alacritty/themes.sh            # re-pull alacritty themes from upstream
 | `shell/*` | `~/.config/` | `~/.config/fish`, `~/.config/tmux`, `~/.config/bash`, … |
 | `plasma/*` | `~/.config/` | individual `*rc` files |
 | `editors/zed` | `~/.config/zed` | linked as one dir (`create_link`, singular) |
+| `editors/vscode/configs/*` | `~/.config/VSCodium/User/` and `~/.config/Code - OSS/User/` | per-child, looped over `VSCODE_TARGET_DIRS` |
 
 Consequences:
 - Adding a file **inside** an already-linked dir needs nothing — the dir itself is the symlink.
@@ -68,6 +69,7 @@ Consequences:
 - `shell/tmux/tmux.conf` — oh-my-tmux upstream; all customization belongs in `tmux.conf.local`.
 - `shell/fish/plugins/**` — fisher-managed.
 - `editors/vim/.vim/autoload/plug.vim` — vim-plug.
+- `editors/vscode/downloads/`, `extension_info/` — gitignored `.vsix` cache and Open VSX metadata written by `editors/vscode/extension-manager`, which is driven by `oss-extensions.txt` and prunes cache entries that aren't in it.
 
 ## Conventions
 

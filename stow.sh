@@ -8,6 +8,8 @@ PLASMA_DIR="$LINUX_CONFIGS_DIR/plasma"
 LINUX_DOTFILES_DIR="$LINUX_CONFIGS_DIR/dotfiles"
 
 ZED_DIR="$LINUX_CONFIGS_DIR/editors/zed"
+VSCODE_CONFIGS_DIR="$LINUX_CONFIGS_DIR/editors/vscode/configs"
+VSCODE_TARGET_DIRS=("$HOME/.config/VSCodium/User" "$HOME/.config/Code - OSS/User")
 
 display_help() {
 	echo "Usage: [-s | -u] [-h]"
@@ -48,13 +50,13 @@ create_links() {
 	local source_dir=$1
 	local target_dir=$2
 
-	if [ ! -d $source_dir ]; then
+	if [ ! -d "$source_dir" ]; then
 		echo "Source directory does not exist."
 		return 1
 	fi
 
-	if [ ! -d $target_dir ]; then
-		mkdir -p $target_dir
+	if [ ! -d "$target_dir" ]; then
+		mkdir -p "$target_dir"
 	fi
 
 	for item in "$source_dir"/* "$source_dir"/.*; do
@@ -70,17 +72,17 @@ delete_links() {
 	local source_dir=$1
 	local target_dir=$2
 
-	if [ ! -d $source_dir ] || [ ! -d $target_dir ]; then
+	if [ ! -d "$source_dir" ] || [ ! -d "$target_dir" ]; then
 		echo "Source or target directory does not exist."
 		return 1
 	fi
 
 	for config in "$source_dir"/* "$source_dir"/.*; do
-		config_name=$(basename $config)
+		config_name=$(basename "$config")
 		target_config="$target_dir/$config_name"
 
 		if [ -e "$target_config" ]; then
-			unlink $target_config
+			unlink "$target_config"
 			echo "Removed: $target_config"
 		else
 			echo "Not found: $target_config"
@@ -108,11 +110,19 @@ stow() {
 	log "Plasma stowed successfully!"
 
 	create_link $ZED_DIR ~/.config/zed
+
+	for dir in "${VSCODE_TARGET_DIRS[@]}"; do
+		create_links "$VSCODE_CONFIGS_DIR" "$dir"
+	done
 	log "Editors dotfiles stowed successfully!"
 }
 
 unstow() {
 	unlink ~/.config/zed
+
+	for dir in "${VSCODE_TARGET_DIRS[@]}"; do
+		delete_links "$VSCODE_CONFIGS_DIR" "$dir"
+	done
 
 	delete_links $HOME_DIR ~
 	delete_links $TERMINAL_DIR ~/.config
