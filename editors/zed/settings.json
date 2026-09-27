@@ -7,6 +7,7 @@
 // custom settings, run the `zed: Open Default Settings` command
 // from the command palette
 {
+  "proxy": "http://localhost:3080",
   "instrumentation": {
     "performance_profiler": {
       "enabled": false
@@ -14,9 +15,8 @@
   },
   "disable_ai": true,
   "accessible_mode": true,
-  "icon_theme": "VSCode Great Icons Theme",
   "mouse_wheel_zoom": true,
-  "proxy": "http://localhost:3080",
+  "icon_theme": "VSCode Great Icons Theme",
   "cli_default_open_behavior": "existing_window",
   "agent_servers": {
     "claude-acp": {
@@ -98,6 +98,10 @@
     "dockerfile": true,
     "tailwind-syntax": true,
     "docker-compose": false
+  },
+  "telemetry": {
+      "diagnostics": false,
+      "metrics": false,
   },
   "languages": {
     "TypeScript": {
