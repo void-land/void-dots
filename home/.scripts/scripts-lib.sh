@@ -51,7 +51,7 @@ warn_box() {
 	echo ""
 }
 
-# Shared color vars, only currently used by steam-prefixes.
+# Shared color vars, only currently used by void-steam-prefixes.
 C_RED='\033[0;31m'
 C_GREEN='\033[0;32m'
 C_BLUE='\033[0;34m'

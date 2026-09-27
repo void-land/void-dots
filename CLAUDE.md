@@ -41,7 +41,7 @@ Consequences:
 ## Recurring code patterns
 
 **Ordered profile maps.** Bash associative arrays are unordered, so scripts that present menus keep an explicit order array alongside the map. When adding an entry, update **both**:
-- `home/.scripts/dns-changer` and `dnsproxy-changer`: `DNS_SERVERS`/`DNS_PROFILES` + `DNS_PROFILE_ORDER` (`dnsresolved-changer` still lacks an order array)
+- `home/.scripts/void-dns-changer` and `void-dnsproxy-changer`: `DNS_SERVERS`/`DNS_PROFILES` + `DNS_PROFILE_ORDER` (`void-dnsresolved-changer` still lacks an order array)
 - `arch-setup.sh`: `PACKAGES_LIST` + `ORDERS_LIST`; also `STEP_NAMES` + `STEP_FUNCS`, which are paired **by index** and must stay aligned.
 
 **Library + thin wrapper.** Shared logic lives in a `*-lib.sh` that refuses to run when executed directly (`BASH_SOURCE[0] == $0` guard); callers source it, set config variables, then call one entry point:
@@ -49,7 +49,7 @@ Consequences:
 - `home/.vpn/openconnect-lib.sh` ← `vpnbaz-openconnect`, `openconnect-connect.sh` set `VPN_SERVERS`/`VPN_AUTH_FILE`/`VPN_EXTRA_ARGS`, then `vpn_connect_interactive`.
 - `home/.ucu/ucu-launcher-lib.sh` ← per-game scripts (see `ucu-example`) set `GAME_*`/`WINE_PREFIX`/`PROTONPATH`, define an `umu_env_hook` for Proton env vars, then call `umu_launch_game`.
 
-**Script conventions in `home/.scripts/`:** `info`/`success`/`warn`/`die` helpers, `require_root` that re-execs via `exec sudo bash "$0" "$@"`, a `usage()` heredoc, `getopts` main, and box-drawing `# ─────` section separators. Interactive by default with non-interactive flags (`-p <profile>`, `-l`). These scripts are on `PATH` via `fish_add_path $HOME/.scripts` and `$HOME/.vpn` in `shell/fish/_env.fish`.
+**Script conventions in `home/.scripts/`:** executables are named `void-<name>` (the sourced `scripts-lib.sh` is not prefixed); `info`/`success`/`warn`/`die` helpers, `require_root` that re-execs via `exec sudo bash "$0" "$@"`, a `usage()` heredoc, `getopts` main, and box-drawing `# ─────` section separators. Interactive by default with non-interactive flags (`-p <profile>`, `-l`). These scripts are on `PATH` via `fish_add_path $HOME/.scripts` and `$HOME/.vpn` in `shell/fish/_env.fish`.
 
 **`arch-setup.sh` prompting model:** one up-front `select_exclusions` picker (yay-style, accepts `1 2 3`, `1-3`, `^4`) rather than per-step yes/no; it uses bash namerefs for input/output arrays so nested calls can't clobber each other. `ASSUME_YES` suppresses later `ask_prompt` calls once the user has chosen.
 

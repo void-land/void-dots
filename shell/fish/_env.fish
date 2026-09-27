@@ -20,7 +20,7 @@ set -x NEKORAY_PATH /opt/nekoray/nekoray
 set -x CODE_PATH /opt/vscode/code
 set -x DOTFILES $HOME/.dots
 set -x VOID_PACKAGES_PATH $HOME/.local/pkgs/void-packages
-set -x DNS_CHANGER $HOME/.scripts/dns-changer/main.sh
+set -x DNS_CHANGER $HOME/.scripts/void-dns-changer
 set -x STEAM_OS $HOME/.steam-os/main.sh
 
 set -x BUN_INSTALL $HOME/.bun
