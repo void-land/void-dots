@@ -16,11 +16,11 @@ size = 12
 dynamic_title = true
 blur = false
 opacity = 1
-dimensions = { columns = 90, lines = 30 }
-padding = { x = 16, y = 8 }
+dimensions = { columns = 100, lines = 30 }
+padding = { x = 8, y = 4 }
+dynamic_padding = true
 startup_mode = "Windowed"
 decorations = "Full"
-# dynamic_padding = true
 
 [cursor]
 style = { blinking = "Always", shape = "Beam" }
