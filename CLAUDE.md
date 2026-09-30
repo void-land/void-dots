@@ -4,23 +4,23 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## What this repo is
 
-A personal dotfiles repo for Arch/EndeavourOS + KDE Plasma. There is no build, no test suite, and no package manager — the "product" is a tree of config files plus bash/fish scripts that get symlinked into `$HOME`. Verification means syntax-checking scripts and re-running the linker, not running tests.
+A personal dotfiles repo for Arch/EndeavourOS + KDE Plasma. There is no build, no test suite, and no package manager — the "product" is a tree of config files plus bash/fish scripts that get symlinked into `$HOME`. Verification means running `./lint.sh` and re-running the linker, not running tests.
 
 ## Commands
 
 ```bash
 ./stow.sh -s          # symlink everything into ~ and ~/.config
-./stow.sh -u          # remove those symlinks
+./stow.sh -u          # remove those symlinks (only ones pointing back into the repo)
+./stow.sh -n -s       # dry run
+./lint.sh             # bash -n + shfmt + shellcheck (if installed) + fish --no-execute; -w applies shfmt
 ./arch-setup.sh -h    # provisioning script; -s full setup, -p/-a/-m/-l/-f/-k/-g per-step
 
-bash -n <script>                        # syntax-check a bash script (home/**, *.sh)
-fish --no-execute <file.fish>           # syntax-check a fish script
 dotfiles/alacritty/themes.sh            # re-pull alacritty themes from upstream
 ```
 
 ## How stowing works (read before adding files)
 
-`stow.sh` is hand-rolled, not GNU stow. `create_links` symlinks each **direct child** of a source dir into the target:
+`stow.sh` is hand-rolled, not GNU stow, and resolves the repo from its own path. `create_links` symlinks each **direct child** of a source dir into the target; a pre-existing real file/dir at a target is moved to `<name>.bak.<timestamp>`:
 
 | Source | Target | Effect |
 | --- | --- | --- |
@@ -41,7 +41,7 @@ Consequences:
 ## Recurring code patterns
 
 **Ordered profile maps.** Bash associative arrays are unordered, so scripts that present menus keep an explicit order array alongside the map. When adding an entry, update **both**:
-- `home/.scripts/void-dns-changer` and `void-dnsproxy-changer`: `DNS_SERVERS`/`DNS_PROFILES` + `DNS_PROFILE_ORDER` (`void-dnsresolved-changer` still lacks an order array)
+- `home/.scripts/void-dns-changer` and `void-dnsproxy-changer`: `DNS_SERVERS`/`DNS_PROFILES` + `DNS_PROFILE_ORDER` (all three scripts)
 - `arch-setup.sh`: `PACKAGES_LIST` + `ORDERS_LIST`; also `STEP_NAMES` + `STEP_FUNCS`, which are paired **by index** and must stay aligned.
 
 **Library + thin wrapper.** Shared logic lives in a `*-lib.sh` that refuses to run when executed directly (`BASH_SOURCE[0] == $0` guard); callers source it, set config variables, then call one entry point:
@@ -61,6 +61,7 @@ Consequences:
 - `utils/*.fish` — eagerly-sourced function definitions.
 - `functions/*.fish` — fish's lazy autoload dir: one function per file, filename must match the function name.
 - `conf.d/*.fish` — auto-sourced by fish itself before `config.fish`.
+- `fish_variables` is machine-local and gitignored; anything that must travel with the repo is set with `set -g` in `_env.fish`.
 - `plugins/` — fisher's install target (`fisher_path` is set in `conf.d/fisher_path.fish`). Files under `plugins/` are vendored by fisher from `fish_plugins`; regenerate via fisher rather than editing by hand.
 
 ## Vendored / generated files — do not hand-edit

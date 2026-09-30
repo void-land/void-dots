@@ -27,8 +27,8 @@
 1. **Clone** the repo:
 
    ```bash
-   git clone https://github.com/void-land/void-dots.git ~/.dotfiles
-   cd ~/.dotfiles
+   git clone https://github.com/void-land/void-dots.git ~/.void-dots
+   cd ~/.void-dots
    ```
 
 2. **Provision the system** (fresh Arch/EndeavourOS install only):
