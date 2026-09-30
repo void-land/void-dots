@@ -56,7 +56,7 @@ Bootstraps a fresh Arch install: system update, multilib, package groups, servic
 ### Usage
 
 ```bash
-./arch-setup.sh [-s | -a | -p | -m | -l | -f | -k | -g] [-h]
+./arch-setup.sh [-s | -a | -p | -m | -l | -f | -k | -g | -e] [-h]
 ```
 
 | Flag | Action |
@@ -69,6 +69,7 @@ Bootstraps a fresh Arch install: system update, multilib, package groups, servic
 | `-f` | Setup Fish shell as default |
 | `-k` | Apply KWin / graphics performance tweaks |
 | `-g` | Configure gaming environment (GameMode group, NTSync) |
+| `-e` | Enable emptty display manager (disables SDDM/others) |
 | `-h` | Show help |
 
 ### How step selection works
@@ -82,10 +83,12 @@ Running `-s` doesn't ask yes/no before every step. Instead it prints every step 
  3  Install pacman packages
  4  Enable system services
  5  Enable user services
- 6  Install AUR packages
- 7  Setup Persian locale (fa_IR UTF-8)
- 8  Setup Fish shell as default
- 9  Configure gaming environment (GameMode group, NTSync)
+ 6  Enable emptty display manager (disables SDDM/others)
+ 7  Install AUR packages
+ 8  Setup Persian locale (fa_IR UTF-8)
+ 9  Setup Fish shell as default
+10  Apply KWin / graphics performance tweaks
+11  Configure gaming environment (GameMode group, NTSync)
 ==> Steps to exclude: (eg: "1 2 3", "1-3", "^4")
  -> Excluding steps may result in a partial setup
 ==>

@@ -57,6 +57,7 @@ declare -a STEP_NAMES=(
 	"Install AUR packages"
 	"Setup Persian locale (fa_IR UTF-8)"
 	"Setup Fish shell as default"
+	"Apply KWin / graphics performance tweaks"
 	"Configure gaming environment (GameMode group, NTSync)"
 )
 
@@ -70,6 +71,7 @@ declare -a STEP_FUNCS=(
 	setup_aur_packages
 	setup_locales
 	setup_fish_shell
+	setup_kwin_tweaks
 	setup_gaming_config
 )
 
@@ -97,7 +99,7 @@ ask_prompt() {
 	fi
 
 	while true; do
-		read -p "$question (Y/n) [Y]: " choice
+		read -rp "$question (Y/n) [Y]: " choice
 		case "$choice" in
 		[Yy] | "") return 0 ;;
 		[Nn]) return 1 ;;
@@ -125,7 +127,7 @@ select_exclusions() {
 	done
 	echo -e "${BLUE}==>${NC} ${label^} to exclude: (eg: \"1 2 3\", \"1-3\", \"^4\")"
 	echo -e "${RED} -> Excluding $label may result in a partial setup${NC}"
-	read -p "==> " excl_input
+	read -rp "==> " excl_input
 
 	out_ref=()
 	if [[ -n "$excl_input" ]]; then
@@ -480,7 +482,7 @@ full_setup() {
 	log "Setup completed! Please reboot your system to ensure all changes take effect."
 }
 
-while getopts "sapmlhfke" opt; do
+while getopts "sapmlhfkge" opt; do
 	case $opt in
 	s)
 		full_setup
