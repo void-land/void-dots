@@ -1,2 +1,4 @@
 fishd.tmp.*
 fish_variables.*
+# machine-local universal variables (fisher state, fish_user_paths, …)
+fish_variables

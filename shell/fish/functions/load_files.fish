@@ -11,7 +11,7 @@ function load_files --description 'Load contents of directory'
         return 1
     end
 
-    for file in (ls $directory/*.fish 2>/dev/null)
+    for file in $directory/*.fish
         source $file
     end
 end

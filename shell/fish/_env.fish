@@ -1,8 +1,8 @@
-set -U fish_greeting
+set -g fish_greeting
 
 set hydro_multiline false
 
-set --universal nvm_default_version lts/krypton
+set --global nvm_default_version lts/krypton
 
 set -x ZELLIJ_AUTO_START false
 set -x ZELLIJ_AUTO_ATTACH true
@@ -12,16 +12,10 @@ set -x DBIN_INSTALL_DIR $HOME/.local/dbin
 set -x PODMAN_IGNORE_CGROUPSV1_WARNING false
 
 set -x STARSHIP_AUTO_START false
-set -x STARSHIP_CONFIG $HOME/.config/starship/text_prompt.toml
+set -x STARSHIP_CONFIG $HOME/.config/starship/config.toml
 
-set -x OS_ID (grep -i -w 'ID=' /etc/os-release | awk -F= '{print $2}')
-set -x OS (grep -i -w "ID=" /etc/os-release | grep -oP '(?<=")[^"]*')
-set -x NEKORAY_PATH /opt/nekoray/nekoray
-set -x CODE_PATH /opt/vscode/code
-set -x DOTFILES $HOME/.dots
-set -x VOID_PACKAGES_PATH $HOME/.local/pkgs/void-packages
-set -x DNS_CHANGER $HOME/.scripts/void-dns-changer
-set -x STEAM_OS $HOME/.steam-os/main.sh
+# Repo root, derived from the ~/.config/fish symlink so it follows wherever the repo is cloned
+set -x DOTFILES (path dirname (path dirname (path resolve ~/.config/fish)))
 
 set -x BUN_INSTALL $HOME/.bun
 set -x DENO_INSTALL $HOME/.deno

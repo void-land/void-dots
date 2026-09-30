@@ -1,5 +1,4 @@
 abbr startk "exec /usr/lib/plasma-dbus-run-session-if-needed /usr/bin/startplasma-wayland"
-abbr starth "exec dbus-run-session start-hyprland"
 
 abbr sturbo "sudo turbostat --interval 1 --show PkgWatt,CorWatt,RAMWatt,Core,CPU,Bzy_MHz,IRQ"
 abbr smount "sudo mount -a"
