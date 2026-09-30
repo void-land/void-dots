@@ -7,7 +7,7 @@ declare -A MANIFEST_PATHS=(
 	["SSD"]="/mnt/ssd/SteamLibrary/steamapps"
 )
 
-display_path_list() {    
+display_path_list() {
 	for steam_path in "${!MANIFEST_PATHS[@]}"; do
 		echo -e "${C_RED}Steam Prefix: ${MANIFEST_PATHS[$steam_path]}:${C_NC} \n"
 

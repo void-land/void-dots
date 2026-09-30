@@ -36,8 +36,8 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 LIB_FILE="$SCRIPT_DIR/ovpn-lib.sh"
 
 if [[ ! -f "$LIB_FILE" ]]; then
-    echo "ERROR: Cannot find ovpn-lib.sh alongside this script ($SCRIPT_DIR)." >&2
-    exit 1
+	echo "ERROR: Cannot find ovpn-lib.sh alongside this script ($SCRIPT_DIR)." >&2
+	exit 1
 fi
 
 # shellcheck source=./ovpn-lib.sh
@@ -49,22 +49,28 @@ source "$LIB_FILE"
 _direct_config=""
 
 usage() {
-    sed -n '/^# Usage/,/^[^#]/p' "$0" | grep '^#' | sed 's/^# \{0,1\}//'
-    exit 0
+	sed -n '/^# Usage/,/^[^#]/p' "$0" | grep '^#' | sed 's/^# \{0,1\}//'
+	exit 0
 }
 
 while getopts ":d:u:p:f:c:e:h" opt; do
-    case "$opt" in
-        d) VPN_CONFIG_DIR="$OPTARG" ;;
-        u) VPN_USER="$OPTARG" ;;
-        p) VPN_PASSWORD="$OPTARG" ;;
-        f) VPN_AUTH_FILE="$OPTARG" ;;
-        c) _direct_config="$OPTARG" ;;
-        e) VPN_EXTRA_ARGS="$OPTARG" ;;
-        h) usage ;;
-        :) echo "ERROR: -$OPTARG requires an argument." >&2; exit 1 ;;
-        \?) echo "ERROR: Unknown option -$OPTARG." >&2; exit 1 ;;
-    esac
+	case "$opt" in
+	d) VPN_CONFIG_DIR="$OPTARG" ;;
+	u) VPN_USER="$OPTARG" ;;
+	p) VPN_PASSWORD="$OPTARG" ;;
+	f) VPN_AUTH_FILE="$OPTARG" ;;
+	c) _direct_config="$OPTARG" ;;
+	e) VPN_EXTRA_ARGS="$OPTARG" ;;
+	h) usage ;;
+	:)
+		echo "ERROR: -$OPTARG requires an argument." >&2
+		exit 1
+		;;
+	\?)
+		echo "ERROR: Unknown option -$OPTARG." >&2
+		exit 1
+		;;
+	esac
 done
 
 # Export so sub-functions in the library see them
@@ -81,26 +87,26 @@ VPN_CONFIG_DIR="${VPN_CONFIG_DIR:-$HOME/.scripts/ovpn-servers/vpnbaz}"
 vpn_load_configs "$VPN_CONFIG_DIR"
 
 if [[ -n "$_direct_config" ]]; then
-    # Non-interactive: resolve the supplied name/path to a full path.
-    resolved=""
-    for f in "${_VPN_OVPN_FILES[@]}"; do
-        fname="$(basename "$f")"
-        if [[ "$_direct_config" == "$f" || "$_direct_config" == "$fname" || \
-              "$_direct_config" == "${fname%.ovpn}" ]]; then
-            resolved="$f"
-            break
-        fi
-    done
+	# Non-interactive: resolve the supplied name/path to a full path.
+	resolved=""
+	for f in "${_VPN_OVPN_FILES[@]}"; do
+		fname="$(basename "$f")"
+		if [[ "$_direct_config" == "$f" || "$_direct_config" == "$fname" ||
+			"$_direct_config" == "${fname%.ovpn}" ]]; then
+			resolved="$f"
+			break
+		fi
+	done
 
-    if [[ -z "$resolved" ]]; then
-        echo "ERROR: Config not found: $_direct_config" >&2
-        exit 1
-    fi
+	if [[ -z "$resolved" ]]; then
+		echo "ERROR: Config not found: $_direct_config" >&2
+		exit 1
+	fi
 
-    vpn_connect "$resolved"
+	vpn_connect "$resolved"
 else
-    # Interactive mode
-    vpn_list_configs
-    selected="$(vpn_select_config)"
-    vpn_connect "$selected"
+	# Interactive mode
+	vpn_list_configs
+	selected="$(vpn_select_config)"
+	vpn_connect "$selected"
 fi

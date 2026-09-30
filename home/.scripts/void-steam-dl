@@ -20,33 +20,33 @@ TERMLOG_VERBOSITY="warn"
 STREAM_LARGE_BODIES="1"
 
 usage() {
-    echo "Usage: $0 [--token TOKEN]"
-    echo ""
-    echo "  --token TOKEN    SteamDL Auth-Token (or set STEAMDL_TOKEN env var)"
-    echo ""
+	echo "Usage: $0 [--token TOKEN]"
+	echo ""
+	echo "  --token TOKEN    SteamDL Auth-Token (or set STEAMDL_TOKEN env var)"
+	echo ""
 }
 
 parse_args() {
-    while [[ $# -gt 0 ]]; do
-        case "$1" in
-            --token)
-                [[ -n "$2" ]] || die "--token requires a value."
-                TOKEN="$2"
-                shift 2
-                ;;
-            --token=*)
-                TOKEN="${1#--token=}"
-                shift
-                ;;
-            -h|--help)
-                usage
-                exit 0
-                ;;
-            *)
-                die "Unknown argument: $1"
-                ;;
-        esac
-    done
+	while [[ $# -gt 0 ]]; do
+		case "$1" in
+		--token)
+			[[ -n "$2" ]] || die "--token requires a value."
+			TOKEN="$2"
+			shift 2
+			;;
+		--token=*)
+			TOKEN="${1#--token=}"
+			shift
+			;;
+		-h | --help)
+			usage
+			exit 0
+			;;
+		*)
+			die "Unknown argument: $1"
+			;;
+		esac
+	done
 }
 
 # ─────────────────────────────────────────────
@@ -54,17 +54,17 @@ parse_args() {
 # ─────────────────────────────────────────────
 
 check_mitmdump() {
-    command -v mitmdump &>/dev/null && return 0
+	command -v mitmdump &>/dev/null && return 0
 
-    warn_box "mitmdump not found!"
-    warn "mitmproxy (mitmdump) is not installed or not in PATH."
-    echo ""
-    echo "  Install it, e.g.:"
-    echo "    pip install --user mitmproxy"
-    echo "    -- or --"
-    echo "    sudo pacman -S mitmproxy"
-    echo ""
-    die "Aborted."
+	warn_box "mitmdump not found!"
+	warn "mitmproxy (mitmdump) is not installed or not in PATH."
+	echo ""
+	echo "  Install it, e.g.:"
+	echo "    pip install --user mitmproxy"
+	echo "    -- or --"
+	echo "    sudo pacman -S mitmproxy"
+	echo ""
+	die "Aborted."
 }
 
 # ─────────────────────────────────────────────
@@ -72,7 +72,7 @@ check_mitmdump() {
 # ─────────────────────────────────────────────
 
 ensure_token() {
-    [[ -n "$TOKEN" ]] || die "Token is required. Pass it with --token TOKEN or set STEAMDL_TOKEN."
+	[[ -n "$TOKEN" ]] || die "Token is required. Pass it with --token TOKEN or set STEAMDL_TOKEN."
 }
 
 # ─────────────────────────────────────────────
@@ -80,13 +80,13 @@ ensure_token() {
 # ─────────────────────────────────────────────
 
 prepare_workspace() {
-    info "Preparing working directory: $WORK_DIR"
-    mkdir -p "$WORK_DIR" || die "Cannot create $WORK_DIR."
+	info "Preparing working directory: $WORK_DIR"
+	mkdir -p "$WORK_DIR" || die "Cannot create $WORK_DIR."
 }
 
 write_addon() {
-    info "Writing addon.py..."
-    cat > "$ADDON_FILE" << 'PYEOF'
+	info "Writing addon.py..."
+	cat >"$ADDON_FILE" <<'PYEOF'
 from mitmproxy import ctx
 from time import time
 import os
@@ -124,7 +124,7 @@ class SteamDL:
 
 addons = [SteamDL()]
 PYEOF
-    success "addon.py written to $ADDON_FILE"
+	success "addon.py written to $ADDON_FILE"
 }
 
 # ─────────────────────────────────────────────
@@ -132,19 +132,19 @@ PYEOF
 # ─────────────────────────────────────────────
 
 run_mitmdump() {
-    info "Starting mitmdump (reverse proxy: $TARGET_HOST -> $LISTEN_ADDR:$LISTEN_PORT)..."
-    echo ""
+	info "Starting mitmdump (reverse proxy: $TARGET_HOST -> $LISTEN_ADDR:$LISTEN_PORT)..."
+	echo ""
 
-    cd "$WORK_DIR" || die "Cannot cd into $WORK_DIR."
+	cd "$WORK_DIR" || die "Cannot cd into $WORK_DIR."
 
-    mitmdump -m "reverse:http://${TARGET_HOST}@${LISTEN_ADDR}:${LISTEN_PORT}" \
-        -s "$ADDON_FILE" \
-        --set allow_hosts="$TARGET_HOST" \
-        --set token="$TOKEN" \
-        --set keep_host_header=true \
-        --set flow_detail="$FLOW_DETAIL" \
-        --set termlog_verbosity="$TERMLOG_VERBOSITY" \
-        --set stream_large_bodies="$STREAM_LARGE_BODIES"
+	mitmdump -m "reverse:http://${TARGET_HOST}@${LISTEN_ADDR}:${LISTEN_PORT}" \
+		-s "$ADDON_FILE" \
+		--set allow_hosts="$TARGET_HOST" \
+		--set token="$TOKEN" \
+		--set keep_host_header=true \
+		--set flow_detail="$FLOW_DETAIL" \
+		--set termlog_verbosity="$TERMLOG_VERBOSITY" \
+		--set stream_large_bodies="$STREAM_LARGE_BODIES"
 }
 
 # ─────────────────────────────────────────────
@@ -152,13 +152,13 @@ run_mitmdump() {
 # ─────────────────────────────────────────────
 
 main() {
-    require_root "$@"
-    parse_args "$@"
-    check_mitmdump
-    ensure_token
-    prepare_workspace
-    write_addon
-    run_mitmdump
+	require_root "$@"
+	parse_args "$@"
+	check_mitmdump
+	ensure_token
+	prepare_workspace
+	write_addon
+	run_mitmdump
 }
 
 main "$@"

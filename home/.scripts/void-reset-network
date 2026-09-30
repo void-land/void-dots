@@ -12,9 +12,9 @@ systemctl stop NetworkManager 2>/dev/null
 
 # Flush all interfaces
 for interface in $(ip -o link show | awk -F': ' '{print $2}' | grep -v lo); do
-    info "Flushing $interface"
-    ip addr flush dev $interface
-    ip link set $interface down
+	info "Flushing $interface"
+	ip addr flush dev $interface
+	ip link set $interface down
 done
 
 # Flush routing tables
@@ -23,7 +23,7 @@ ip route flush cache
 
 # Remove all TUN/TAP interfaces
 for tun in $(ip link show | grep tun | cut -d: -f2 | tr -d ' '); do
-    ip link delete $tun 2>/dev/null
+	ip link delete $tun 2>/dev/null
 done
 
 # Clear iptables rules

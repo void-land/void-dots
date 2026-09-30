@@ -53,15 +53,21 @@ usage() {
 
 while getopts ":s:u:p:f:e:lh" opt; do
 	case "$opt" in
-		s) _direct_server="$OPTARG" ;;
-		u) VPN_USER="$OPTARG" ;;
-		p) VPN_PASSWORD="$OPTARG" ;;
-		f) VPN_AUTH_FILE="$OPTARG" ;;
-		e) VPN_EXTRA_ARGS="$OPTARG" ;;
-		l) _list_only=true ;;
-		h) usage ;;
-		:) echo "ERROR: -$OPTARG requires an argument." >&2; exit 1 ;;
-		\?) echo "ERROR: Unknown option -$OPTARG." >&2; exit 1 ;;
+	s) _direct_server="$OPTARG" ;;
+	u) VPN_USER="$OPTARG" ;;
+	p) VPN_PASSWORD="$OPTARG" ;;
+	f) VPN_AUTH_FILE="$OPTARG" ;;
+	e) VPN_EXTRA_ARGS="$OPTARG" ;;
+	l) _list_only=true ;;
+	h) usage ;;
+	:)
+		echo "ERROR: -$OPTARG requires an argument." >&2
+		exit 1
+		;;
+	\?)
+		echo "ERROR: Unknown option -$OPTARG." >&2
+		exit 1
+		;;
 	esac
 done
 

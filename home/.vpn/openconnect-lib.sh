@@ -61,12 +61,12 @@ _vpn_add_category_items() {
 	if [[ "$(declare -p "$cat" 2>/dev/null)" =~ "declare -a" ]]; then
 		items=("${ref[@]}")
 	else
-		IFS=',' read -ra items <<< "$ref"
+		IFS=',' read -ra items <<<"$ref"
 	fi
 
 	for item in "${items[@]}"; do
 		local subitems=()
-		IFS=',' read -ra subitems <<< "$item"
+		IFS=',' read -ra subitems <<<"$item"
 		for s in "${subitems[@]}"; do
 			_vpn_add_server "$s" "$cat"
 		done
@@ -101,7 +101,7 @@ _vpn_build_server_index() {
 		fi
 		for cat in "${cats[@]}"; do
 			local items=()
-			IFS=',' read -ra items <<< "${VPN_CATEGORIES[$cat]:-}"
+			IFS=',' read -ra items <<<"${VPN_CATEGORIES[$cat]:-}"
 			for item in "${items[@]}"; do
 				_vpn_add_server "$item" "$cat"
 			done
