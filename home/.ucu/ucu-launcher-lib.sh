@@ -130,13 +130,53 @@ _umu_setup_environment() {
 	export PROTON_GAMEMODE="${PROTON_GAMEMODE:-$_GAMEMODE_AVAILABLE}"
 
 	# Hook: a per-game script can define umu_env_hook() to set/override
-	# additional env vars (e.g. DXVK_ASYNC, VKD3D_CONFIG) right before launch.
+	# additional env vars (e.g. DXVK_ASYNC, VKD3D_CONFIG) and launcher options
+	# (GAMESCOPE, GAMESCOPE_ARGS, MANGOHUD). Gamescope/MangoHud reconciliation
+	# below runs after the hook, so values set here are respected.
 	if declare -f umu_env_hook &>/dev/null; then
 		umu_info "Running game-specific env hook..."
 		umu_env_hook
 	fi
 
+	# Order matters: MangoHud needs to know whether gamescope actually survived
+	# its availability check before choosing between the layer and --mangoapp.
+	_umu_setup_gamescope
+	_umu_setup_mangohud
+
 	umu_log "Environment configured"
+}
+
+_umu_setup_gamescope() {
+	if [[ "$GAMESCOPE" -ne 1 ]]; then
+		return
+	fi
+
+	if ! command -v gamescope &>/dev/null; then
+		umu_warn "GAMESCOPE=1 but gamescope is not installed; launching without it."
+		GAMESCOPE=0
+		return
+	fi
+
+	# Wine's Wayland driver would connect to the host compositor and bypass
+	# gamescope unless gamescope exposes its own Wayland socket.
+	if [[ "$PROTON_ENABLE_WAYLAND" -eq 1 && " $GAMESCOPE_ARGS " != *" --expose-wayland "* ]]; then
+		umu_warn "PROTON_ENABLE_WAYLAND=1 bypasses gamescope; disabling it."
+		export PROTON_ENABLE_WAYLAND=0
+	fi
+}
+
+_umu_setup_mangohud() {
+	if [[ "$MANGOHUD" -ne 1 || "$GAMESCOPE" -ne 1 ]]; then
+		return
+	fi
+
+	# The MangoHud Vulkan layer inside gamescope would draw a second overlay
+	# at the internal resolution — hand it off to gamescope's --mangoapp instead.
+	if [[ " $GAMESCOPE_ARGS " != *" --mangoapp "* ]]; then
+		GAMESCOPE_ARGS="${GAMESCOPE_ARGS:+$GAMESCOPE_ARGS }--mangoapp"
+	fi
+	export MANGOHUD=0
+	umu_info "MangoHud: using gamescope --mangoapp (MANGOHUD layer disabled)"
 }
 
 _umu_launch_game() {
@@ -150,9 +190,16 @@ _umu_launch_game() {
 	if [[ "$PROTON_LOG" -eq 1 ]]; then
 		umu_log "Proton log dir: $PROTON_LOG_DIR"
 	fi
+	if [[ "$GAMESCOPE" -eq 1 ]]; then
+		umu_log "Gamescope: $GAMESCOPE_ARGS"
+	fi
 	umu_log "=========================================="
 
 	local cmd="umu-run \"$GAME_EXE\" $GAME_ARGS"
+
+	if [[ "$GAMESCOPE" -eq 1 ]]; then
+		cmd="gamescope $GAMESCOPE_ARGS -- $cmd"
+	fi
 
 	if [[ "$PROTON_GAMEMODE" -eq 1 ]]; then
 		if [[ "$_GAMEMODE_AVAILABLE" -eq 1 ]]; then
@@ -199,6 +246,8 @@ umu_launch_game() {
 	GAMEID="${GAMEID:-umu-default}"
 	STEAM_APP_ID="${STEAM_APP_ID:-0}"
 	GAME_ARGS="${GAME_ARGS:-}"
+	GAMESCOPE="${GAMESCOPE:-0}"
+	GAMESCOPE_ARGS="${GAMESCOPE_ARGS:-}"
 
 	# Dynamically build systemd unit name using a safe string variant of the game ID
 	# local safe_id
@@ -207,7 +256,7 @@ umu_launch_game() {
 
 	echo "=========================================="
 	echo "  $GAME_NAME"
-	echo "  UMU Launcher Library v2.1"
+	echo "  UMU Launcher Library v2.2"
 	echo "=========================================="
 	echo ""
 

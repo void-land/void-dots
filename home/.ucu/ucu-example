@@ -60,6 +60,16 @@ umu_env_hook() {
 	export PROTON_ENABLE_WAYLAND=1
 
 	# --------------------------------------------------------------------------
+	# Gamescope — -w/-h game res, -W/-H output res, -F fsr|nis upscale filter.
+	# Flags only; MangoHud/Wayland are adjusted automatically. No export needed.
+	# --------------------------------------------------------------------------
+	GAMESCOPE=0
+	# Downscale: render at 1440p, display at 1080p (supersampling)
+	GAMESCOPE_ARGS="-w 2560 -h 1440 -W 1920 -H 1080 -f -r 200 --force-grab-cursor"
+	# Upscale: render at 720p, FSR up to 1440p
+	# GAMESCOPE_ARGS="-w 1280 -h 720 -W 2560 -H 1440 -F fsr -f --force-grab-cursor"
+
+	# --------------------------------------------------------------------------
 	# FSR 4 (AMD FidelityFX Super Resolution 4)
 	# Requires an AMD RDNA 4 GPU (RX 9000 series). Has no effect otherwise.
 	# --------------------------------------------------------------------------
@@ -76,6 +86,7 @@ umu_env_hook() {
 
 	# --------------------------------------------------------------------------
 	# Overlay
+	# With GAMESCOPE=1 this becomes gamescope --mangoapp instead of the layer.
 	# --------------------------------------------------------------------------
 	export MANGOHUD=1
 	# export MANGOHUD_CONFIG="full,vsync=1,font_size=16,font_scale=1.0"
