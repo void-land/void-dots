@@ -22,7 +22,4 @@ set --query pacu_helper_commands || set --global pacu_helper_commands \
     "autoremove:Remove all orphaned packages" \
     "clean-cache:Remove uninstalled packages from cache" \
     "clean-cache-all:Remove all packages from cache" \
-    "prune-cache:Prune pacman package cache" \
-    "hold:Hold package(s) from system upgrades" \
-    "unhold:Unhold package(s) to allow upgrades" \
-    "list-held:List packages held from upgrades"
+    "prune-cache:Prune pacman package cache"

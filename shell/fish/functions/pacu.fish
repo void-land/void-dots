@@ -149,23 +149,6 @@ function pacu -d "Short and friendly command wrapper for Pacman"
                 end
             end
 
-        case hold
-            _pacu_require_args "Please provide at least one package to hold" $cmd_args; or return 1
-            _pacu_manage_hold hold $cmd_args
-
-        case unhold
-            _pacu_require_args "Please provide at least one package to unhold" $cmd_args; or return 1
-            _pacu_manage_hold unhold $cmd_args
-
-        case list-held
-            set -l held (pacman-conf IgnorePkg 2>/dev/null | string match -r '\S+')
-            if test (count $held) -eq 0
-                echo "No packages currently held."
-            else
-                echo "Held packages:"
-                printf "  %s\n" $held
-            end
-
         case '*'
             set -l red (set_color red 2>/dev/null)
             set -l normal (set_color normal 2>/dev/null)
@@ -185,77 +168,6 @@ function _pacu_require_args
         return 1
     end
     return 0
-end
-
-function _pacu_manage_hold
-    set -l action $argv[1]
-    set -l pkgs $argv[2..-1]
-
-    sudo python3 -c '
-import sys, re
-
-action = sys.argv[1]
-pkgs = sys.argv[2:]
-conf_path = "/etc/pacman.conf"
-
-with open(conf_path, "r") as f:
-    lines = f.readlines()
-
-in_options = False
-ignore_idx = -1
-current_pkgs = []
-
-for i, line in enumerate(lines):
-    stripped = line.strip()
-    if stripped.startswith("[") and stripped.endswith("]"):
-        in_options = (stripped == "[options]")
-        continue
-    if in_options:
-        m = re.match(r"^\s*#?\s*IgnorePkg\s*=\s*(.*)$", line)
-        if m:
-            ignore_idx = i
-            if not stripped.startswith("#"):
-                current_pkgs = m.group(1).split()
-            break
-
-if action == "hold":
-    added = []
-    for p in pkgs:
-        if p not in current_pkgs:
-            current_pkgs.append(p)
-            added.append(p)
-    if not added:
-        print(f"Package(s) already held: {\" \".join(pkgs)}")
-        sys.exit(0)
-    new_line = f"IgnorePkg = {\" \".join(current_pkgs)}\n"
-    if ignore_idx != -1:
-        lines[ignore_idx] = new_line
-    else:
-        for i, line in enumerate(lines):
-            if line.strip() == "[options]":
-                lines.insert(i + 1, new_line)
-                break
-    print(f"Held package(s): {\" \".join(added)}")
-
-elif action == "unhold":
-    removed = []
-    for p in pkgs:
-        if p in current_pkgs:
-            current_pkgs.remove(p)
-            removed.append(p)
-    if not removed:
-        print(f"Package(s) were not held: {\" \".join(pkgs)}")
-        sys.exit(0)
-    if ignore_idx != -1:
-        if current_pkgs:
-            lines[ignore_idx] = f"IgnorePkg = {\" \".join(current_pkgs)}\n"
-        else:
-            lines[ignore_idx] = "#IgnorePkg   =\n"
-    print(f"Unheld package(s): {\" \".join(removed)}")
-
-with open(conf_path, "w") as f:
-    f.writelines(lines)
-' $action $pkgs
 end
 
 function _pacu_display_help

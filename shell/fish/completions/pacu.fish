@@ -17,13 +17,10 @@ for cmd in $repo_pkg_commands
 end
 
 # Installed packages completion
-set -l installed_pkg_commands remove files info-installed hold
+set -l installed_pkg_commands remove files info-installed
 for cmd in $installed_pkg_commands
     complete -c pacu -n "__fish_seen_subcommand_from $cmd" -xa "(pacman -Qq)" -f
 end
-
-# Held packages completion
-complete -c pacu -n "__fish_seen_subcommand_from unhold" -xa "(pacman-conf IgnorePkg 2>/dev/null | string split ' ')" -f
 
 # Local package files
 complete -c pacu -n "__fish_seen_subcommand_from install-local local" -r -k -a "(__fish_complete_suffix .pkg.tar.zst .pkg.tar.xz)"
@@ -35,7 +32,7 @@ complete -c pacu -n "__fish_seen_subcommand_from owns" -F
 complete -c pacu -n "__fish_seen_subcommand_from search search-installed search-file locate" -f
 
 # Subcommands taking no additional arguments
-set -l no_arg_commands update upgrade sync check list list-all orphans autoremove clean-cache clean-cache-all prune-cache list-held
+set -l no_arg_commands update upgrade sync check list list-all orphans autoremove clean-cache clean-cache-all prune-cache
 for cmd in $no_arg_commands
     complete -c pacu -n "__fish_seen_subcommand_from $cmd" -f
 end
