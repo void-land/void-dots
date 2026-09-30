@@ -66,6 +66,8 @@ umu_env_hook() {
 	GAMESCOPE=0
 	# Downscale: render at 1440p, display at 1080p (supersampling)
 	GAMESCOPE_ARGS="-w 2560 -h 1440 -W 1920 -H 1080 -f -r 200 --force-grab-cursor"
+	# Downscale: render at 4K, display at 1080p (heavier, sharpest image)
+	# GAMESCOPE_ARGS="-w 3840 -h 2160 -W 1920 -H 1080 -f -r 200 --force-grab-cursor"
 	# Upscale: render at 720p, FSR up to 1440p
 	# GAMESCOPE_ARGS="-w 1280 -h 720 -W 2560 -H 1440 -F fsr -f --force-grab-cursor"
 
