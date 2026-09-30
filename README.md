@@ -120,7 +120,7 @@ Symlinks the contents of `dotfiles/`, `shell/`, `plasma/`, and `editors/` into t
 ./stow.sh -s
 ```
 
-*Creates the necessary directories under `~/.config/` and symlinks every tracked file back into this repo.*
+*Creates the necessary directories under `~/.config/` and symlinks every tracked file back into this repo. Works from any directory. An existing real file or directory at a target is moved aside to `<name>.bak.<timestamp>` rather than overwritten.*
 
 **Unlink (unstow) configurations:**
 
@@ -128,7 +128,9 @@ Symlinks the contents of `dotfiles/`, `shell/`, `plasma/`, and `editors/` into t
 ./stow.sh -u
 ```
 
-*Removes the symlinks, detaching your system from the repo without deleting the source files.*
+*Removes only the symlinks that point back into this repo, detaching your system without deleting the source files. Anything else at a target path is left untouched.*
+
+**Preview without changing anything:** add `-n` (dry run) to either command, e.g. `./stow.sh -n -s`.
 
 ---
 

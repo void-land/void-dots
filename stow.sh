@@ -1,6 +1,7 @@
 #!/bin/bash
 
-LINUX_CONFIGS_DIR="$(pwd)"
+# Resolve the repo from the script's own location so it works from any cwd.
+LINUX_CONFIGS_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 HOME_DIR="$LINUX_CONFIGS_DIR/home"
 TERMINAL_DIR="$LINUX_CONFIGS_DIR/shell"
@@ -11,106 +12,123 @@ ZED_DIR="$LINUX_CONFIGS_DIR/editors/zed"
 VSCODE_CONFIGS_DIR="$LINUX_CONFIGS_DIR/editors/vscode/configs"
 VSCODE_TARGET_DIRS=("$HOME/.config/VSCodium/User" "$HOME/.config/Code - OSS/User")
 
+DRY_RUN=false
+
 display_help() {
-	echo "Usage: [-s | -u] [-h]"
+	echo "Usage: $0 [-s | -u] [-n] [-h]"
 	echo "  -s   Stow dotfiles"
 	echo "  -u   Unstow dotfiles"
+	echo "  -n   Dry run: print what would be done without touching anything"
 	echo "  -h   Display this help message"
 }
 
 log() {
-	local timestamp=$(date +"%T")
-	local message="======> $1 : $timestamp"
-
-	echo -e "\n$message\n"
+	local timestamp
+	timestamp=$(date +"%T")
+	echo -e "\n======> $1 : $timestamp\n"
 }
 
+# run CMD... — executes CMD, or just prints it in dry-run mode
+run() {
+	if [[ "$DRY_RUN" == true ]]; then
+		echo "[dry-run] $*"
+	else
+		"$@"
+	fi
+}
+
+# Symlink SOURCE to exactly TARGET. An existing symlink is replaced; a real
+# file/dir is moved aside to TARGET.bak.<timestamp> instead of being clobbered
+# (or, for a dir, having the link silently nested inside it).
 create_link() {
 	local source=$1
 	local target=$2
 
-	if [ ! -e "$source" ]; then
+	if [[ ! -e "$source" ]]; then
 		echo "Source does not exist: $source"
 		return 1
 	fi
 
-	if [ ! -d "$(dirname "$target")" ]; then
-		mkdir -p "$(dirname "$target")"
+	[[ -d "$(dirname "$target")" ]] || run mkdir -p "$(dirname "$target")"
+
+	if [[ -e "$target" && ! -L "$target" ]]; then
+		local backup
+		backup="$target.bak.$(date +%Y%m%d%H%M%S)"
+		echo "Backing up existing $target ===> $backup"
+		run mv "$target" "$backup"
 	fi
 
-	# if [ -e "$target" ]; then
-	# 	rm -rf "$target"
-	# fi
-
-	ln -sfn "$source" "$target"
+	run ln -sfn "$source" "$target"
 	echo "$source ===> $target"
 }
 
+# Symlink every direct child (including dotfiles) of SOURCE_DIR into TARGET_DIR.
 create_links() {
 	local source_dir=$1
 	local target_dir=$2
 
-	if [ ! -d "$source_dir" ]; then
-		echo "Source directory does not exist."
+	if [[ ! -d "$source_dir" ]]; then
+		echo "Source directory does not exist: $source_dir"
 		return 1
 	fi
 
-	if [ ! -d "$target_dir" ]; then
-		mkdir -p "$target_dir"
-	fi
-
-	for item in "$source_dir"/* "$source_dir"/.*; do
-		if [ -e "$item" ] && [ "$item" != "$source_dir/." ] && [ "$item" != "$source_dir/.." ]; then
-			echo "$item ===> $target_dir"
-
-			ln -sfn "$item" "$target_dir/"
-		fi
+	local item
+	shopt -s nullglob dotglob
+	for item in "$source_dir"/*; do
+		create_link "$item" "$target_dir/$(basename "$item")"
 	done
+	shopt -u nullglob dotglob
+}
+
+# Remove TARGET only if it is a symlink pointing at SOURCE, so real files
+# (or links owned by something else) are never deleted.
+delete_link() {
+	local source=$1
+	local target=$2
+
+	if [[ -L "$target" && "$(readlink "$target")" == "$source" ]]; then
+		run unlink "$target"
+		echo "Removed: $target"
+	elif [[ -e "$target" || -L "$target" ]]; then
+		echo "Skipped (not our symlink): $target"
+	else
+		echo "Not found: $target"
+	fi
 }
 
 delete_links() {
 	local source_dir=$1
 	local target_dir=$2
 
-	if [ ! -d "$source_dir" ] || [ ! -d "$target_dir" ]; then
-		echo "Source or target directory does not exist."
+	if [[ ! -d "$source_dir" || ! -d "$target_dir" ]]; then
+		echo "Source or target directory does not exist: $source_dir -> $target_dir"
 		return 1
 	fi
 
-	for config in "$source_dir"/* "$source_dir"/.*; do
-		config_name=$(basename "$config")
-		target_config="$target_dir/$config_name"
-
-		if [ -e "$target_config" ]; then
-			unlink "$target_config"
-			echo "Removed: $target_config"
-		else
-			echo "Not found: $target_config"
-		fi
+	local item
+	shopt -s nullglob dotglob
+	for item in "$source_dir"/*; do
+		delete_link "$item" "$target_dir/$(basename "$item")"
 	done
-}
-
-create_target_dir() {
-	mkdir -p ~/.config
+	shopt -u nullglob dotglob
 }
 
 stow() {
-	create_target_dir
-
-	create_links $HOME_DIR ~
+	create_links "$HOME_DIR" ~
 	log "Utilities stowed successfully!"
 
-	create_links $LINUX_DOTFILES_DIR ~/.config
+	create_links "$LINUX_DOTFILES_DIR" ~/.config
 	log "Base dotfiles stowed successfully!"
 
-	create_links $TERMINAL_DIR ~/.config
+	create_links "$TERMINAL_DIR" ~/.config
 	log "Terminal dotfiles stowed successfully!"
 
-	create_links $PLASMA_DIR ~/.config
+	create_links "$PLASMA_DIR" ~/.config
 	log "Plasma stowed successfully!"
 
-	create_link $ZED_DIR ~/.config/zed
+	create_link "$ZED_DIR" ~/.config/zed
 
+	local dir
 	for dir in "${VSCODE_TARGET_DIRS[@]}"; do
 		create_links "$VSCODE_CONFIGS_DIR" "$dir"
 	done
@@ -118,36 +136,41 @@ stow() {
 }
 
 unstow() {
-	unlink ~/.config/zed
+	delete_link "$ZED_DIR" ~/.config/zed
 
+	local dir
 	for dir in "${VSCODE_TARGET_DIRS[@]}"; do
 		delete_links "$VSCODE_CONFIGS_DIR" "$dir"
 	done
 
-	delete_links $HOME_DIR ~
-	delete_links $TERMINAL_DIR ~/.config
-	delete_links $PLASMA_DIR ~/.config
-	delete_links $LINUX_DOTFILES_DIR ~/.config
+	delete_links "$HOME_DIR" ~
+	delete_links "$TERMINAL_DIR" ~/.config
+	delete_links "$PLASMA_DIR" ~/.config
+	delete_links "$LINUX_DOTFILES_DIR" ~/.config
 
-	log "All configs ustowed successfully !"
+	log "All configs unstowed successfully!"
 }
 
-while getopts "ush" opt; do
+action=""
+while getopts "usnh" opt; do
 	case $opt in
-	s)
-		clear
-		stow
-		;;
-	u)
-		unstow
-		;;
+	s) action=stow ;;
+	u) action=unstow ;;
+	n) DRY_RUN=true ;;
 	h)
 		display_help
 		exit 0
 		;;
+	*)
+		display_help
+		exit 1
+		;;
 	esac
 done
 
-if [[ $# -eq 0 ]]; then
+if [[ -z "$action" ]]; then
 	display_help
+	exit 1
 fi
+
+"$action"
