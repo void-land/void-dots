@@ -16,6 +16,14 @@ declare -A DNS_SERVERS=(
     ["CF"]="1.1.1.1 1.0.0.1"
 )
 
+# Associative arrays are unordered; this fixes the menu order and numbering.
+DNS_PROFILE_ORDER=(
+    "LOCAL"
+    "GOOGLE" "CF"
+    "MCI" "IRANCELL"
+    "SHECAN" "SHECAN PRO"
+)
+
 RESOLVED_CONF="/etc/systemd/resolved.conf"
 RESOLV_CONF="/etc/resolv.conf"
 COMPAT_LINK="/run/systemd/resolve/resolv.conf"
@@ -42,7 +50,7 @@ display_dns_list() {
     echo -e "\n  Available DNS Servers"
     echo "  ──────────────────────────────────────"
     local i=1
-    for name in "${!DNS_SERVERS[@]}"; do
+    for name in "${DNS_PROFILE_ORDER[@]}"; do
         printf "  %2d.  %-14s  %s\n" "$i" "$name" "${DNS_SERVERS[$name]}"
         ((i++))
     done
@@ -50,11 +58,9 @@ display_dns_list() {
 }
 
 get_name_by_index() {
-    local idx=1
-    for name in "${!DNS_SERVERS[@]}"; do
-        ((idx++ == $1)) && echo "$name" && return 0
-    done
-    return 1
+    local idx="$1"
+    [[ $idx -ge 1 && $idx -le ${#DNS_PROFILE_ORDER[@]} ]] || return 1
+    echo "${DNS_PROFILE_ORDER[$((idx - 1))]}"
 }
 
 select_dns() {

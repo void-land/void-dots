@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
-# vpn-connect.sh — Interactive VPN connector (uses vpn-lib.sh)
+# ovpn-connect.sh — Interactive OpenVPN connector (uses ovpn-lib.sh)
 #
 # Usage:
-#   ./vpn-connect.sh [options]
+#   ./ovpn-connect.sh [options]
 #
 # Options:
 #   -d DIR        Directory containing .ovpn files
@@ -19,13 +19,13 @@
 #
 # Examples:
 #   # Interactive — inline credentials
-#   ./vpn-connect.sh -u username -p password
+#   ./ovpn-connect.sh -u username -p password
 #
 #   # Interactive — file-based auth
-#   ./vpn-connect.sh -f ~/.vpn/auth.txt
+#   ./ovpn-connect.sh -f ~/.vpn/auth.txt
 #
 #   # Non-interactive — jump straight to a specific server
-#   ./vpn-connect.sh -f ~/.vpn/auth.txt -c "us-east.ovpn"
+#   ./ovpn-connect.sh -f ~/.vpn/auth.txt -c "us-east.ovpn"
 
 set -euo pipefail
 

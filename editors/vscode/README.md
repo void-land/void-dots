@@ -41,6 +41,8 @@ editors/vscode/extension-manager -v
 
 `editors/vscode/extension-manager` fetches, downloads and installs the extensions listed in `editors/vscode/oss-extensions.txt` from Open VSX. It keeps an offline `.vsix` cache in `editors/vscode/downloads/` (gitignored). Everything it does is driven by that list: removing an entry means it's no longer downloaded or installed, and its cached files are pruned on the next fetch or download.
 
+`editors/vscode/code-extensions.txt` is a reference-only inventory of the Microsoft VS Code extension set (some aren't on Open VSX). Nothing reads it; copy entries into `oss-extensions.txt` to have them managed.
+
 | Flag | Action |
 | --- | --- |
 | `-f` | Fetch extension info from Open VSX into `extension_info/` |
