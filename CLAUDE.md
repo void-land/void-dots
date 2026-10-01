@@ -42,6 +42,7 @@ Consequences:
 
 **Ordered profile maps.** Bash associative arrays are unordered, so scripts that present menus keep an explicit order array alongside the map. When adding an entry, update **both**:
 - `home/.scripts/void-dns-changer` and `void-dnsproxy-changer`: `DNS_SERVERS`/`DNS_PROFILES` + `DNS_PROFILE_ORDER` (all three scripts)
+- `home/.scripts/void-zram`: `ZRAM_PROFILES` + `ZRAM_PROFILE_DESC` + `ZRAM_PROFILE_ORDER`.
 - `arch-setup.sh`: `PACKAGES_LIST` + `ORDERS_LIST`; also `STEP_NAMES` + `STEP_FUNCS`, which are paired **by index** and must stay aligned.
 
 **Library + thin wrapper.** Shared logic lives in a `*-lib.sh` that refuses to run when executed directly (`BASH_SOURCE[0] == $0` guard); callers source it, set config variables, then call one entry point:

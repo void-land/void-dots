@@ -1,0 +1,374 @@
+#!/bin/bash
+
+# ─────────────────────────────────────────────
+#  zram Profile Switcher
+#  Manages /etc/systemd/zram-generator.conf + VM sysctls
+# ─────────────────────────────────────────────
+
+source "$(dirname "${BASH_SOURCE[0]}")/scripts-lib.sh"
+
+ZRAM_CONF="/etc/systemd/zram-generator.conf"
+LEGACY_CONF="/usr/lib/systemd/zram-generator.conf"
+SYSCTL_CONF="/etc/sysctl.d/99-void-zram.conf"
+ZRAM_SERVICE="systemd-zram-setup@zram0.service"
+ZSWAP_PARAM="/sys/module/zswap/parameters/enabled"
+GRUB_DEFAULT="/etc/default/grub"
+GRUB_CFG="/boot/grub/grub.cfg"
+
+# ─────────────────────────────────────────────
+#  Profiles
+#  Format: "zram-size|algorithm|swap-priority|swappiness|page-cluster|watermark_boost|watermark_scale"
+#  Gaming values follow the Arch wiki zram tuning.
+# ─────────────────────────────────────────────
+
+declare -A ZRAM_PROFILES=(
+	["standard"]="ram / 2|zstd|100|100|0|15000|10"
+	["gaming"]="ram|lz4|100|180|0|0|125"
+)
+
+declare -A ZRAM_PROFILE_DESC=(
+	["standard"]="half of RAM, zstd (best ratio), moderate swapping"
+	["gaming"]="full RAM, lz4 (lowest latency), aggressive swap-to-zram"
+)
+
+ZRAM_PROFILE_ORDER=(standard gaming)
+
+SYSCTL_KEYS=(vm.swappiness vm.page-cluster vm.watermark_boost_factor vm.watermark_scale_factor)
+
+# Kernel defaults, restored by -d
+declare -A SYSCTL_DEFAULTS=(
+	["vm.swappiness"]=60
+	["vm.page-cluster"]=3
+	["vm.watermark_boost_factor"]=15000
+	["vm.watermark_scale_factor"]=10
+)
+
+# Headroom kept free when swapping zram pages back into RAM (KiB)
+SWAPOFF_MARGIN_KB=$((256 * 1024))
+
+# ─────────────────────────────────────────────
+#  Display & Selection
+# ─────────────────────────────────────────────
+
+display_profiles() {
+	echo -e "\n  Available zram Profiles"
+	echo "  ─────────────────────────────────────────────────────────────"
+	local i=1 name size algo prio swappiness
+	for name in "${ZRAM_PROFILE_ORDER[@]}"; do
+		IFS='|' read -r size algo prio swappiness _ <<<"${ZRAM_PROFILES[$name]}"
+		printf "  %2d.  %-10s  %s\n" "$i" "$name" "${ZRAM_PROFILE_DESC[$name]}"
+		printf "       %-10s  size=%s algo=%s prio=%s swappiness=%s\n" "" "$size" "$algo" "$prio" "$swappiness"
+		((i++))
+	done
+	echo -e "  ─────────────────────────────────────────────────────────────\n"
+}
+
+get_profile_by_index() {
+	local idx="$1"
+	[[ $idx -ge 1 && $idx -le ${#ZRAM_PROFILE_ORDER[@]} ]] || return 1
+	echo "${ZRAM_PROFILE_ORDER[$((idx - 1))]}"
+}
+
+select_profile() {
+	local input name
+	while true; do
+		read -rp "  Select profile (name or number): " input
+		if [[ $input =~ ^[0-9]+$ ]]; then
+			name=$(get_profile_by_index "$input")
+		elif [[ -n "${ZRAM_PROFILES[$input]}" ]]; then
+			name="$input"
+		fi
+		[[ -n "$name" ]] && echo "$name" && return
+		warn "Invalid selection, try again."
+		name=""
+	done
+}
+
+# ─────────────────────────────────────────────
+#  Prerequisites
+# ─────────────────────────────────────────────
+
+ensure_package() {
+	pacman -Q zram-generator &>/dev/null && return
+	warn "zram-generator is not installed."
+	confirm "Install it now?" y || die "Cannot continue without zram-generator."
+	pacman -S --needed --noconfirm zram-generator ||
+		die "Failed to install zram-generator."
+	success "zram-generator installed."
+}
+
+# A hand-written /usr/lib config (as some guides suggest) is shadowed by
+# /etc, but it's confusing and re-enables zram after -d. Only touch it
+# when no package owns it.
+migrate_legacy_conf() {
+	[[ -f "$LEGACY_CONF" ]] || return
+	pacman -Qo "$LEGACY_CONF" &>/dev/null && return
+	warn "Found unowned $LEGACY_CONF (hand-written leftover)."
+	if confirm "Move it aside? ($ZRAM_CONF takes precedence either way)" y; then
+		local bak
+		bak="${LEGACY_CONF}.bak.$(date +%Y%m%d%H%M%S)"
+		mv "$LEGACY_CONF" "$bak" || die "Failed to move $LEGACY_CONF."
+		success "Moved to $bak"
+	fi
+}
+
+# ─────────────────────────────────────────────
+#  Config files
+# ─────────────────────────────────────────────
+
+write_zram_conf() {
+	local name="$1" size="$2" algo="$3" prio="$4"
+	{
+		echo "# void-zram — profile: $name"
+		echo "# updated: $(date '+%Y-%m-%d %H:%M:%S')"
+		echo ""
+		echo "[zram0]"
+		echo "zram-size = $size"
+		echo "compression-algorithm = $algo"
+		echo "swap-priority = $prio"
+	} >"$ZRAM_CONF" ||
+		die "Failed to write $ZRAM_CONF."
+	success "Updated $ZRAM_CONF"
+}
+
+write_sysctl_conf() {
+	local name="$1"
+	shift
+	local -a values=("$@") i
+	{
+		echo "# void-zram — profile: $name"
+		echo "# updated: $(date '+%Y-%m-%d %H:%M:%S')"
+		echo ""
+		for i in "${!SYSCTL_KEYS[@]}"; do
+			echo "${SYSCTL_KEYS[$i]} = ${values[$i]}"
+		done
+	} >"$SYSCTL_CONF" ||
+		die "Failed to write $SYSCTL_CONF."
+	sysctl -q -p "$SYSCTL_CONF" || die "Failed to apply $SYSCTL_CONF."
+	success "Updated and applied $SYSCTL_CONF"
+}
+
+# ─────────────────────────────────────────────
+#  zswap (conflicts with zram)
+# ─────────────────────────────────────────────
+
+zswap_state() {
+	if [[ -r "$ZSWAP_PARAM" ]]; then
+		cat "$ZSWAP_PARAM"
+	else
+		echo "unknown"
+	fi
+}
+
+check_zswap() {
+	if [[ "$(zswap_state)" == "Y" ]]; then
+		echo 0 >"$ZSWAP_PARAM" && success "zswap disabled for this boot."
+	else
+		info "zswap is not active at runtime."
+	fi
+
+	if [[ ! -f "$GRUB_DEFAULT" ]]; then
+		grep -q 'zswap.enabled=0' /proc/cmdline ||
+			warn "No GRUB found — add 'zswap.enabled=0' to your kernel cmdline manually."
+		return
+	fi
+
+	grep -qE '^GRUB_CMDLINE_LINUX_DEFAULT=.*zswap\.enabled=0' "$GRUB_DEFAULT" && return
+	grep -qE '^GRUB_CMDLINE_LINUX_DEFAULT=' "$GRUB_DEFAULT" || {
+		warn "No GRUB_CMDLINE_LINUX_DEFAULT line in $GRUB_DEFAULT — skipping."
+		return
+	}
+
+	warn "zswap.enabled=0 is not in GRUB_CMDLINE_LINUX_DEFAULT."
+	confirm "Add it and regenerate $GRUB_CFG?" y || return
+
+	cp "$GRUB_DEFAULT" "${GRUB_DEFAULT}.bak.$(date +%Y%m%d%H%M%S)" ||
+		die "Failed to back up $GRUB_DEFAULT."
+	sed -i -E "s/^(GRUB_CMDLINE_LINUX_DEFAULT=)(['\"])(.*)\2/\1\2\3 zswap.enabled=0\2/" "$GRUB_DEFAULT" ||
+		die "Failed to edit $GRUB_DEFAULT."
+	grub-mkconfig -o "$GRUB_CFG" || die "grub-mkconfig failed."
+	success "GRUB updated — zswap stays off after reboot."
+}
+
+# ─────────────────────────────────────────────
+#  zram device lifecycle
+# ─────────────────────────────────────────────
+
+# Restarting/stopping zram0 swaps its pages back into RAM; make sure they fit.
+can_swapoff() {
+	local used avail
+	used=$(awk '$1 == "/dev/zram0" { print $4 }' /proc/swaps)
+	[[ -z "$used" ]] && return 0
+	avail=$(awk '/^MemAvailable:/ { print $2 }' /proc/meminfo)
+	if ((used + SWAPOFF_MARGIN_KB > avail)); then
+		warn "zram0 holds $((used / 1024)) MiB but only $((avail / 1024)) MiB RAM is available."
+		return 1
+	fi
+}
+
+restart_zram() {
+	local no_restart="$1"
+	systemctl daemon-reload || die "systemctl daemon-reload failed."
+
+	if $no_restart; then
+		info "Skipping zram0 restart (-n) — new size/algorithm applies on next reboot."
+		return
+	fi
+	if ! can_swapoff; then
+		info "Not restarting zram0 — new size/algorithm applies on next reboot."
+		return
+	fi
+
+	info "Restarting $ZRAM_SERVICE..."
+	systemctl restart "$ZRAM_SERVICE" || die "Failed to restart $ZRAM_SERVICE."
+	success "zram0 restarted."
+}
+
+# ─────────────────────────────────────────────
+#  Status
+# ─────────────────────────────────────────────
+
+show_status() {
+	echo ""
+	echo "  zram devices:"
+	echo "  ──────────────────────────────────────"
+	zramctl 2>/dev/null | sed 's/^/  /'
+	echo ""
+	echo "  Swap:"
+	echo "  ──────────────────────────────────────"
+	swapon --show 2>/dev/null | sed 's/^/  /'
+	echo ""
+	echo "  VM sysctls:"
+	echo "  ──────────────────────────────────────"
+	sysctl "${SYSCTL_KEYS[@]}" 2>/dev/null | sed 's/^/  /'
+	echo ""
+	echo "  zswap enabled: $(zswap_state)"
+	echo ""
+	local f
+	for f in "$ZRAM_CONF" "$LEGACY_CONF"; do
+		[[ -f "$f" ]] || continue
+		echo "  $f:"
+		echo "  ──────────────────────────────────────"
+		sed 's/^/  /' "$f"
+		echo ""
+	done
+	[[ -f "$ZRAM_CONF" || -f "$LEGACY_CONF" ]] || echo -e "  No zram-generator config found.\n"
+}
+
+# ─────────────────────────────────────────────
+#  Apply / Disable
+# ─────────────────────────────────────────────
+
+apply_profile() {
+	local name="$1" no_restart="$2"
+	local size algo prio swappiness page_cluster boost scale
+	IFS='|' read -r size algo prio swappiness page_cluster boost scale <<<"${ZRAM_PROFILES[$name]}"
+
+	ensure_package
+	migrate_legacy_conf
+	write_zram_conf "$name" "$size" "$algo" "$prio"
+	write_sysctl_conf "$name" "$swappiness" "$page_cluster" "$boost" "$scale"
+	check_zswap
+	restart_zram "$no_restart"
+
+	echo ""
+	success "Applied zram profile '$name'"
+	show_status
+}
+
+disable_zram() {
+	warn_box "This removes the void-zram config"
+	confirm "Disable zram and restore default VM sysctls?" || die "Aborted."
+
+	if systemctl is-active --quiet "$ZRAM_SERVICE"; then
+		if can_swapoff; then
+			systemctl stop "$ZRAM_SERVICE" && success "zram0 stopped."
+		else
+			info "Leaving zram0 running — it will be gone after reboot."
+		fi
+	fi
+
+	rm -f "$ZRAM_CONF" "$SYSCTL_CONF" && success "Removed $ZRAM_CONF and $SYSCTL_CONF"
+
+	local key
+	for key in "${SYSCTL_KEYS[@]}"; do
+		sysctl -q -w "$key=${SYSCTL_DEFAULTS[$key]}"
+	done
+	success "VM sysctls restored to kernel defaults."
+
+	systemctl daemon-reload
+	[[ -f "$LEGACY_CONF" ]] &&
+		warn "$LEGACY_CONF still exists — zram will come back on reboot."
+	show_status
+}
+
+# ─────────────────────────────────────────────
+#  Usage / flags
+# ─────────────────────────────────────────────
+
+usage() {
+	cat <<EOF
+
+  Usage: $(basename "$0") [OPTIONS]
+
+  Options:
+    -p <profile>   Apply a named profile directly (non-interactive)
+    -n             Write config but don't restart zram0 (applies on reboot)
+    -l             List available profiles and exit
+    -s             Show current zram / swap / sysctl / zswap status
+    -d             Disable zram and restore default VM sysctls
+    -h             Show this help
+
+  Examples:
+    $(basename "$0")                  # interactive mode
+    $(basename "$0") -p gaming        # apply the gaming profile now
+    $(basename "$0") -p standard -n   # apply standard on next reboot
+
+EOF
+	exit 0
+}
+
+# ─────────────────────────────────────────────
+#  Main
+# ─────────────────────────────────────────────
+
+main() {
+	local profile="" no_restart=false list_only=false status_only=false disable=false
+
+	while getopts "p:nlsdh" opt; do
+		case $opt in
+		p) profile="$OPTARG" ;;
+		n) no_restart=true ;;
+		l) list_only=true ;;
+		s) status_only=true ;;
+		d) disable=true ;;
+		h) usage ;;
+		*) usage ;;
+		esac
+	done
+
+	if $list_only; then
+		display_profiles
+		exit 0
+	fi
+	if $status_only; then
+		show_status
+		exit 0
+	fi
+	if [[ -n "$profile" && -z "${ZRAM_PROFILES[$profile]}" ]]; then
+		die "Unknown profile: '$profile'. Use -l to list."
+	fi
+
+	require_root "$@"
+
+	if $disable; then
+		disable_zram
+	elif [[ -n "$profile" ]]; then
+		apply_profile "$profile" "$no_restart"
+	else
+		display_profiles
+		apply_profile "$(select_profile)" "$no_restart"
+	fi
+}
+
+main "$@"
