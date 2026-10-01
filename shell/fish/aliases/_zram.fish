@@ -9,8 +9,8 @@ abbr zrw "watch -n1 zramctl --output NAME,ALGORITHM,DISKSIZE,DATA,COMPR,TOTAL,CO
 abbr zrswap "swapon --show"
 abbr zrlog "sudo dmesg | grep -iE 'zram|zswap'"
 
-# void-zram profiles
-abbr zrs "void-zram -s"
-abbr zrl "void-zram -l"
-abbr zrstd "void-zram -p standard"
-abbr zrgame "void-zram -p gaming"
+# void-arch-zram profiles
+abbr zrs "void-arch-zram -s"
+abbr zrl "void-arch-zram -l"
+abbr zrstd "void-arch-zram -p standard"
+abbr zrgame "void-arch-zram -p gaming"

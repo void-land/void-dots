@@ -28,7 +28,7 @@ abbr fpcleanorphans 'sudo pacman -Rns (pacman -Qtdq)'
 abbr fpcleancache 'sudo pacman -Sc'
 abbr fpcleancacheall 'sudo pacman -Scc'
 
-# Archive rollback (void-archive)
-abbr fparchive 'void-archive'
-abbr fparchivestatus 'void-archive -s'
-abbr fprestore 'void-archive -r'
+# Archive rollback (void-arch-rollback)
+abbr fparchive 'void-arch-rollback'
+abbr fparchivestatus 'void-arch-rollback -s'
+abbr fprestore 'void-arch-rollback -r'

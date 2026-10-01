@@ -183,9 +183,9 @@ backup_mirrorlist() {
 write_mirrorlist() {
 	local day="$1"
 	as_root tee "$MIRRORLIST" >/dev/null <<EOF || die "Failed to write $MIRRORLIST."
-# void-archive — snapshot $day
+# void-arch-rollback — snapshot $day
 # updated: $(date '+%Y-%m-%d %H:%M:%S')
-# restore with: void-archive -r
+# restore with: void-arch-rollback -r
 
 Server = $ARCHIVE_URL/repos/$day/\$repo/os/\$arch
 EOF
