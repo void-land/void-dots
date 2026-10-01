@@ -1,0 +1,340 @@
+#!/bin/bash
+
+# ─────────────────────────────────────────────
+#  Arch Linux Archive Snapshot Picker
+#  Points /etc/pacman.d/mirrorlist at an archive.archlinux.org
+#  repos/YYYY/MM/DD snapshot to roll the system back, and restores it.
+# ─────────────────────────────────────────────
+
+source "$(dirname "${BASH_SOURCE[0]}")/scripts-lib.sh"
+
+ARCHIVE_URL="https://archive.archlinux.org"
+MIRRORLIST="/etc/pacman.d/mirrorlist"
+MIRRORLIST_BAK="/etc/pacman.d/mirrorlist.bak"
+MIRRORLIST_PACNEW="/etc/pacman.d/mirrorlist.pacnew"
+PACMAN_CONF="/etc/pacman.conf"
+
+# ─────────────────────────────────────────────
+#  Privileges
+#  Archive lookups run as the invoking user so http(s)_proxy survives
+#  (sudo's env_reset drops it); only the writes and pacman are elevated.
+# ─────────────────────────────────────────────
+
+as_root() {
+	if [[ $EUID -eq 0 ]]; then
+		"$@"
+	else
+		sudo "$@"
+	fi
+}
+
+# ─────────────────────────────────────────────
+#  Archive helpers
+# ─────────────────────────────────────────────
+
+# fetch_index URL — prints "YYYY-MM-DD HH:MM|href" per entry of an
+# nginx autoindex page.
+fetch_index() {
+	curl -fsSL --max-time 20 "$1" 2>/dev/null | awk '
+		BEGIN {
+			n = split("Jan Feb Mar Apr May Jun Jul Aug Sep Oct Nov Dec", m, " ")
+			for (i = 1; i <= n; i++) mon[m[i]] = sprintf("%02d", i)
+		}
+		match($0, /<a href="[^"]+">/) {
+			href = substr($0, RSTART + 9, RLENGTH - 11)
+			if (href == "../") next
+			if (match($0, /[0-9][0-9]-[A-Z][a-z][a-z]-[0-9][0-9][0-9][0-9] [0-9][0-9]:[0-9][0-9]/)) {
+				d = substr($0, RSTART, RLENGTH)
+				printf "%s-%s-%s %s|%s\n", substr(d, 8, 4), mon[substr(d, 4, 3)], substr(d, 1, 2), substr(d, 13, 5), href
+			}
+		}'
+}
+
+url_ok() { curl -fsI --max-time 20 -o /dev/null "$1" 2>/dev/null; }
+
+valid_date() {
+	[[ $1 =~ ^[0-9]{4}/[0-9]{2}/[0-9]{2}$ ]] && date -d "${1//\//-}" &>/dev/null
+}
+
+snapshot_exists() { url_ok "$ARCHIVE_URL/repos/$1/"; }
+
+is_archive_list() {
+	[[ -f "$1" ]] && grep -qE '^[[:space:]]*Server[[:space:]]*=.*archive\.archlinux\.org' "$1"
+}
+
+current_snapshot() {
+	grep -oE 'archive\.archlinux\.org/repos/[0-9]{4}/[0-9]{2}/[0-9]{2}' "$MIRRORLIST" 2>/dev/null |
+		head -n1 | sed 's|.*/repos/||'
+}
+
+# ─────────────────────────────────────────────
+#  Menus
+# ─────────────────────────────────────────────
+
+# menu_select OUT_VAR PROMPT DEFAULT ITEM... — stores the 0-based index
+menu_select() {
+	local -n _menu_out=$1
+	local prompt="$2" default="$3"
+	shift 3
+	local -a items=("$@")
+	local i input
+
+	for i in "${!items[@]}"; do
+		printf "  %3d.  %s\n" "$((i + 1))" "${items[$i]}"
+	done
+	echo ""
+	while true; do
+		read -rp "  ${prompt} [${default}]: " input
+		input="${input:-$default}"
+		if [[ $input =~ ^[0-9]+$ ]] && ((input >= 1 && input <= ${#items[@]})); then
+			_menu_out=$((input - 1))
+			return
+		fi
+		warn "Invalid selection, try again."
+	done
+}
+
+section() {
+	echo -e "\n  $1"
+	echo "  ─────────────────────────────────────────────────────────────"
+}
+
+# ─────────────────────────────────────────────
+#  Snapshot selection
+# ─────────────────────────────────────────────
+
+# list_dirs URL PATTERN OUT_VAR — directory names matching PATTERN, newest first
+list_dirs() {
+	local url="$1" pattern="$2"
+	local -n _dirs=$3
+	local href
+	_dirs=()
+	while IFS='|' read -r _ href; do
+		href="${href%/}"
+		[[ $href =~ $pattern ]] && _dirs+=("$href")
+	done < <(fetch_index "$url" | sort -t'|' -k2 -r)
+	((${#_dirs[@]})) || die "Could not list $url"
+}
+
+pick_by_date() {
+	local -n _browse_date=$1
+	local -a years=() months=() days=() labels=()
+	local year month sel d
+
+	info "Fetching snapshot index..."
+	list_dirs "$ARCHIVE_URL/repos/" '^[0-9]{4}$' years
+	section "Snapshot year"
+	menu_select sel "Select year" 1 "${years[@]}"
+	year="${years[$sel]}"
+
+	list_dirs "$ARCHIVE_URL/repos/$year/" '^[0-9]{2}$' months
+	labels=()
+	for d in "${months[@]}"; do
+		labels+=("$year/$d ($(date -d "$year-$d-01" +%B))")
+	done
+	section "Snapshot month"
+	menu_select sel "Select month" 1 "${labels[@]}"
+	month="${months[$sel]}"
+
+	list_dirs "$ARCHIVE_URL/repos/$year/$month/" '^[0-9]{2}$' days
+	labels=()
+	for d in "${days[@]}"; do
+		labels+=("$year/$month/$d ($(date -d "$year-$month-$d" +%a))")
+	done
+	section "Snapshot day"
+	menu_select sel "Select day" 1 "${labels[@]}"
+
+	_browse_date="$year/$month/${days[$sel]}"
+}
+
+# ─────────────────────────────────────────────
+#  pacman.conf checks
+# ─────────────────────────────────────────────
+
+ignored_entries() {
+	awk -F= '/^[[:space:]]*Ignore(Pkg|Group)[[:space:]]*=/ { print $2 }' "$PACMAN_CONF" | xargs
+}
+
+# Ignored packages stay at their current version during the rollback.
+check_ignores() {
+	local ignored
+	ignored=$(ignored_entries)
+	[[ -n "$ignored" ]] || return 0
+	warn_box "IgnorePkg/IgnoreGroup is set"
+	warn "These won't be rolled back: $ignored"
+	confirm "Continue anyway?" || die "Aborted. Comment out the Ignore lines in $PACMAN_CONF first."
+}
+
+# ─────────────────────────────────────────────
+#  Apply / Restore
+# ─────────────────────────────────────────────
+
+backup_mirrorlist() {
+	if ! is_archive_list "$MIRRORLIST"; then
+		as_root cp "$MIRRORLIST" "$MIRRORLIST_BAK" || die "Failed to back up $MIRRORLIST."
+		success "Backed up live mirrorlist to $MIRRORLIST_BAK"
+	elif [[ -f "$MIRRORLIST_BAK" ]] && ! is_archive_list "$MIRRORLIST_BAK"; then
+		info "Already on snapshot $(current_snapshot) — keeping existing $MIRRORLIST_BAK"
+	else
+		warn "No live mirrorlist backup exists — restore will fall back to $MIRRORLIST_PACNEW."
+	fi
+}
+
+write_mirrorlist() {
+	local day="$1"
+	as_root tee "$MIRRORLIST" >/dev/null <<EOF || die "Failed to write $MIRRORLIST."
+# void-archive — snapshot $day
+# updated: $(date '+%Y-%m-%d %H:%M:%S')
+# restore with: void-archive -r
+
+Server = $ARCHIVE_URL/repos/$day/\$repo/os/\$arch
+EOF
+	success "Mirrorlist now points at snapshot $day"
+}
+
+apply_snapshot() {
+	local day="$1" no_sync="$2"
+
+	check_ignores
+	backup_mirrorlist
+	write_mirrorlist "$day"
+	info "EndeavourOS repos (endeavouros-mirrorlist) are not archived and stay live."
+
+	$no_sync && return
+	warn "This is a full-system downgrade to $day — expect a long list."
+	confirm "Run pacman -Syyuu now?" y || return
+	as_root pacman -Syyuu && success "Rolled back to $day — reboot to load the old kernel/drivers."
+}
+
+restore_mirrorlist() {
+	local no_sync="$1" src="$MIRRORLIST_BAK"
+
+	if ! [[ -f "$src" ]] || is_archive_list "$src"; then
+		warn "$MIRRORLIST_BAK is missing or points at the archive."
+		if [[ ! -f "$MIRRORLIST_PACNEW" ]] || is_archive_list "$MIRRORLIST_PACNEW"; then
+			die "No live mirrorlist to restore — regenerate one (e.g. reflector)."
+		fi
+		src="$MIRRORLIST_PACNEW"
+		confirm "Restore from $src instead? (all servers there may be commented out)" ||
+			die "Aborted."
+	fi
+
+	as_root cp "$src" "$MIRRORLIST" || die "Failed to restore $MIRRORLIST."
+	success "Restored live mirrorlist from $src"
+
+	$no_sync && return
+	confirm "Run pacman -Syyu now?" y && as_root pacman -Syyu
+}
+
+# ─────────────────────────────────────────────
+#  Status
+# ─────────────────────────────────────────────
+
+show_status() {
+	local snap ignored
+
+	section "Mirrorlist ($MIRRORLIST)"
+	snap=$(current_snapshot)
+	if [[ -n "$snap" ]]; then
+		echo "  Mode: archive snapshot $snap"
+	else
+		echo "  Mode: live mirrors"
+	fi
+	grep -E '^[[:space:]]*Server' "$MIRRORLIST" 2>/dev/null | head -n5 | sed 's/^[[:space:]]*/  /'
+
+	section "Backup ($MIRRORLIST_BAK)"
+	if [[ ! -f "$MIRRORLIST_BAK" ]]; then
+		echo "  missing"
+	elif is_archive_list "$MIRRORLIST_BAK"; then
+		echo "  present, but points at the archive (not a live backup)"
+	else
+		echo "  present (live mirrors)"
+	fi
+
+	section "IgnorePkg / IgnoreGroup ($PACMAN_CONF)"
+	ignored=$(ignored_entries)
+	echo "  ${ignored:-none}"
+	echo ""
+}
+
+# ─────────────────────────────────────────────
+#  Usage / flags
+# ─────────────────────────────────────────────
+
+usage() {
+	cat <<EOF
+
+  Usage: $(basename "$0") [OPTIONS]
+
+  Options:
+    -d YYYY/MM/DD    Use this snapshot date directly
+    -r               Restore the live mirrorlist from $MIRRORLIST_BAK
+    -s               Show mirrorlist / backup / IgnorePkg status
+    -n               Only write the mirrorlist, don't run pacman
+    -h               Show this help
+
+  Examples:
+    $(basename "$0")                   # interactive menu
+    $(basename "$0") -d 2026/08/21     # pin the 2026/08/21 snapshot
+    $(basename "$0") -r                # back to live mirrors + pacman -Syyu
+
+EOF
+	exit 0
+}
+
+# ─────────────────────────────────────────────
+#  Main
+# ─────────────────────────────────────────────
+
+main() {
+	local day="" restore=false status_only=false no_sync=false sel
+
+	while getopts "d:rsnh" opt; do
+		case $opt in
+		d) day="$OPTARG" ;;
+		r) restore=true ;;
+		s) status_only=true ;;
+		n) no_sync=true ;;
+		h) usage ;;
+		*) usage ;;
+		esac
+	done
+
+	if $status_only; then
+		show_status
+		exit 0
+	fi
+	if $restore; then
+		restore_mirrorlist "$no_sync"
+		exit 0
+	fi
+
+	command -v curl &>/dev/null || die "curl is required."
+
+	if [[ -z "$day" ]]; then
+		show_status
+		section "What do you want to do?"
+		menu_select sel "Select" 1 \
+			"Browse snapshots by date" \
+			"Enter a snapshot date (YYYY/MM/DD)" \
+			"Restore live mirrors" \
+			"Quit"
+		case $sel in
+		0) pick_by_date day ;;
+		1) read -rp "  Snapshot date: " day ;;
+		2)
+			restore_mirrorlist "$no_sync"
+			exit 0
+			;;
+		*) exit 0 ;;
+		esac
+	fi
+
+	valid_date "$day" || die "Invalid date '$day' — expected YYYY/MM/DD."
+	info "Checking snapshot $day..."
+	snapshot_exists "$day" || die "Snapshot $day not found on $ARCHIVE_URL."
+
+	apply_snapshot "$day" "$no_sync"
+}
+
+main "$@"
