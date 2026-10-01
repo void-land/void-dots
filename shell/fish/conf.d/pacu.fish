@@ -1,3 +1,5 @@
+set --query pacu_proxy || set --global pacu_proxy socks5h://localhost:2080
+
 set --query pacu_helper_commands || set --global pacu_helper_commands \
     "install:Install package(s)" \
     "install-local:Install local package file(s) (.pkg.tar.zst)" \

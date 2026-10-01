@@ -6,38 +6,68 @@ function pacu -d "Short and friendly command wrapper for Pacman"
         return 0
     end
 
-    set -l sub_command $argv[1]
-    set -l cmd_args $argv[2..-1]
+    set -l proxy
+    set -l rest
+    for arg in $argv
+        switch $arg
+            case --proxy
+                set proxy $pacu_proxy
+            case '--proxy=*'
+                set proxy (string replace -- --proxy= '' $arg)
+                test -n "$proxy"; or set proxy $pacu_proxy
+            case '*'
+                set -a rest $arg
+        end
+    end
+
+    if not set -q rest[1]
+        _pacu_display_help
+        return 0
+    end
+
+    set -l sub_command $rest[1]
+    set -l cmd_args $rest[2..-1]
+
+    set -l proxy_env
+    if test -n "$proxy"
+        set proxy_env ALL_PROXY=$proxy
+        set -l network_commands install install-local local reinstall update upgrade sync check
+        if contains -- $sub_command $network_commands
+            echo (set_color cyan 2>/dev/null)"Using proxy: $proxy"(set_color normal 2>/dev/null)
+        else
+            echo (set_color yellow 2>/dev/null)"Warning: --proxy has no effect for '$sub_command'"(set_color normal 2>/dev/null)
+        end
+    end
 
     switch $sub_command
         case install
             _pacu_require_args "Please provide at least one package name to install" $cmd_args; or return 1
-            sudo pacman -S $cmd_args
+            sudo $proxy_env pacman -S $cmd_args
 
         case install-local local
             _pacu_require_args "Please provide at least one package file (.pkg.tar.*)" $cmd_args; or return 1
-            sudo pacman -U $cmd_args
+            sudo $proxy_env pacman -U $cmd_args
 
         case reinstall
             _pacu_require_args "Please provide at least one package name to reinstall" $cmd_args; or return 1
-            sudo pacman -S --noconfirm $cmd_args
+            sudo $proxy_env pacman -S --noconfirm $cmd_args
 
         case remove
             _pacu_require_args "Please provide at least one package name to remove" $cmd_args; or return 1
             sudo pacman -Rns $cmd_args
 
         case update
-            sudo pacman -Sy $cmd_args
+            sudo $proxy_env pacman -Sy $cmd_args
 
         case upgrade
-            sudo pacman -Syu $cmd_args
+            sudo $proxy_env pacman -Syu $cmd_args
 
         case sync
-            sudo pacman -Syyu $cmd_args
+            sudo $proxy_env pacman -Syyu $cmd_args
 
         case check
             if command -q checkupdates
-                checkupdates $cmd_args
+                env $proxy_env checkupdates $cmd_args
             else
                 pacman -Qu $cmd_args
             end
@@ -176,7 +206,7 @@ function _pacu_display_help
         test -f $conf_file; and source $conf_file
     end
 
-    echo "Usage: pacu COMMAND [OPTIONS] [arg...]"
+    echo "Usage: pacu COMMAND [--proxy[=URL]] [arg...]"
     echo ""
     echo "Commands:"
 
@@ -184,4 +214,9 @@ function _pacu_display_help
         set -l parts (string split ':' $cmd)
         printf "  %-18s %s\n" $parts[1] $parts[2]
     end
+
+    echo ""
+    echo "Options:"
+    printf "  %-18s %s\n" "--proxy[=URL]" "Route downloads via ALL_PROXY (default: $pacu_proxy)"
+    printf "  %-18s %s\n" "" "Applies to install, install-local, reinstall, update, upgrade, sync, check"
 end

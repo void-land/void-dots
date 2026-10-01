@@ -36,3 +36,6 @@ set -l no_arg_commands update upgrade sync check list list-all orphans autoremov
 for cmd in $no_arg_commands
     complete -c pacu -n "__fish_seen_subcommand_from $cmd" -f
 end
+
+# Proxy option for subcommands that download
+complete -c pacu -n "__fish_seen_subcommand_from install install-local local reinstall update upgrade sync check" -l proxy -d "Route downloads via ALL_PROXY (default \$pacu_proxy)"
