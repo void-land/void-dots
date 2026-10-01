@@ -32,10 +32,10 @@ complete -c pacu -n "__fish_seen_subcommand_from owns" -F
 complete -c pacu -n "__fish_seen_subcommand_from search search-installed search-file locate" -f
 
 # Subcommands taking no additional arguments
-set -l no_arg_commands update upgrade sync check list list-all orphans autoremove clean-cache clean-cache-all prune-cache
+set -l no_arg_commands update upgrade sync downgrade check list list-all orphans autoremove clean-cache clean-cache-all prune-cache
 for cmd in $no_arg_commands
     complete -c pacu -n "__fish_seen_subcommand_from $cmd" -f
 end
 
 # Proxy option for subcommands that download
-complete -c pacu -n "__fish_seen_subcommand_from install install-local local reinstall update upgrade sync check" -l proxy -d "Route downloads via ALL_PROXY (default \$pacu_proxy)"
+complete -c pacu -n "__fish_seen_subcommand_from install install-local local reinstall update upgrade sync downgrade check" -l proxy -d "Route downloads via ALL_PROXY (default \$pacu_proxy)"

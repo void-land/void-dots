@@ -8,6 +8,7 @@ set --query pacu_helper_commands || set --global pacu_helper_commands \
     "update:Refresh package databases" \
     "upgrade:Full system upgrade" \
     "sync:Force refresh databases and upgrade system" \
+    "downgrade:Force refresh databases and upgrade, allowing downgrades" \
     "check:Check for available updates" \
     "search:Search for packages in remote repositories" \
     "search-installed:Search among installed packages" \

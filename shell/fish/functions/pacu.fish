@@ -31,7 +31,7 @@ function pacu -d "Short and friendly command wrapper for Pacman"
     set -l proxy_env
     if test -n "$proxy"
         set proxy_env ALL_PROXY=$proxy
-        set -l network_commands install install-local local reinstall update upgrade sync check
+        set -l network_commands install install-local local reinstall update upgrade sync downgrade check
         if contains -- $sub_command $network_commands
             echo (set_color cyan 2>/dev/null)"Using proxy: $proxy"(set_color normal 2>/dev/null)
         else
@@ -64,6 +64,9 @@ function pacu -d "Short and friendly command wrapper for Pacman"
 
         case sync
             sudo $proxy_env pacman -Syyu $cmd_args
+
+        case downgrade
+            sudo $proxy_env pacman -Syyuu $cmd_args
 
         case check
             if command -q checkupdates
@@ -218,5 +221,5 @@ function _pacu_display_help
     echo ""
     echo "Options:"
     printf "  %-18s %s\n" "--proxy[=URL]" "Route downloads via ALL_PROXY (default: $pacu_proxy)"
-    printf "  %-18s %s\n" "" "Applies to install, install-local, reinstall, update, upgrade, sync, check"
+    printf "  %-18s %s\n" "" "Applies to install, install-local, reinstall, update, upgrade, sync, downgrade, check"
 end
