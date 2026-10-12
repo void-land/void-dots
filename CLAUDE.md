@@ -63,7 +63,7 @@ Consequences:
 - `functions/*.fish` — fish's lazy autoload dir: one function per file, filename must match the function name.
 - `conf.d/*.fish` — auto-sourced by fish itself before `config.fish`.
 - `fish_variables` is machine-local and gitignored; anything that must travel with the repo is set with `set -g` in `_env.fish`.
-- `plugins/` — fisher's install target (`fisher_path` is set in `conf.d/fisher_path.fish`). Files under `plugins/` are vendored by fisher from `fish_plugins`; regenerate via fisher rather than editing by hand.
+- `plugins/` — fisher's install target (`fisher_path` is set in `conf.d/fisher_path.fish`). Files under `plugins/` are vendored by fisher from `fish_plugins`; regenerate via fisher rather than editing by hand. Fisher's own state (`_fisher_plugins`, `_fisher_*_files`) lives in the gitignored `fish_variables`, so `conf.d/fisher_sync.fish` re-seeds `_fisher_plugins` from `fish_plugins` on startup; run `fisher update` once after a clone to re-register file ownership. Without that seed, `fisher update` on a fresh clone treats every plugin as a conflicting install and then deletes `fish_plugins`.
 
 ## Vendored / generated files — do not hand-edit
 
