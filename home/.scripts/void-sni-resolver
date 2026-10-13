@@ -3,16 +3,14 @@
 source "$(dirname "${BASH_SOURCE[0]}")/scripts-lib.sh"
 
 declare -A DNS=(
-	["ShecanPro"]="178.22.122.101,185.51.200.1"
-	["Shelter"]="87.107.206.7,87.107.206.3"
-	["ShelterPrimary"]="95.38.140.43,2.189.86.10"
-	["ShelterSecondary"]="2.189.86.32,95.38.140.44"
+	["Shecan"]="178.22.122.101,185.51.200.1"
+	["Shelter"]="2.189.86.104,2.189.86.42"
+	["ShelterSecondary"]="87.107.206.13,87.107.206.10"
 )
 
 DNS_PROFILE_ORDER=(
-	ShecanPro
+	Shecan
 	Shelter
-	ShelterPrimary
 	ShelterSecondary
 )
 
