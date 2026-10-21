@@ -10,6 +10,7 @@ TciProfiles=(
 	"TCIS2.apibaz.org"
 	"TCIS3.apibaz.org"
 	"TCIS4.apibaz.org"
+	"mcipower1.apibaz.org"
 )
 
 vpn_connect_interactive
