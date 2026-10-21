@@ -126,6 +126,9 @@ stow() {
 	create_links "$PLASMA_DIR" ~/.config
 	log "Plasma stowed successfully!"
 
+	# Panel layout can't be stowed (per-install IDs); apply it live instead.
+	run "$HOME_DIR/.scripts/void-kde-panel"
+
 	create_link "$ZED_DIR" ~/.config/zed
 
 	local dir

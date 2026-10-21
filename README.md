@@ -122,6 +122,8 @@ Symlinks the contents of `dotfiles/`, `shell/`, `plasma/`, and `editors/` into t
 
 *Creates the necessary directories under `~/.config/` and symlinks every tracked file back into this repo. Works from any directory. An existing real file or directory at a target is moved aside to `<name>.bak.<timestamp>` rather than overwritten.*
 
+*It then runs `void-kde-panel`, which sets the KDE panel height, pager options and pinned task-manager apps, and restarts plasmashell. These can't be stowed as files because Plasma keys them by per-install panel IDs. Edit the config block at the top of `home/.scripts/void-kde-panel` to change them; `void-kde-panel -l` shows the current layout.*
+
 **Unlink (unstow) configurations:**
 
 ```bash

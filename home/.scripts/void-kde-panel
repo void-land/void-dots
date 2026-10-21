@@ -1,0 +1,199 @@
+#!/bin/bash
+
+# ─────────────────────────────────────────────
+#  KDE Panel — height, pager & pinned apps
+# ─────────────────────────────────────────────
+# plasmashellrc / plasma-org.kde.plasma.desktop-appletsrc key everything by
+# per-install panel and applet IDs, so they can't be tracked in plasma/.
+# This applies the layout through Plasma's scripting API instead, which
+# works on whatever panels exist on the current machine.
+
+source "$(dirname "${BASH_SOURCE[0]}")/scripts-lib.sh"
+
+PANEL_HEIGHT=46
+
+PAGER_SHOW_ONLY_CURRENT_SCREEN=true
+PAGER_SHOW_WINDOW_ICONS=true
+
+# Task manager pins, in order. applications:* entries whose .desktop file
+# isn't installed are skipped; preferred://* follow mimeapps.list.
+PANEL_LAUNCHERS=(
+	"applications:systemsettings.desktop"
+	"preferred://filemanager"
+	"applications:codium.desktop"
+	"preferred://browser"
+	"applications:org.telegram.desktop.desktop"
+	"applications:vesktop.desktop"
+	"applications:steam.desktop"
+	"applications:spotify-adblock.desktop"
+	"applications:Throne.desktop"
+	"applications:hydra.desktop"
+)
+
+QDBUS=""
+
+# ─────────────────────────────────────────────
+#  Plasma shell
+# ─────────────────────────────────────────────
+
+# find_qdbus — sets QDBUS; returns 1 when plasmashell isn't reachable
+find_qdbus() {
+	QDBUS="$(command -v qdbus6 || command -v qdbus)" ||
+		die "qdbus6 not found (install qt6-tools)."
+	"$QDBUS" org.kde.plasmashell /PlasmaShell &>/dev/null
+}
+
+# plasma_eval SCRIPT — runs SCRIPT in plasmashell, prints its print() output
+plasma_eval() {
+	"$QDBUS" org.kde.plasmashell /PlasmaShell org.kde.PlasmaShell.evaluateScript "$1"
+}
+
+restart_plasmashell() {
+	info "Restarting plasmashell..."
+	if systemctl --user is-active --quiet plasma-plasmashell.service; then
+		systemctl --user restart plasma-plasmashell.service
+	else
+		kquitapp6 plasmashell &>/dev/null
+		kstart plasmashell &>/dev/null
+	fi
+}
+
+# ─────────────────────────────────────────────
+#  Launchers
+# ─────────────────────────────────────────────
+
+desktop_file_exists() {
+	local name="$1" dir
+	local data_dirs="${XDG_DATA_HOME:-$HOME/.local/share}:${XDG_DATA_DIRS:-/usr/local/share:/usr/share}"
+	data_dirs+=":$HOME/.local/share/flatpak/exports/share:/var/lib/flatpak/exports/share"
+
+	local IFS=:
+	for dir in $data_dirs; do
+		[[ -f "$dir/applications/$name" ]] && return 0
+	done
+	return 1
+}
+
+# installed_launchers — prints PANEL_LAUNCHERS as a JS array body, minus
+# applications:* entries that aren't installed on this machine
+installed_launchers() {
+	local launcher out=""
+	for launcher in "${PANEL_LAUNCHERS[@]}"; do
+		if [[ "$launcher" == applications:* ]] && ! desktop_file_exists "${launcher#applications:}"; then
+			info "Skipping launcher (not installed): ${launcher#applications:}" >&2
+			continue
+		fi
+		out+="\"$launcher\","
+	done
+	echo "${out%,}"
+}
+
+# ─────────────────────────────────────────────
+#  List & apply
+# ─────────────────────────────────────────────
+
+list_panels() {
+	plasma_eval '
+panels().forEach(function (p) {
+    print("Panel " + p.id + " (screen " + p.screen + ", " + p.location + "): height " + p.height + "\n");
+    p.widgets().forEach(function (w) {
+        print("  - " + w.type + "\n");
+        if (w.type == "org.kde.plasma.icontasks" || w.type == "org.kde.plasma.taskmanager") {
+            w.currentConfigGroup = ["General"];
+            print("      launchers: " + w.readConfig("launchers", "") + "\n");
+        }
+    });
+});'
+}
+
+apply_panels() {
+	local launchers output
+	launchers="$(installed_launchers)"
+
+	output="$(plasma_eval "
+var launchers = [${launchers}];
+panels().forEach(function (p) {
+    p.height = ${PANEL_HEIGHT};
+
+    var pagers = p.widgets(\"org.kde.plasma.pager\");
+    var pager = pagers.length ? pagers[0] : p.addWidget(\"org.kde.plasma.pager\");
+    if (!pagers.length) print(\"PAGER_ADDED \" + p.id + \"\n\");
+    pager.currentConfigGroup = [\"General\"];
+    pager.writeConfig(\"showOnlyCurrentScreen\", ${PAGER_SHOW_ONLY_CURRENT_SCREEN});
+    pager.writeConfig(\"showWindowIcons\", ${PAGER_SHOW_WINDOW_ICONS});
+
+    var tasks = p.widgets(\"org.kde.plasma.icontasks\").concat(p.widgets(\"org.kde.plasma.taskmanager\"));
+    if (!tasks.length) print(\"NO_TASKS \" + p.id + \"\n\");
+    tasks.forEach(function (t) {
+        t.currentConfigGroup = [\"General\"];
+        t.writeConfig(\"launchers\", launchers);
+    });
+});")" || die "Failed to apply the panel script."
+
+	local line
+	while read -r line; do
+		case "$line" in
+		PAGER_ADDED*) warn "Added a pager to panel ${line#* } at the end — drag it next to the launcher once." ;;
+		NO_TASKS*) warn "Panel ${line#* } has no task manager; launchers not pinned there." ;;
+		?*) echo "$line" ;;
+		esac
+	done <<<"$output"
+
+	success "Panels set: height ${PANEL_HEIGHT}, pager configured, $(grep -o '"[^"]*"' <<<"$launchers" | wc -l) launchers pinned."
+}
+
+# ─────────────────────────────────────────────
+#  Main
+# ─────────────────────────────────────────────
+
+usage() {
+	cat <<EOF
+
+  Usage: $(basename "$0") [OPTIONS]
+
+  Options:
+    -H <px>   Panel height (default: ${PANEL_HEIGHT})
+    -R        Don't restart plasmashell after applying
+    -l        List current panels, widgets and pinned launchers, then exit
+    -h        Show this help
+
+  Examples:
+    $(basename "$0")          # apply height, pager and launchers, restart plasmashell
+    $(basename "$0") -H 40    # same, with a 40px panel
+    $(basename "$0") -l       # inspect the current layout
+
+EOF
+	exit 0
+}
+
+main() {
+	local no_restart=false list_only=false
+
+	while getopts "H:Rlh" opt; do
+		case $opt in
+		H) PANEL_HEIGHT="$OPTARG" ;;
+		R) no_restart=true ;;
+		l) list_only=true ;;
+		h) usage ;;
+		*) usage ;;
+		esac
+	done
+
+	[[ "$PANEL_HEIGHT" =~ ^[1-9][0-9]*$ ]] || die "Invalid height: '$PANEL_HEIGHT'."
+
+	if ! find_qdbus; then
+		warn "plasmashell isn't running in this session; skipping panel setup."
+		warn "Log into Plasma and run $(basename "$0") to apply it."
+		exit 0
+	fi
+
+	if $list_only; then
+		list_panels
+		exit 0
+	fi
+
+	apply_panels
+	$no_restart || restart_plasmashell
+}
+
+main "$@"

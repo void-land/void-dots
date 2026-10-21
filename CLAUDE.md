@@ -36,6 +36,8 @@ Consequences:
 - Adding a **new top-level dir** (e.g. `dotfiles/foo/`) requires re-running `./stow.sh -s`.
 - `editors/vim` is *not* stowed by any code path; `shell/bash/.bashrc` lands at `~/.config/bash/.bashrc`, not `~/.bashrc`. Both are deliberate-looking gaps — don't "fix" them silently.
 
+**The KDE panel layout is applied, not stowed.** `plasmashellrc` and `plasma-org.kde.plasma.desktop-appletsrc` key everything by per-install panel/applet IDs, so they're deliberately untracked. Panel height, pager options and pinned launchers live in the config block of `home/.scripts/void-kde-panel`, which `stow.sh -s` runs after linking `plasma/` (it uses Plasma's `evaluateScript` over D-Bus, then restarts plasmashell).
+
 **`plasma/*` files are live-written by KDE.** Because they're symlinks back into the repo, Plasma rewrites them during normal desktop use. Seeing `plasma/kwinrc`, `kdeglobals`, `dolphinrc`, `mimeapps.list` dirty in `git status` is expected drift, not a change you made.
 
 ## Recurring code patterns
