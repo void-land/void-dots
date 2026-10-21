@@ -17,12 +17,13 @@ display_help() {
 	echo "  -h   Display this help message"
 }
 
-# Tracked bash scripts: *.sh plus extensionless files with a bash shebang.
+# Tracked bash scripts: *.sh, files with a bash shebang, and sourced
+# configs that declare `# shellcheck shell=bash` on their first line.
 bash_files() {
 	local f
 	while IFS= read -r f; do
 		[[ -f "$f" ]] || continue
-		if [[ "$f" == *.sh ]] || head -n1 "$f" | grep -qE '^#!.*\bbash\b'; then
+		if [[ "$f" == *.sh ]] || head -n1 "$f" | grep -qE '^#!.*\bbash\b|^# shellcheck shell=bash'; then
 			echo "$f"
 		fi
 	done < <(git ls-files -- ':!:shell/fish/plugins/**' ':!:dotfiles/alacritty/themes/**' ':!:*.fish')

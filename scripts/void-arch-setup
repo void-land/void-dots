@@ -2,10 +2,8 @@
 
 # Arch Linux Post Installation Setup Script
 
-RED='\033[0;31m'
-GREEN='\033[0;32m'
-BLUE='\033[0;34m'
-NC='\033[0m'
+SCRIPT_DIR="$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")"
+source "$SCRIPT_DIR/scripts-lib.sh"
 
 # When true, ask_prompt auto-confirms (used once the user has already
 # picked what to run via the exclude-style selector in full_setup).
@@ -57,7 +55,6 @@ declare -a STEP_NAMES=(
 	"Install AUR packages"
 	"Setup Persian locale (fa_IR UTF-8)"
 	"Setup Fish shell as default"
-	"Apply KWin / graphics performance tweaks"
 	"Configure gaming environment (GameMode group, NTSync)"
 )
 
@@ -71,23 +68,22 @@ declare -a STEP_FUNCS=(
 	setup_aur_packages
 	setup_locales
 	setup_fish_shell
-	setup_kwin_tweaks
 	setup_gaming_config
 )
 
 trap exit_trap SIGINT SIGTERM
 
 exit_trap() {
-	echo -e "\n\n${RED}[!]${NC} Installation interrupted. Cleaning up..."
+	echo -e "\n\n${C_RED}[!]${C_NC} Installation interrupted. Cleaning up..."
 	exit 1
 }
 
 log() {
-	echo -e "\n${GREEN}[+]${NC} $1"
+	echo -e "\n${C_GREEN}[+]${C_NC} $1"
 }
 
 error() {
-	echo -e "${RED}[!]${NC} $1"
+	echo -e "${C_RED}[!]${C_NC} $1"
 }
 
 ask_prompt() {
@@ -108,53 +104,14 @@ ask_prompt() {
 	done
 }
 
-# Generic yay-style exclude picker.
-# Usage: select_exclusions <name-of-input-array-var> <label> <name-of-output-array-var>
-# Prints a numbered list of the given array's elements, prompts once for
-# items to exclude (accepts "1 2 3", "1-3", "^4", space/comma separated,
-# "^" prefix optional), and writes the 1-based excluded indices into the
-# caller-supplied output array (nameref) - no global state involved, so
-# nested calls (e.g. setup_packages calling this again for its own list)
-# can never clobber a different call's result.
-select_exclusions() {
-	local -n items_ref="$1"
-	local label="${2:-items}"
-	local -n out_ref="$3"
-
-	echo -e "${BLUE}::${NC} Following $label will be executed:"
-	for i in "${!items_ref[@]}"; do
-		printf "%2d  %s\n" "$((i + 1))" "${items_ref[$i]}"
-	done
-	echo -e "${BLUE}==>${NC} ${label^} to exclude: (eg: \"1 2 3\", \"1-3\", \"^4\")"
-	echo -e "${RED} -> Excluding $label may result in a partial setup${NC}"
-	read -rp "==> " excl_input
-
-	out_ref=()
-	if [[ -n "$excl_input" ]]; then
-		# normalize commas to spaces so both styles work
-		excl_input="${excl_input//,/ }"
-		for token in $excl_input; do
-			token="${token#^}"
-			if [[ "$token" =~ ^([0-9]+)-([0-9]+)$ ]]; then
-				for ((i = "${BASH_REMATCH[1]}"; i <= "${BASH_REMATCH[2]}"; i++)); do
-					out_ref[$i]=1
-				done
-			elif [[ "$token" =~ ^[0-9]+$ ]]; then
-				out_ref[$token]=1
-			fi
-		done
-	fi
-}
-
 display_help() {
-	echo "Usage: $0 [-s | -a | -p | -m | -l | -f | -k | -g | -e] [-h]"
+	echo "Usage: $0 [-s | -a | -p | -m | -l | -f | -g | -e] [-h]"
 	echo " -s  Full system setup"
 	echo " -a  Install AUR packages only"
 	echo " -p  Install pacman packages only"
 	echo " -m  Enable multilib repository"
 	echo " -l  Setup locales (Persian)"
 	echo " -f  Setup fish shell"
-	echo " -k  Apply KWin / Graphics performance tweaks"
 	echo " -g  Configure gaming environment (GameMode group, NTSync)"
 	echo " -e  Setup emptty (disable SDDM/other display managers)"
 	echo " -h  Show this help"
@@ -366,22 +323,6 @@ setup_fish_shell() {
 	log "Fish shell set as default. Changes will take effect after logout/login."
 }
 
-setup_kwin_tweaks() {
-	log "Setting up KWin & Graphics environment tweaks..."
-	if ! ask_prompt "Do you want to add performance environment variables to /etc/environment?"; then
-		error "Action cancelled..."
-		return 0
-	fi
-
-	# Add KWin Triple Buffering Disable
-	if grep -q "KWIN_DRM_DISABLE_TRIPLE_BUFFERING" /etc/environment; then
-		echo "KWIN_DRM_DISABLE_TRIPLE_BUFFERING is already set."
-	else
-		echo "KWIN_DRM_DISABLE_TRIPLE_BUFFERING=1" | sudo tee -a /etc/environment >/dev/null
-		echo "Added KWIN_DRM_DISABLE_TRIPLE_BUFFERING=1 to /etc/environment"
-	fi
-}
-
 # Returns 0 if the running kernel is >= 6.14 (minimum for NTSync).
 check_ntsync_kernel() {
 	local kver major minor
@@ -472,7 +413,7 @@ full_setup() {
 	for i in "${!STEP_NAMES[@]}"; do
 		local idx=$((i + 1))
 		if [[ -n "${excluded_steps[$idx]}" ]]; then
-			echo -e "${RED}[-]${NC} Skipping: ${STEP_NAMES[$i]}"
+			echo -e "${C_RED}[-]${C_NC} Skipping: ${STEP_NAMES[$i]}"
 			continue
 		fi
 		"${STEP_FUNCS[$i]}"
@@ -482,7 +423,7 @@ full_setup() {
 	log "Setup completed! Please reboot your system to ensure all changes take effect."
 }
 
-while getopts "sapmlhfkge" opt; do
+while getopts "sapmlhfge" opt; do
 	case $opt in
 	s)
 		full_setup
@@ -506,10 +447,6 @@ while getopts "sapmlhfkge" opt; do
 	f)
 		check_root
 		setup_fish_shell
-		;;
-	k)
-		check_root
-		setup_kwin_tweaks
 		;;
 	g)
 		check_root

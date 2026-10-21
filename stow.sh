@@ -4,8 +4,8 @@
 LINUX_CONFIGS_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 HOME_DIR="$LINUX_CONFIGS_DIR/home"
+SCRIPTS_DIR="$LINUX_CONFIGS_DIR/scripts"
 TERMINAL_DIR="$LINUX_CONFIGS_DIR/shell"
-PLASMA_DIR="$LINUX_CONFIGS_DIR/plasma"
 LINUX_DOTFILES_DIR="$LINUX_CONFIGS_DIR/dotfiles"
 
 ZED_DIR="$LINUX_CONFIGS_DIR/editors/zed"
@@ -113,8 +113,27 @@ delete_links() {
 	shopt -u nullglob dotglob
 }
 
+# Remove symlinks directly under TARGET_DIR that point into this repo but
+# whose source is gone (e.g. files dropped from the repo after a pull).
+prune_dangling_links() {
+	local target_dir=$1 item
+
+	shopt -s nullglob dotglob
+	for item in "$target_dir"/*; do
+		if [[ -L "$item" && ! -e "$item" && "$(readlink "$item")" == "$LINUX_CONFIGS_DIR"/* ]]; then
+			run unlink "$item"
+			echo "Pruned dangling: $item"
+		fi
+	done
+	shopt -u nullglob dotglob
+}
+
 stow() {
+	prune_dangling_links ~
+	prune_dangling_links ~/.config
+
 	create_links "$HOME_DIR" ~
+	create_link "$SCRIPTS_DIR" ~/.scripts
 	log "Utilities stowed successfully!"
 
 	create_links "$LINUX_DOTFILES_DIR" ~/.config
@@ -123,11 +142,10 @@ stow() {
 	create_links "$TERMINAL_DIR" ~/.config
 	log "Terminal dotfiles stowed successfully!"
 
-	create_links "$PLASMA_DIR" ~/.config
-	log "Plasma stowed successfully!"
-
-	# Panel layout can't be stowed (per-install IDs); apply it live instead.
-	run "$HOME_DIR/.scripts/void-kde-panel"
+	# KDE rewrites its rc files, so they're applied from kde/settings.conf
+	# instead of stowed.
+	run "$SCRIPTS_DIR/void-kde-setup"
+	log "KDE settings applied!"
 
 	create_link "$ZED_DIR" ~/.config/zed
 
@@ -147,8 +165,8 @@ unstow() {
 	done
 
 	delete_links "$HOME_DIR" ~
+	delete_link "$SCRIPTS_DIR" ~/.scripts
 	delete_links "$TERMINAL_DIR" ~/.config
-	delete_links "$PLASMA_DIR" ~/.config
 	delete_links "$LINUX_DOTFILES_DIR" ~/.config
 
 	log "All configs unstowed successfully!"

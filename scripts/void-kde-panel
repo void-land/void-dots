@@ -7,28 +7,19 @@
 # per-install panel and applet IDs, so they can't be tracked in plasma/.
 # This applies the layout through Plasma's scripting API instead, which
 # works on whatever panels exist on the current machine.
+# Height, pager options and launchers come from kde/settings.conf.
 
-source "$(dirname "${BASH_SOURCE[0]}")/scripts-lib.sh"
+SCRIPT_DIR="$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")"
+source "$SCRIPT_DIR/scripts-lib.sh"
 
-PANEL_HEIGHT=46
+KDE_SETTINGS="$SCRIPT_DIR/../kde/settings.conf"
+# shellcheck source=../kde/settings.conf
+[[ -f "$KDE_SETTINGS" ]] && source "$KDE_SETTINGS"
 
-PAGER_SHOW_ONLY_CURRENT_SCREEN=true
-PAGER_SHOW_WINDOW_ICONS=true
-
-# Task manager pins, in order. applications:* entries whose .desktop file
-# isn't installed are skipped; preferred://* follow mimeapps.list.
-PANEL_LAUNCHERS=(
-	"applications:systemsettings.desktop"
-	"preferred://filemanager"
-	"applications:codium.desktop"
-	"preferred://browser"
-	"applications:org.telegram.desktop.desktop"
-	"applications:vesktop.desktop"
-	"applications:steam.desktop"
-	"applications:spotify-adblock.desktop"
-	"applications:Throne.desktop"
-	"applications:hydra.desktop"
-)
+: "${PANEL_HEIGHT:=46}"
+: "${PAGER_SHOW_ONLY_CURRENT_SCREEN:=true}"
+: "${PAGER_SHOW_WINDOW_ICONS:=true}"
+[[ -v PANEL_LAUNCHERS ]] || PANEL_LAUNCHERS=()
 
 QDBUS=""
 

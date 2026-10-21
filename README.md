@@ -8,10 +8,10 @@
 ## Why this repo?
 
 - Keep every config — shell, terminals, desktop, editors — **under version control**.
-- **One-command bootstrap** on a fresh Arch install: run `arch-setup.sh`, then `stow.sh`.
+- **One-command bootstrap** on a fresh Arch install: run `scripts/void-arch-setup`, then `stow.sh`.
 - **Modular by design**: each app's config lives in its own folder, symlinked individually — remove what you don't need.
-- **Interactive, not intrusive**: `arch-setup.sh` shows every step up front and lets you exclude what you don't want, instead of asking yes/no one function at a time.
-- No stray copies scattered around `$HOME` — everything is a symlink back to this repo.
+- **Interactive, not intrusive**: `void-arch-setup` and `void-kde-setup` show every step up front and lets you exclude what you don't want, instead of asking yes/no one function at a time.
+- No stray copies scattered around `$HOME` — everything is a symlink back to this repo, except KDE settings, which are applied from one config file (see below).
 
 ## 📂 Repository Structure
 
@@ -19,7 +19,8 @@
 | --- | --- |
 | `dotfiles/` | Base application configs (`~/.config/`). Theme sets for **Alacritty** and **btop**, **Kitty** and **Rio** terminal setups, **Pipewire** audio routing, and **MangoHud** performance overlay. |
 | `shell/` | Shell configuration centered on **Fish** — modularized aliases, custom completions, `fzf` plugins via `fisher`, plus **Tmux** and **Zellij** multiplexer setups. |
-| `plasma/` | **KDE Plasma** configuration: hardware profiles and default app behavior (`dolphinrc`, `kwinrc`, etc.). |
+| `kde/` | **KDE Plasma** settings in one file, `settings.conf`: shortcuts, effects (magic lamp, blur), virtual desktops, keyboard layouts, power, default apps, panel, and session env vars. Applied by `void-kde-setup`, not symlinked. |
+| `scripts/` | `void-*` utility scripts (DNS, zram, Steam, KDE setup, …), linked to `~/.scripts` and on `PATH`. |
 | `editors/` | Editor setups for **VS Code / VSCodium** (settings, TS snippets, and an Open VSX extension manager — see [`editors/vscode`](editors/vscode/README.md)), **Zed** (custom TSX/C snippets and themes), and standard **Vim**. |
 
 ## Quick start
@@ -34,8 +35,7 @@
 2. **Provision the system** (fresh Arch/EndeavourOS install only):
 
    ```bash
-   chmod +x arch-setup.sh
-   ./arch-setup.sh -s
+   ./scripts/void-arch-setup -s
    ```
 
 3. **Symlink the configs:**
@@ -49,14 +49,14 @@
 
 ---
 
-## 🛠️ System Provisioning (`arch-setup.sh`)
+## 🛠️ System Provisioning (`scripts/void-arch-setup`)
 
-Bootstraps a fresh Arch install: system update, multilib, package groups, services, AUR packages, locale, Fish shell, KWin tweaks, and gaming environment setup (GameMode group + NTSync).
+Bootstraps a fresh Arch install: system update, multilib, package groups, services, AUR packages, locale, Fish shell, and gaming environment setup (GameMode group + NTSync).
 
 ### Usage
 
 ```bash
-./arch-setup.sh [-s | -a | -p | -m | -l | -f | -k | -g | -e] [-h]
+./scripts/void-arch-setup [-s | -a | -p | -m | -l | -f | -g | -e] [-h]
 ```
 
 | Flag | Action |
@@ -67,7 +67,6 @@ Bootstraps a fresh Arch install: system update, multilib, package groups, servic
 | `-m` | Enable multilib repository |
 | `-l` | Setup locales (Persian) |
 | `-f` | Setup Fish shell as default |
-| `-k` | Apply KWin / graphics performance tweaks |
 | `-g` | Configure gaming environment (GameMode group, NTSync) |
 | `-e` | Enable emptty display manager (disables SDDM/others) |
 | `-h` | Show help |
@@ -87,14 +86,13 @@ Running `-s` doesn't ask yes/no before every step. Instead it prints every step 
  7  Install AUR packages
  8  Setup Persian locale (fa_IR UTF-8)
  9  Setup Fish shell as default
-10  Apply KWin / graphics performance tweaks
-11  Configure gaming environment (GameMode group, NTSync)
+10  Configure gaming environment (GameMode group, NTSync)
 ==> Steps to exclude: (eg: "1 2 3", "1-3", "^4")
  -> Excluding steps may result in a partial setup
 ==>
 ```
 
-Type numbers, a range (`7-9`), or `^4`, and press Enter — everything else runs without further prompts. The same exclude-style picker is used inside `-p` (package groups) and `-a` (individual AUR packages), so you can drop e.g. `google-chrome` or the whole `GAMING_PACKAGES` group on the fly.
+Type numbers, a range (`7-9`), or `^4`, and press Enter — everything else runs without further prompts. The same exclude-style picker is used inside `-p` (package groups) and `-a` (individual AUR packages), so you can drop e.g. `google-chrome` or the whole `GAMING_PACKAGES` group on the fly. The picker is `select_exclusions` in `scripts/scripts-lib.sh`, and `void-kde-setup` uses it too.
 
 ### Gaming environment (`-g`)
 
@@ -112,7 +110,7 @@ Type numbers, a range (`7-9`), or `^4`, and press Enter — everything else runs
 
 ## 🔗 Managing Configuration (`stow.sh`)
 
-Symlinks the contents of `dotfiles/`, `shell/`, `plasma/`, and `editors/` into their target locations under `$HOME` and `~/.config/`. VS Code configs from `editors/vscode/configs/` are linked into both `~/.config/VSCodium/User/` and `~/.config/Code - OSS/User/`.
+Symlinks the contents of `home/`, `dotfiles/`, `shell/`, and `editors/` into their target locations under `$HOME` and `~/.config/`, and links `scripts/` to `~/.scripts`. VS Code configs from `editors/vscode/configs/` are linked into both `~/.config/VSCodium/User/` and `~/.config/Code - OSS/User/`.
 
 **Link (stow) configurations:**
 
@@ -120,9 +118,9 @@ Symlinks the contents of `dotfiles/`, `shell/`, `plasma/`, and `editors/` into t
 ./stow.sh -s
 ```
 
-*Creates the necessary directories under `~/.config/` and symlinks every tracked file back into this repo. Works from any directory. An existing real file or directory at a target is moved aside to `<name>.bak.<timestamp>` rather than overwritten.*
+*Creates the necessary directories under `~/.config/` and symlinks every tracked file back into this repo. Works from any directory. An existing real file or directory at a target is moved aside to `<name>.bak.<timestamp>` rather than overwritten. Symlinks that point into the repo at files that no longer exist are pruned first.*
 
-*It then runs `void-kde-panel`, which sets the KDE panel height, pager options and pinned task-manager apps, and restarts plasmashell. These can't be stowed as files because Plasma keys them by per-install panel IDs. Edit the config block at the top of `home/.scripts/void-kde-panel` to change them; `void-kde-panel -l` shows the current layout.*
+*It then runs `void-kde-setup` to apply the KDE settings (see below).*
 
 **Unlink (unstow) configurations:**
 
@@ -133,6 +131,40 @@ Symlinks the contents of `dotfiles/`, `shell/`, `plasma/`, and `editors/` into t
 *Removes only the symlinks that point back into this repo, detaching your system without deleting the source files. Anything else at a target path is left untouched.*
 
 **Preview without changing anything:** add `-n` (dry run) to either command, e.g. `./stow.sh -n -s`.
+
+---
+
+## 🎨 KDE Settings (`void-kde-setup`)
+
+KDE rewrites its rc files during normal use, so they aren't symlinked. Every setting worth keeping lives in [`kde/settings.conf`](kde/settings.conf) as plain bash variables, and `void-kde-setup` writes them with `kwriteconfig6`, reloading KWin over D-Bus where it can. The file covers:
+
+- **Shortcuts** (`KDE_SHORTCUTS`): only the ones that differ from Plasma's defaults, e.g. `Meta+Q` → Alacritty, `Meta+C` close window, `Meta+Space` next keyboard layout.
+- **Effects** (`KWIN_EFFECTS_ENABLE` / `_DISABLE`): magic lamp and blur on, squash off.
+- **Virtual desktops** (`KDE_DESKTOPS`): Browsers, Code, Social, Gaming.
+- **Session env** (`KDE_SESSION_ENV`): written to `~/.config/plasma-workspace/env/void-env.sh`, e.g. `KWIN_DRM_DISABLE_TRIPLE_BUFFERING=1`.
+- **Everything else** (`KDE_CONFIG`): `file|group|key|value` rows for keyboard layouts, mouse, power, Baloo, Dolphin, the file dialog, and so on, plus default apps (`KDE_MIME_DEFAULTS`), theme, and panel (height, pager, pinned launchers via `void-kde-panel`).
+
+```bash
+void-kde-setup                      # pick steps to exclude, apply the rest (stow.sh -s runs this)
+void-kde-setup -y                   # apply everything, no picker
+void-kde-setup -o shortcuts,effects # only some steps (-l lists them)
+void-kde-setup -n                   # dry run
+void-kde-setup -c                   # drift check: what changed in System Settings?
+```
+
+| Flag | Action |
+| --- | --- |
+| `-o <steps>` | Run only these steps, comma-separated |
+| `-y` | Apply every step without the picker |
+| `-n` | Dry run: print what would be written |
+| `-R` | Don't restart plasmashell after the panel step |
+| `-c` | Compare the live desktop to `settings.conf` and list differences |
+| `-l` | List steps |
+| `-h` | Show help |
+
+Shortcuts and session env vars take effect at the next login. KWin hosts kglobalaccel and has no reload call for it. Everything else applies live. Per-install state, like tiling layouts (keyed by desktop × monitor UUID), is deliberately not tracked.
+
+After changing something in System Settings that you want to keep, run `void-kde-setup -c` and copy the reported value into `settings.conf`.
 
 ---
 
