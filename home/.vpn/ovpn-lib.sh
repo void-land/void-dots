@@ -7,7 +7,7 @@
 #
 # Optional environment variables (set before sourcing or before calling functions):
 #   VPN_CONFIG_DIR   — directory containing .ovpn files
-#                      (default: $HOME/.scripts/ovpn-vpnbaz-servers)
+#                      (default: $HOME/.vpn/ovpn-servers/vpnbaz)
 #   VPN_USER         — OpenVPN username            (used for inline auth)
 #   VPN_PASSWORD     — OpenVPN password            (used for inline auth)
 #   VPN_AUTH_FILE    — path to an existing auth file (user on line 1, pass on line 2)
@@ -25,7 +25,8 @@ fi
 # Internal state
 # ---------------------------------------------------------------------------
 declare -a _VPN_OVPN_FILES=()
-_VPN_TEMP_AUTH_FILE="" # path of a temp creds file we created (so we can clean it up)
+_VPN_TEMP_AUTH_FILE=""   # path of a temp creds file we created (so we can clean it up)
+_VPN_TEMP_CONFIG_FILE="" # path of a filtered config copy we created
 
 # ---------------------------------------------------------------------------
 # vpn_load_configs [dir]
@@ -33,7 +34,7 @@ _VPN_TEMP_AUTH_FILE="" # path of a temp creds file we created (so we can clean i
 #   Returns 0 on success, 1 if no files found.
 # ---------------------------------------------------------------------------
 vpn_load_configs() {
-	local dir="${1:-${VPN_CONFIG_DIR:-$HOME/.scripts/ovpn-vpnbaz-servers}}"
+	local dir="${1:-${VPN_CONFIG_DIR:-$HOME/.vpn/ovpn-servers/vpnbaz}}"
 
 	if [[ ! -d "$dir" ]]; then
 		echo "ERROR: Config directory not found: $dir" >&2
@@ -140,12 +141,16 @@ _vpn_resolve_auth_file() {
 
 # ---------------------------------------------------------------------------
 # _vpn_cleanup
-#   Remove the temporary auth file if we created one.
+#   Remove the temporary auth/config files if we created them.
 # ---------------------------------------------------------------------------
 _vpn_cleanup() {
 	if [[ -n "$_VPN_TEMP_AUTH_FILE" && -f "$_VPN_TEMP_AUTH_FILE" ]]; then
 		rm -f "$_VPN_TEMP_AUTH_FILE"
 		_VPN_TEMP_AUTH_FILE=""
+	fi
+	if [[ -n "$_VPN_TEMP_CONFIG_FILE" && -f "$_VPN_TEMP_CONFIG_FILE" ]]; then
+		rm -f "$_VPN_TEMP_CONFIG_FILE"
+		_VPN_TEMP_CONFIG_FILE=""
 	fi
 }
 
@@ -168,20 +173,51 @@ vpn_connect() {
 		return 1
 	fi
 
-	local auth_file
-	auth_file="$(_vpn_resolve_auth_file)" || return 1
+	# No credentials configured → let openvpn prompt (or use the config's own).
+	local -a auth_args=()
+	local label="openvpn prompt"
+	if [[ -n "${VPN_AUTH_FILE:-}${VPN_USER:-}${VPN_PASSWORD:-}" ]]; then
+		local auth_file
+		auth_file="$(_vpn_resolve_auth_file)" || return 1
+		# Resolved in a subshell, so record the temp file here for cleanup.
+		[[ -z "${VPN_AUTH_FILE:-}" ]] && _VPN_TEMP_AUTH_FILE="$auth_file"
+		auth_args=(--auth-user-pass "$auth_file")
+		label="${VPN_AUTH_FILE:+file-based auth}"
+		label="${label:-user '$VPN_USER'}"
+	fi
 
-	local label="${VPN_AUTH_FILE:+file-based auth}"
-	label="${label:-user '$VPN_USER'}"
+	# Drop up/down hooks whose script doesn't exist here, e.g. Debian's
+	# /etc/openvpn/update-resolv-conf in Proton configs; DNS is managed by
+	# void-dns-changer instead. openvpn validates the script while parsing the
+	# file, so a later --up flag can't override it: run a filtered copy, with
+	# --cd keeping relative paths in the config resolvable.
+	local run_config="$config_file"
+	local -a cd_args=()
+	local hook script drop=""
+	for hook in up down; do
+		script="$(awk -v h="$hook" '{ sub(/\r$/, "") } $1 == h { print $2; exit }' "$config_file")"
+		if [[ -n "$script" && ! -x "$script" ]]; then
+			echo "WARNING: $hook script not found ($script); skipping it." >&2
+			drop+=" $hook"
+		fi
+	done
+	if [[ -n "$drop" ]]; then
+		_VPN_TEMP_CONFIG_FILE="$(mktemp --suffix=.ovpn)"
+		awk -v drop="$drop " 'index(drop, " " $1 " ") == 0' "$config_file" >"$_VPN_TEMP_CONFIG_FILE"
+		run_config="$_VPN_TEMP_CONFIG_FILE"
+		cd_args=(--cd "$(dirname "$(readlink -f "$config_file")")")
+	fi
+
 	echo "Connecting to $(basename "$config_file") using $label ..."
 
+	local exit_code=0
 	# shellcheck disable=SC2086
 	sudo openvpn \
-		--config "$config_file" \
-		--auth-user-pass "$auth_file" \
-		${VPN_EXTRA_ARGS:-}
+		"${cd_args[@]}" \
+		--config "$run_config" \
+		"${auth_args[@]}" \
+		${VPN_EXTRA_ARGS:-} || exit_code=$?
 
-	local exit_code=$?
 	_vpn_cleanup
 	return "$exit_code"
 }
