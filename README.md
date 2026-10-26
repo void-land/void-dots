@@ -120,7 +120,7 @@ Symlinks the contents of `home/`, `dotfiles/`, `shell/`, and `editors/` into the
 
 *Creates the necessary directories under `~/.config/` and symlinks every tracked file back into this repo. Works from any directory. An existing real file or directory at a target is moved aside to `<name>.bak.<timestamp>` rather than overwritten. Symlinks that point into the repo at files that no longer exist are pruned first.*
 
-*It then runs `void-kde-setup` to apply the KDE settings (see below).*
+*KDE settings are not touched; run `void-kde-setup` yourself to apply them (see below).*
 
 **Unlink (unstow) configurations:**
 
@@ -145,7 +145,7 @@ KDE rewrites its rc files during normal use, so they aren't symlinked. Every set
 - **Everything else** (`KDE_CONFIG`): `file|group|key|value` rows for keyboard layouts, mouse, power, Baloo, Dolphin, the file dialog, and so on, plus default apps (`KDE_MIME_DEFAULTS`), theme, and panel (height, pager, pinned launchers via `void-kde-panel`).
 
 ```bash
-void-kde-setup                      # pick steps to exclude, apply the rest (stow.sh -s runs this)
+void-kde-setup                      # pick steps to exclude, apply the rest
 void-kde-setup -y                   # apply everything, no picker
 void-kde-setup -o shortcuts,effects # only some steps (-l lists them)
 void-kde-setup -n                   # dry run

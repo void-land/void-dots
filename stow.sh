@@ -142,11 +142,6 @@ stow() {
 	create_links "$TERMINAL_DIR" ~/.config
 	log "Terminal dotfiles stowed successfully!"
 
-	# KDE rewrites its rc files, so they're applied from kde/settings.conf
-	# instead of stowed.
-	run "$SCRIPTS_DIR/void-kde-setup"
-	log "KDE settings applied!"
-
 	create_link "$ZED_DIR" ~/.config/zed
 
 	local dir
