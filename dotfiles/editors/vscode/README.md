@@ -1,7 +1,7 @@
 # VSCode Dotfiles
 
 <p align="center">
-  <img width="140" src="../../.assets/vscode.png" alt="VS Code logo">
+  <img width="140" src="../../../.assets/vscode.png" alt="VS Code logo">
 </p>
 
 <p align="center">
@@ -15,9 +15,9 @@ VS Code OSS / VSCodium config, migrated from the standalone `void-land/vscode-do
 
 | Path | Symlink target on disk |
 |------|------------------------|
-| `editors/vscode/configs/settings.json` | `~/.config/VSCodium/User/settings.json` and `~/.config/Code - OSS/User/settings.json` |
-| `editors/vscode/configs/keybindings.json` | `~/.config/VSCodium/User/keybindings.json` and `~/.config/Code - OSS/User/keybindings.json` |
-| `editors/vscode/configs/snippets/` | `~/.config/VSCodium/User/snippets/` and `~/.config/Code - OSS/User/snippets/` |
+| `dotfiles/editors/vscode/configs/settings.json` | `~/.config/VSCodium/User/settings.json` and `~/.config/Code - OSS/User/settings.json` |
+| `dotfiles/editors/vscode/configs/keybindings.json` | `~/.config/VSCodium/User/keybindings.json` and `~/.config/Code - OSS/User/keybindings.json` |
+| `dotfiles/editors/vscode/configs/snippets/` | `~/.config/VSCodium/User/snippets/` and `~/.config/Code - OSS/User/snippets/` |
 
 ## Quick start
 
@@ -30,7 +30,7 @@ VS Code OSS / VSCodium config, migrated from the standalone `void-land/vscode-do
 1. **Install extensions** from the offline `.vsix` cache:
 
 ```bash
-editors/vscode/extension-manager -v
+dotfiles/editors/vscode/extension-manager -v
 ```
 
 1. **Restart VS Code**.
@@ -39,9 +39,9 @@ editors/vscode/extension-manager -v
 
 ## Managing Extensions (`extension-manager`)
 
-`editors/vscode/extension-manager` fetches, downloads and installs the extensions listed in `editors/vscode/oss-extensions.txt` from Open VSX. It keeps an offline `.vsix` cache in `editors/vscode/downloads/` (gitignored). Everything it does is driven by that list: removing an entry means it's no longer downloaded or installed, and its cached files are pruned on the next fetch or download.
+`dotfiles/editors/vscode/extension-manager` fetches, downloads and installs the extensions listed in `dotfiles/editors/vscode/oss-extensions.txt` from Open VSX. It keeps an offline `.vsix` cache in `dotfiles/editors/vscode/downloads/` (gitignored). Everything it does is driven by that list: removing an entry means it's no longer downloaded or installed, and its cached files are pruned on the next fetch or download.
 
-`editors/vscode/code-extensions.txt` is a reference-only inventory of the Microsoft VS Code extension set (some aren't on Open VSX). Nothing reads it; copy entries into `oss-extensions.txt` to have them managed.
+`dotfiles/editors/vscode/code-extensions.txt` is a reference-only inventory of the Microsoft VS Code extension set (some aren't on Open VSX). Nothing reads it; copy entries into `oss-extensions.txt` to have them managed.
 
 | Flag | Action |
 | --- | --- |
@@ -60,15 +60,15 @@ Flags run in the order given, so `-f -p -v` refreshes info, downloads what's new
 Fetching and downloading need `curl` and `jq`. Listing needs `jq`. Installing needs only the editor CLI: the first one found of `codium`, `code-oss`, `code` or `code-insiders`. Override it with `VSCODE_CMD`:
 
 ```bash
-VSCODE_CMD=code-oss editors/vscode/extension-manager -v
+VSCODE_CMD=code-oss dotfiles/editors/vscode/extension-manager -v
 ```
 
 ### Examples
 
 ```bash
-editors/vscode/extension-manager -v          # offline install from the cache
-editors/vscode/extension-manager -f -p       # refresh info, download what's missing
-editors/vscode/extension-manager -c -y       # everything, no prompts
+dotfiles/editors/vscode/extension-manager -v          # offline install from the cache
+dotfiles/editors/vscode/extension-manager -f -p       # refresh info, download what's missing
+dotfiles/editors/vscode/extension-manager -c -y       # everything, no prompts
 ```
 
 ### Downloading Using a Proxy
@@ -78,12 +78,12 @@ If you are behind a restricted network, you can route the script's `curl` reques
 **Using an HTTP/HTTPS Proxy:**
 
 ```bash
-http_proxy=http://127.0.0.1:8080 https_proxy=http://127.0.0.1:8080 editors/vscode/extension-manager -p
+http_proxy=http://127.0.0.1:8080 https_proxy=http://127.0.0.1:8080 dotfiles/editors/vscode/extension-manager -p
 ```
 
 **Using a SOCKS5 Proxy:**
 *(The `socks5h://` scheme forces DNS resolution through the proxy, which is often necessary)*
 
 ```bash
-ALL_PROXY=socks5h://127.0.0.1:1080 editors/vscode/extension-manager -p
+ALL_PROXY=socks5h://127.0.0.1:1080 dotfiles/editors/vscode/extension-manager -p
 ```

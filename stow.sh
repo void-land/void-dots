@@ -3,13 +3,15 @@
 # Resolve the repo from the script's own location so it works from any cwd.
 LINUX_CONFIGS_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
-HOME_DIR="$LINUX_CONFIGS_DIR/home"
-SCRIPTS_DIR="$LINUX_CONFIGS_DIR/scripts"
-TERMINAL_DIR="$LINUX_CONFIGS_DIR/shell"
-LINUX_DOTFILES_DIR="$LINUX_CONFIGS_DIR/dotfiles"
+DOTFILES_DIR="$LINUX_CONFIGS_DIR/dotfiles"
 
-ZED_DIR="$LINUX_CONFIGS_DIR/editors/zed"
-VSCODE_CONFIGS_DIR="$LINUX_CONFIGS_DIR/editors/vscode/configs"
+HOME_DIR="$DOTFILES_DIR/home"
+SCRIPTS_DIR="$DOTFILES_DIR/scripts"
+SHELL_DIR="$DOTFILES_DIR/shell"
+APPS_DIR="$DOTFILES_DIR/apps"
+
+ZED_DIR="$DOTFILES_DIR/editors/zed"
+VSCODE_CONFIGS_DIR="$DOTFILES_DIR/editors/vscode/configs"
 VSCODE_TARGET_DIRS=("$HOME/.config/VSCodium/User" "$HOME/.config/Code - OSS/User")
 
 DRY_RUN=false
@@ -136,11 +138,11 @@ stow() {
 	create_link "$SCRIPTS_DIR" ~/.scripts
 	log "Utilities stowed successfully!"
 
-	create_links "$LINUX_DOTFILES_DIR" ~/.config
-	log "Base dotfiles stowed successfully!"
+	create_links "$APPS_DIR" ~/.config
+	log "App dotfiles stowed successfully!"
 
-	create_links "$TERMINAL_DIR" ~/.config
-	log "Terminal dotfiles stowed successfully!"
+	create_links "$SHELL_DIR" ~/.config
+	log "Shell dotfiles stowed successfully!"
 
 	create_link "$ZED_DIR" ~/.config/zed
 
@@ -161,8 +163,8 @@ unstow() {
 
 	delete_links "$HOME_DIR" ~
 	delete_link "$SCRIPTS_DIR" ~/.scripts
-	delete_links "$TERMINAL_DIR" ~/.config
-	delete_links "$LINUX_DOTFILES_DIR" ~/.config
+	delete_links "$SHELL_DIR" ~/.config
+	delete_links "$APPS_DIR" ~/.config
 
 	log "All configs unstowed successfully!"
 }

@@ -8,7 +8,7 @@
 ## Why this repo?
 
 - Keep every config — shell, terminals, desktop, editors — **under version control**.
-- **One-command bootstrap** on a fresh Arch install: run `scripts/void-arch-setup`, then `stow.sh`.
+- **One-command bootstrap** on a fresh Arch install: run `dotfiles/scripts/void-arch-setup`, then `stow.sh`.
 - **Modular by design**: each app's config lives in its own folder, symlinked individually — remove what you don't need.
 - **Interactive, not intrusive**: `void-arch-setup` and `void-kde-setup` show every step up front and lets you exclude what you don't want, instead of asking yes/no one function at a time.
 - No stray copies scattered around `$HOME` — everything is a symlink back to this repo, except KDE settings, which are applied from one config file (see below).
@@ -17,11 +17,16 @@
 
 | Path | Description |
 | --- | --- |
-| `dotfiles/` | Base application configs (`~/.config/`). Theme sets for **Alacritty** and **btop**, **Kitty** and **Rio** terminal setups, **Pipewire** audio routing, and **MangoHud** performance overlay. |
-| `shell/` | Shell configuration centered on **Fish** — modularized aliases, custom completions, `fzf` plugins via `fisher`, plus **Tmux** and **Zellij** multiplexer setups. |
-| `kde/` | **KDE Plasma** settings in one file, `settings.conf`: shortcuts, effects (magic lamp, blur), virtual desktops, keyboard layouts, power, default apps, panel, and session env vars. Applied by `void-kde-setup`, not symlinked. |
-| `scripts/` | `void-*` utility scripts (DNS, zram, Steam, KDE setup, …), linked to `~/.scripts` and on `PATH`. |
-| `editors/` | Editor setups for **VS Code / VSCodium** (settings, TS snippets, and an Open VSX extension manager — see [`editors/vscode`](editors/vscode/README.md)), **Zed** (custom TSX/C snippets and themes), and standard **Vim**. |
+The repo root holds only the tooling (`stow.sh`, `lint.sh`) and docs; everything that gets deployed lives under `dotfiles/`:
+
+| Path | Description |
+| --- | --- |
+| `dotfiles/apps/` | Application configs (`~/.config/`). Theme sets for **Alacritty** and **btop**, **Kitty** and **Rio** terminal setups, **Pipewire** audio routing, and **MangoHud** performance overlay. |
+| `dotfiles/shell/` | Shell configuration centered on **Fish** — modularized aliases, custom completions, `fzf` plugins via `fisher`, plus **Tmux** and **Zellij** multiplexer setups (`~/.config/`). |
+| `dotfiles/editors/` | Editor setups for **VS Code / VSCodium** (settings, TS snippets, and an Open VSX extension manager — see [`dotfiles/editors/vscode`](dotfiles/editors/vscode/README.md)), **Zed** (custom TSX/C snippets and themes), and standard **Vim**. |
+| `dotfiles/kde/` | **KDE Plasma** settings in one file, `settings.conf`: shortcuts, effects (magic lamp, blur), virtual desktops, keyboard layouts, power, default apps, panel, and session env vars. Applied by `void-kde-setup`, not symlinked. |
+| `dotfiles/home/` | Directories linked straight into `~` — `~/.vpn` (OpenVPN/OpenConnect wrappers) and `~/.ucu` (umu/Proton game launchers). |
+| `dotfiles/scripts/` | `void-*` utility scripts (DNS, zram, Steam, KDE setup, …), linked to `~/.scripts` and on `PATH`. |
 
 ## Quick start
 
@@ -35,7 +40,7 @@
 2. **Provision the system** (fresh Arch/EndeavourOS install only):
 
    ```bash
-   ./scripts/void-arch-setup -s
+   ./dotfiles/scripts/void-arch-setup -s
    ```
 
 3. **Symlink the configs:**
@@ -49,14 +54,14 @@
 
 ---
 
-## 🛠️ System Provisioning (`scripts/void-arch-setup`)
+## 🛠️ System Provisioning (`dotfiles/scripts/void-arch-setup`)
 
 Bootstraps a fresh Arch install: system update, multilib, package groups, services, AUR packages, locale, Fish shell, and gaming environment setup (GameMode group + NTSync).
 
 ### Usage
 
 ```bash
-./scripts/void-arch-setup [-s | -a | -p | -m | -l | -f | -g | -e] [-h]
+./dotfiles/scripts/void-arch-setup [-s | -a | -p | -m | -l | -f | -g | -e] [-h]
 ```
 
 | Flag | Action |
@@ -92,7 +97,7 @@ Running `-s` doesn't ask yes/no before every step. Instead it prints every step 
 ==>
 ```
 
-Type numbers, a range (`7-9`), or `^4`, and press Enter — everything else runs without further prompts. The same exclude-style picker is used inside `-p` (package groups) and `-a` (individual AUR packages), so you can drop e.g. `google-chrome` or the whole `GAMING_PACKAGES` group on the fly. The picker is `select_exclusions` in `scripts/scripts-lib.sh`, and `void-kde-setup` uses it too.
+Type numbers, a range (`7-9`), or `^4`, and press Enter — everything else runs without further prompts. The same exclude-style picker is used inside `-p` (package groups) and `-a` (individual AUR packages), so you can drop e.g. `google-chrome` or the whole `GAMING_PACKAGES` group on the fly. The picker is `select_exclusions` in `dotfiles/scripts/scripts-lib.sh`, and `void-kde-setup` uses it too.
 
 ### Gaming environment (`-g`)
 
@@ -110,7 +115,7 @@ Type numbers, a range (`7-9`), or `^4`, and press Enter — everything else runs
 
 ## 🔗 Managing Configuration (`stow.sh`)
 
-Symlinks the contents of `home/`, `dotfiles/`, `shell/`, and `editors/` into their target locations under `$HOME` and `~/.config/`, and links `scripts/` to `~/.scripts`. VS Code configs from `editors/vscode/configs/` are linked into both `~/.config/VSCodium/User/` and `~/.config/Code - OSS/User/`.
+Symlinks the contents of `dotfiles/home/`, `dotfiles/apps/`, `dotfiles/shell/`, and `dotfiles/editors/` into their target locations under `$HOME` and `~/.config/`, and links `dotfiles/scripts/` to `~/.scripts`. VS Code configs from `dotfiles/editors/vscode/configs/` are linked into both `~/.config/VSCodium/User/` and `~/.config/Code - OSS/User/`.
 
 **Link (stow) configurations:**
 
@@ -136,7 +141,7 @@ Symlinks the contents of `home/`, `dotfiles/`, `shell/`, and `editors/` into the
 
 ## 🎨 KDE Settings (`void-kde-setup`)
 
-KDE rewrites its rc files during normal use, so they aren't symlinked. Every setting worth keeping lives in [`kde/settings.conf`](kde/settings.conf) as plain bash variables, and `void-kde-setup` writes them with `kwriteconfig6`, reloading KWin over D-Bus where it can. The file covers:
+KDE rewrites its rc files during normal use, so they aren't symlinked. Every setting worth keeping lives in [`dotfiles/kde/settings.conf`](dotfiles/kde/settings.conf) as plain bash variables, and `void-kde-setup` writes them with `kwriteconfig6`, reloading KWin over D-Bus where it can. The file covers:
 
 - **Shortcuts** (`KDE_SHORTCUTS`): only the ones that differ from Plasma's defaults, e.g. `Meta+Q` → Alacritty, `Meta+C` close window, `Meta+Space` next keyboard layout.
 - **Effects** (`KWIN_EFFECTS_ENABLE` / `_DISABLE`): magic lamp and blur on, squash off.

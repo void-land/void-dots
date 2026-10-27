@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## What this repo is
 
-A personal dotfiles repo for Arch/EndeavourOS + KDE Plasma. There is no build, no test suite, and no package manager — the "product" is a tree of config files plus bash/fish scripts that get symlinked into `$HOME`. Verification means running `./lint.sh` and re-running the linker, not running tests.
+A personal dotfiles repo for Arch/EndeavourOS + KDE Plasma. There is no build, no test suite, and no package manager — the "product" is a tree of config files plus bash/fish scripts that get symlinked into `$HOME`. The root holds only tooling (`stow.sh`, `lint.sh`) and docs; everything deployable lives under `dotfiles/` (`apps/`, `shell/`, `editors/`, `kde/`, `home/`, `scripts/`). Verification means running `./lint.sh` and re-running the linker, not running tests.
 
 ## Commands
 
@@ -13,9 +13,9 @@ A personal dotfiles repo for Arch/EndeavourOS + KDE Plasma. There is no build, n
 ./stow.sh -u          # remove those symlinks (only ones pointing back into the repo)
 ./stow.sh -n -s       # dry run
 ./lint.sh             # bash -n + shfmt + shellcheck (if installed) + fish --no-execute; -w applies shfmt
-scripts/void-arch-setup -h   # provisioning script; -s full setup, -p/-a/-m/-l/-f/-g/-e per-step
+dotfiles/scripts/void-arch-setup -h   # provisioning script; -s full setup, -p/-a/-m/-l/-f/-g/-e per-step
 
-dotfiles/alacritty/themes.sh            # re-pull alacritty themes from upstream
+dotfiles/apps/alacritty/themes.sh       # re-pull alacritty themes from upstream
 ```
 
 ## How stowing works (read before adding files)
@@ -24,48 +24,49 @@ dotfiles/alacritty/themes.sh            # re-pull alacritty themes from upstream
 
 | Source | Target | Effect |
 | --- | --- | --- |
-| `home/*` | `~/` | `~/.vpn`, `~/.ucu` are symlinked dirs |
-| `scripts` | `~/.scripts` | linked as one dir (`create_link`, singular) |
-| `dotfiles/*` | `~/.config/` | `~/.config/alacritty`, `~/.config/mpv`, … |
-| `shell/*` | `~/.config/` | `~/.config/fish`, `~/.config/tmux`, `~/.config/bash`, … |
-| `editors/zed` | `~/.config/zed` | linked as one dir (`create_link`, singular) |
-| `editors/vscode/configs/*` | `~/.config/VSCodium/User/` and `~/.config/Code - OSS/User/` | per-child, looped over `VSCODE_TARGET_DIRS` |
+| `dotfiles/home/*` | `~/` | `~/.vpn`, `~/.ucu` are symlinked dirs |
+| `dotfiles/scripts` | `~/.scripts` | linked as one dir (`create_link`, singular) |
+| `dotfiles/apps/*` | `~/.config/` | `~/.config/alacritty`, `~/.config/mpv`, … |
+| `dotfiles/shell/*` | `~/.config/` | `~/.config/fish`, `~/.config/tmux`, `~/.config/bash`, … |
+| `dotfiles/editors/zed` | `~/.config/zed` | linked as one dir (`create_link`, singular) |
+| `dotfiles/editors/vscode/configs/*` | `~/.config/VSCodium/User/` and `~/.config/Code - OSS/User/` | per-child, looped over `VSCODE_TARGET_DIRS` |
 
 Consequences:
 - Adding a file **inside** an already-linked dir needs nothing — the dir itself is the symlink.
-- Adding a **new top-level dir** (e.g. `dotfiles/foo/`) requires re-running `./stow.sh -s`.
+- Adding a **new dir directly under a stowed category** (e.g. `dotfiles/apps/foo/`) requires re-running `./stow.sh -s`.
 - `stow.sh -s` first prunes symlinks under `~` and `~/.config` that point into the repo at files that no longer exist, so removing a tracked file from the repo cleans up after a pull.
-- `editors/vim` is *not* stowed by any code path; `shell/bash/.bashrc` lands at `~/.config/bash/.bashrc`, not `~/.bashrc`. Both are deliberate-looking gaps — don't "fix" them silently.
+- Adding a **new category** under `dotfiles/` needs a source var + `create_link(s)`/`delete_link(s)` calls in `stow.sh`.
+- `dotfiles/editors/vim` is *not* stowed by any code path; `dotfiles/shell/bash/.bashrc` lands at `~/.config/bash/.bashrc`, not `~/.bashrc`. Both are deliberate-looking gaps — don't "fix" them silently.
 
 ## KDE settings are applied, not stowed
 
 KDE rewrites its rc files during normal desktop use and fills them with per-install IDs, so nothing under `~/.config/*rc` is symlinked. Instead:
 
-- `kde/settings.conf` is the single source of truth. It is sourced bash (`# shellcheck shell=bash`), with ordered arrays: `KDE_CONFIG` (`file|group|key|value`, `/` nests groups), `KDE_SHORTCUTS` (`component|action|keys`, `\t` separates alternate keys, only non-default bindings), `KDE_DESKTOPS`, `KWIN_EFFECTS_ENABLE`/`_DISABLE`, `KDE_MIME_DEFAULTS`, `KDE_SESSION_ENV`, `EOS_*`, and the `PANEL_*` block.
-- `scripts/void-kde-setup` applies it with `kwriteconfig6 --notify`. KWin is reloaded over D-Bus with `busctl --user` (`/KWin reconfigure`, `/Effects loadEffect`, `/VirtualDesktopManager`). Its steps live in `STEP_NAMES` (ids for `-o`) + `STEP_DESCS` (picker labels) + `STEP_FUNCS`, all paired by index. `-c` diffs the live desktop against `settings.conf`, and it is the replacement for watching `git diff` on rc files. It is run manually; `stow.sh` does not call it.
-- `scripts/void-kde-panel` (the panel step) uses Plasma's `evaluateScript`, because `plasmashellrc` and `plasma-org.kde.plasma.desktop-appletsrc` key everything by panel/applet ID. It reads `PANEL_*` from `settings.conf`.
+- `dotfiles/kde/settings.conf` is the single source of truth. It is sourced bash (`# shellcheck shell=bash`), with ordered arrays: `KDE_CONFIG` (`file|group|key|value`, `/` nests groups), `KDE_SHORTCUTS` (`component|action|keys`, `\t` separates alternate keys, only non-default bindings), `KDE_DESKTOPS`, `KWIN_EFFECTS_ENABLE`/`_DISABLE`, `KDE_MIME_DEFAULTS`, `KDE_SESSION_ENV`, `EOS_*`, and the `PANEL_*` block.
+- `dotfiles/scripts/void-kde-setup` applies it with `kwriteconfig6 --notify`. KWin is reloaded over D-Bus with `busctl --user` (`/KWin reconfigure`, `/Effects loadEffect`, `/VirtualDesktopManager`). Its steps live in `STEP_NAMES` (ids for `-o`) + `STEP_DESCS` (picker labels) + `STEP_FUNCS`, all paired by index. `-c` diffs the live desktop against `settings.conf`, and it is the replacement for watching `git diff` on rc files. It is run manually; `stow.sh` does not call it.
+- `dotfiles/scripts/void-kde-panel` (the panel step) uses Plasma's `evaluateScript`, because `plasmashellrc` and `plasma-org.kde.plasma.desktop-appletsrc` key everything by panel/applet ID. It reads `PANEL_*` from `settings.conf`.
 - Shortcuts and session env apply only at the next login. kglobalaccel runs inside `kwin_wayland` and has no reload call, so don't "fix" this by restarting services.
 - Deliberately not tracked: `[Tiling]` (desktop × screen UUIDs), desktop `Id_N`, colour-scheme blocks in `kdeglobals` (regenerated by `plasma-apply-colorscheme`), and default shortcuts. The theme step avoids `plasma-apply-lookandfeel` because it can reset the panel layout.
 
 ## Recurring code patterns
 
 **Ordered profile maps.** Bash associative arrays are unordered, so scripts that present menus keep an explicit order array alongside the map. When adding an entry, update **both**:
-- `scripts/void-dns-changer` and `void-dnsproxy-changer`: `DNS_SERVERS`/`DNS_PROFILES` + `DNS_PROFILE_ORDER` (all three scripts)
-- `scripts/void-arch-zram`: `ZRAM_PROFILES` + `ZRAM_PROFILE_DESC` + `ZRAM_PROFILE_ORDER`.
-- `scripts/void-arch-setup`: `PACKAGES_LIST` + `ORDERS_LIST`; also `STEP_NAMES` + `STEP_FUNCS`, which are paired **by index** and must stay aligned.
+- `dotfiles/scripts/void-dns-changer` and `void-dnsproxy-changer`: `DNS_SERVERS`/`DNS_PROFILES` + `DNS_PROFILE_ORDER` (all three scripts)
+- `dotfiles/scripts/void-arch-zram`: `ZRAM_PROFILES` + `ZRAM_PROFILE_DESC` + `ZRAM_PROFILE_ORDER`.
+- `dotfiles/scripts/void-arch-setup`: `PACKAGES_LIST` + `ORDERS_LIST`; also `STEP_NAMES` + `STEP_FUNCS`, which are paired **by index** and must stay aligned.
 
 **Library + thin wrapper.** Shared logic lives in a `*-lib.sh` that refuses to run when executed directly (`BASH_SOURCE[0] == $0` guard); callers source it, set config variables, then call one entry point:
-- `home/.vpn/ovpn-lib.sh` ← `eliteping-ovpn`, `vpnbaz-ovpn` set `VPN_CONFIG_DIR`/`VPN_AUTH_FILE`/`VPN_EXTRA_ARGS`, then `vpn_connect_interactive`.
-- `home/.vpn/openconnect-lib.sh` ← `vpnbaz-openconnect`, `openconnect-connect.sh` set `VPN_SERVERS`/`VPN_AUTH_FILE`/`VPN_EXTRA_ARGS`, then `vpn_connect_interactive`.
-- `home/.ucu/ucu-launcher-lib.sh` ← per-game scripts (see `ucu-example`) set `GAME_*`/`WINE_PREFIX`/`PROTONPATH`, define an `umu_env_hook` for Proton env vars, then call `umu_launch_game`.
+- `dotfiles/home/.vpn/ovpn-lib.sh` ← `eliteping-ovpn`, `vpnbaz-ovpn` set `VPN_CONFIG_DIR`/`VPN_AUTH_FILE`/`VPN_EXTRA_ARGS`, then `vpn_connect_interactive`.
+- `dotfiles/home/.vpn/openconnect-lib.sh` ← `vpnbaz-openconnect`, `openconnect-connect.sh` set `VPN_SERVERS`/`VPN_AUTH_FILE`/`VPN_EXTRA_ARGS`, then `vpn_connect_interactive`.
+- `dotfiles/home/.ucu/ucu-launcher-lib.sh` ← per-game scripts (see `ucu-example`) set `GAME_*`/`WINE_PREFIX`/`PROTONPATH`, define an `umu_env_hook` for Proton env vars, then call `umu_launch_game`.
 
-**Script conventions in `scripts/`:** executables are named `void-<name>` (the sourced `scripts-lib.sh` is not prefixed); `info`/`success`/`warn`/`die` helpers, `require_root` that re-execs via `exec sudo bash "$0" "$@"`, a `usage()` heredoc, `getopts` main, and box-drawing `# ─────` section separators. Interactive by default with non-interactive flags (`-p <profile>`, `-l`). These scripts are on `PATH` via `fish_add_path $HOME/.scripts` and `$HOME/.vpn` in `shell/fish/_env.fish`. Scripts that need repo files outside `scripts/` resolve their own dir with `readlink -f "${BASH_SOURCE[0]}"`, because they're usually invoked through the `~/.scripts` symlink.
+**Script conventions in `dotfiles/scripts/`:** executables are named `void-<name>` (the sourced `scripts-lib.sh` is not prefixed); `info`/`success`/`warn`/`die` helpers, `require_root` that re-execs via `exec sudo bash "$0" "$@"`, a `usage()` heredoc, `getopts` main, and box-drawing `# ─────` section separators. Interactive by default with non-interactive flags (`-p <profile>`, `-l`). These scripts are on `PATH` via `fish_add_path $HOME/.scripts` and `$HOME/.vpn` in `dotfiles/shell/fish/_env.fish`. Scripts that need repo files outside `dotfiles/scripts/` resolve their own dir with `readlink -f "${BASH_SOURCE[0]}"`, because they're usually invoked through the `~/.scripts` symlink.
 
 **Step-picker prompting model** (`void-arch-setup`, `void-kde-setup`): one up-front `select_exclusions` picker (yay-style, accepts `1 2 3`, `1-3`, `^4`) rather than per-step yes/no. It lives in `scripts-lib.sh`; it uses bash namerefs for input/output arrays so nested calls can't clobber each other. In `void-arch-setup`, `ASSUME_YES` suppresses later `ask_prompt` calls once the user has chosen. `void-kde-setup` skips the picker with `-o`/`-y` or when stdin isn't a TTY.
 
 ## Fish configuration structure
 
-`shell/fish/config.fish` sources `_env.fish` and `_keybinds.fish`, then `load_files` over three dirs — `aliases/`, `attach/`, `utils/`. A new `.fish` file in one of those loads automatically; a **new directory** needs a `load_files` line added to `config.fish`.
+`dotfiles/shell/fish/config.fish` sources `_env.fish` and `_keybinds.fish`, then `load_files` over three dirs — `aliases/`, `attach/`, `utils/`. A new `.fish` file in one of those loads automatically; a **new directory** needs a `load_files` line added to `config.fish`.
 
 - `aliases/*.fish` — `abbr` definitions grouped by tool (`_pacman`, `_docker`, `_network`, …).
 - `utils/*.fish` — eagerly-sourced function definitions.
@@ -76,15 +77,15 @@ KDE rewrites its rc files during normal desktop use and fills them with per-inst
 
 ## Vendored / generated files — do not hand-edit
 
-- `dotfiles/alacritty/themes/*.toml` — pulled by `themes.sh` from `alacritty/alacritty-theme`.
-- `shell/tmux/tmux.conf` — oh-my-tmux upstream; all customization belongs in `tmux.conf.local`.
-- `shell/fish/plugins/**` — fisher-managed.
-- `editors/vim/.vim/autoload/plug.vim` — vim-plug.
-- `editors/vscode/downloads/`, `extension_info/` — gitignored `.vsix` cache and Open VSX metadata written by `editors/vscode/extension-manager`, which is driven by `oss-extensions.txt` and prunes cache entries that aren't in it.
+- `dotfiles/apps/alacritty/themes/*.toml` — pulled by `themes.sh` from `alacritty/alacritty-theme`.
+- `dotfiles/shell/tmux/tmux.conf` — oh-my-tmux upstream; all customization belongs in `tmux.conf.local`.
+- `dotfiles/shell/fish/plugins/**` — fisher-managed.
+- `dotfiles/editors/vim/.vim/autoload/plug.vim` — vim-plug.
+- `dotfiles/editors/vscode/downloads/`, `extension_info/` — gitignored `.vsix` cache and Open VSX metadata written by `dotfiles/editors/vscode/extension-manager`, which is driven by `oss-extensions.txt` and prunes cache entries that aren't in it.
 
 ## Conventions
 
 - Commits: Conventional Commits with a component scope — `feat(dnsproxy-changer): …`, `chore(fish): …`, `refactor(dns-scripts): …`, `fix(kde): …`.
 - Bash scripts use tabs for indentation; fish uses 4 spaces.
-- `.gitignore` excludes `**.auth` — VPN credential files are never committed; `home/.vpn/ovpn-servers/example.auth.txt` is the template.
+- `.gitignore` excludes `**.auth` — VPN credential files are never committed; `dotfiles/home/.vpn/ovpn-servers/example.auth.txt` is the template.
 - Keep `README.md`'s structure/flag tables in sync when changing `stow.sh`, `void-arch-setup` or `void-kde-setup` flags.

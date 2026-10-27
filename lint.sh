@@ -26,11 +26,11 @@ bash_files() {
 		if [[ "$f" == *.sh ]] || head -n1 "$f" | grep -qE '^#!.*\bbash\b|^# shellcheck shell=bash'; then
 			echo "$f"
 		fi
-	done < <(git ls-files -- ':!:shell/fish/plugins/**' ':!:dotfiles/alacritty/themes/**' ':!:*.fish')
+	done < <(git ls-files -- ':!:dotfiles/shell/fish/plugins/**' ':!:dotfiles/apps/alacritty/themes/**' ':!:*.fish')
 }
 
 fish_files() {
-	git ls-files -- '*.fish' ':!:shell/fish/plugins/**'
+	git ls-files -- '*.fish' ':!:dotfiles/shell/fish/plugins/**'
 }
 
 fail() {

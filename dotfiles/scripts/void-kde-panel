@@ -7,7 +7,7 @@
 # per-install panel and applet IDs, so they can't be tracked in plasma/.
 # This applies the layout through Plasma's scripting API instead, which
 # works on whatever panels exist on the current machine.
-# Height, pager options and launchers come from kde/settings.conf.
+# Height, pager options and launchers come from dotfiles/kde/settings.conf.
 
 SCRIPT_DIR="$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")"
 source "$SCRIPT_DIR/scripts-lib.sh"
