@@ -40,7 +40,7 @@ The repo root holds only the tooling (`stow.sh`, `lint.sh`) and docs; everything
    sudo apt update && sudo apt install -y git fish build-essential curl wget unzip tmux fzf jq shellcheck shfmt
    ```
 
-   On apt, install Starship with `curl -sS https://starship.rs/install.sh | sh` if your release doesn't package it. Only the configs and `stow.sh` work on Debian/Ubuntu. `void-arch-setup` and `void-kde-setup` are Arch-only.
+   On apt, install Starship with `curl -sS https://starship.rs/install.sh | sh` if your release doesn't package it. Only the configs and `stow.sh` work on Debian/Ubuntu. `void-arch-setup` and `void-kde-setup` are Arch-only; for a Debian/Ubuntu VPS use `void-debian-vps-setup` (see VPS Provisioning below).
 
 1. **Clone** the repo:
 
@@ -122,6 +122,38 @@ Type numbers, a range (`7-9`), or `^4`, and press Enter — everything else runs
   gamemoded -t
   lsmod | grep -i ntsync
   ```
+
+---
+
+## 🖥️ VPS Provisioning (`dotfiles/scripts/void-debian-vps-setup`)
+
+Provisions a Debian/Ubuntu VPS: system update, apt package groups, a non-root sudo user, Docker from the distro repos (`docker.io` + compose), a swapfile, timezone/NTP, and Fish as the user's shell. It runs as root (re-execs through `sudo` otherwise) and uses the same step picker as `void-arch-setup`. In `-s`, it asks for the target user, swap size and timezone up front, then runs the rest unattended. The exception is the password for a newly created user.
+
+```bash
+apt update && apt install -y git
+git clone https://github.com/void-land/void-dots.git ~/.void-dots
+~/.void-dots/dotfiles/scripts/void-debian-vps-setup -s
+```
+
+### Usage
+
+```bash
+./dotfiles/scripts/void-debian-vps-setup [-s | -p | -a | -d | -w | -t | -f] [-u <user>] [-h]
+```
+
+| Flag | Action |
+| --- | --- |
+| `-s` | Full VPS setup (all steps below, via the step picker) |
+| `-p` | Install apt package groups (`BASE_PACKAGES`, `UTILITIES`, `NETWORK_TOOLS`) |
+| `-a` | Create/configure the sudo user and copy root's `authorized_keys` if the user has none |
+| `-d` | Install Docker (`docker.io`, compose, buildx when available), write `/etc/docker/daemon.json` log rotation if absent, add the user to `docker` |
+| `-w` | Create `/swapfile` (skipped if swap is already active), set `vm.swappiness=10` |
+| `-t` | Set timezone and enable NTP |
+| `-f` | Set Fish as the user's default shell |
+| `-u <user>` | Target non-root user for `-a`/`-d`/`-f` (prompted if omitted) |
+| `-h` | Show help |
+
+Compose comes from the distro: `docker-compose-v2` on Ubuntu, `docker-compose` on Debian. On bookworm that package is the old v1 (`docker-compose`, not `docker compose`).
 
 ---
 

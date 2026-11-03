@@ -1,0 +1,519 @@
+#!/bin/bash
+
+# Debian/Ubuntu VPS Setup Script
+# Base packages, Docker (Debian's docker.io), sudo user, swap, timezone, fish.
+
+SCRIPT_DIR="$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")"
+source "$SCRIPT_DIR/scripts-lib.sh"
+
+ORIG_ARGS=("$@")
+
+# When true, ask_prompt auto-confirms (used once the user has already
+# picked what to run via the exclude-style selector in full_setup).
+ASSUME_YES=false
+
+# Inputs, filled by -u or prompted for (up front in full_setup).
+TARGET_USER=""
+TIMEZONE=""
+SWAP_SIZE=""
+
+SWAP_FILE="/swapfile"
+DOCKER_DAEMON_JSON="/etc/docker/daemon.json"
+
+export DEBIAN_FRONTEND=noninteractive
+APT_OPTS=(-y -o Dpkg::Options::=--force-confdef -o Dpkg::Options::=--force-confold)
+
+declare -a ORDERS_LIST=(
+	"BASE_PACKAGES"
+	"UTILITIES"
+	"NETWORK_TOOLS"
+)
+
+declare -A PACKAGES_LIST=(
+	["BASE_PACKAGES"]="sudo ca-certificates curl wget git gnupg fish tmux vim jq fzf rsync unzip xz-utils zstd bash-completion"
+	["UTILITIES"]="htop btop ncdu iotop-c glances lsof"
+	["NETWORK_TOOLS"]="net-tools dnsutils iproute2 iputils-ping traceroute mtr-tiny tcpdump"
+)
+
+# Steps executed by full_setup, in order. Names and functions are paired by index.
+declare -a STEP_NAMES=(
+	"Update system"
+	"Install apt packages"
+	"Create/configure sudo user"
+	"Install Docker (docker.io + compose)"
+	"Create swapfile"
+	"Set timezone + enable NTP"
+	"Set Fish as default shell"
+)
+
+declare -a STEP_FUNCS=(
+	update_system
+	setup_packages
+	setup_user
+	setup_docker
+	setup_swap
+	setup_timezone
+	setup_fish_shell
+)
+
+trap exit_trap SIGINT SIGTERM
+
+# ─────────────────────────────────────────────
+#  Helpers
+# ─────────────────────────────────────────────
+
+exit_trap() {
+	echo -e "\n\n${C_RED}[!]${C_NC} Installation interrupted. Cleaning up..."
+	exit 1
+}
+
+log() {
+	echo -e "\n${C_GREEN}[+]${C_NC} $1"
+}
+
+error() {
+	echo -e "${C_RED}[!]${C_NC} $1"
+}
+
+ask_prompt() {
+	local question="$1"
+
+	# Already confirmed via the up-front selection screen, skip re-asking.
+	if [[ "$ASSUME_YES" == true ]]; then
+		return 0
+	fi
+
+	while true; do
+		read -rp "$question (Y/n) [Y]: " choice
+		case "$choice" in
+		[Yy] | "") return 0 ;;
+		[Nn]) return 1 ;;
+		*) echo "Please enter Y or N (or press Enter for Yes)." ;;
+		esac
+	done
+}
+
+display_help() {
+	cat <<EOF
+Usage: $0 [-s | -p | -a | -d | -w | -t | -f] [-u <user>] [-h]
+ -s         Full VPS setup (step picker)
+ -p         Install apt packages only
+ -a         Create/configure sudo user (sudo group, root's SSH keys)
+ -d         Install Docker (docker.io + compose) and add user to docker group
+ -w         Create swapfile
+ -t         Set timezone and enable NTP
+ -f         Set Fish as the user's default shell
+ -u <user>  Target (non-root) user for -a/-d/-f (prompted if omitted)
+ -h         Show this help
+EOF
+}
+
+check_debian() {
+	[[ -r /etc/os-release ]] || die "/etc/os-release not found, can't detect distro."
+	local id id_like
+	id=$(. /etc/os-release && echo "${ID:-}")
+	id_like=$(. /etc/os-release && echo "${ID_LIKE:-}")
+	if [[ "$id" != "debian" && " $id_like " != *" debian "* ]]; then
+		die "This script is for Debian-based systems (detected: ${id:-unknown})."
+	fi
+}
+
+# Returns 0 if apt has an installable candidate for the package.
+pkg_available() {
+	apt-cache policy "$1" 2>/dev/null | grep -q 'Candidate: [^(]'
+}
+
+user_home() {
+	getent passwd "$1" | cut -d: -f6
+}
+
+# ─────────────────────────────────────────────
+#  Inputs
+# ─────────────────────────────────────────────
+
+resolve_target_user() {
+	[[ -n "$TARGET_USER" ]] && return 0
+
+	local default="" input
+	[[ -n "${SUDO_USER:-}" && "$SUDO_USER" != "root" ]] && default="$SUDO_USER"
+
+	while true; do
+		read -rp "Target (non-root) user${default:+ [$default]}: " input
+		input="${input:-$default}"
+		if [[ -z "$input" ]]; then
+			echo "A username is required."
+		elif [[ "$input" == "root" ]]; then
+			echo "Pick a non-root user."
+		elif [[ ! "$input" =~ ^[a-z_][a-z0-9_-]*$ ]]; then
+			echo "Invalid username (lowercase letters, digits, '_' and '-')."
+		else
+			TARGET_USER="$input"
+			return 0
+		fi
+	done
+}
+
+resolve_timezone() {
+	[[ -n "$TIMEZONE" ]] && return 0
+
+	local current input
+	current=$(timedatectl show -p Timezone --value 2>/dev/null || cat /etc/timezone 2>/dev/null)
+	current="${current:-UTC}"
+
+	while true; do
+		read -rp "Timezone (e.g. Asia/Tehran, UTC) [$current]: " input
+		input="${input:-$current}"
+		if [[ -f "/usr/share/zoneinfo/$input" ]]; then
+			TIMEZONE="$input"
+			return 0
+		fi
+		echo "Unknown timezone: $input"
+	done
+}
+
+resolve_swap_size() {
+	[[ -n "$SWAP_SIZE" ]] && return 0
+	# Nothing to ask if swap is already active; setup_swap will skip.
+	[[ -n "$(swapon --show --noheadings 2>/dev/null)" ]] && return 0
+
+	local input
+	while true; do
+		read -rp "Swapfile size (e.g. 1G, 2G, 512M) [2G]: " input
+		input="${input:-2G}"
+		if [[ "$input" =~ ^[0-9]+[MG]$ ]]; then
+			SWAP_SIZE="$input"
+			return 0
+		fi
+		echo "Use a number followed by M or G."
+	done
+}
+
+# ─────────────────────────────────────────────
+#  Steps
+# ─────────────────────────────────────────────
+
+update_system() {
+	log "Updating system packages..."
+	if ! ask_prompt "Do you want to update the system?"; then
+		error "Action cancelled..."
+		return 0
+	fi
+	apt-get update && apt-get full-upgrade "${APT_OPTS[@]}"
+}
+
+setup_packages() {
+	local -A excluded_groups=()
+	select_exclusions ORDERS_LIST "package groups" excluded_groups
+
+	local packages_list=""
+	for i in "${!ORDERS_LIST[@]}"; do
+		local idx=$((i + 1))
+		[[ -n "${excluded_groups[$idx]}" ]] && continue
+		packages_list+="${PACKAGES_LIST["${ORDERS_LIST[$i]}"]} "
+	done
+
+	if [[ -z "${packages_list// /}" ]]; then
+		echo "No package groups selected, skipping installation."
+		return 0
+	fi
+
+	log "Following packages will be installed:"
+	echo -e "$packages_list\n"
+
+	if ! ask_prompt "Do you want to continue with installation?"; then
+		error "Action cancelled..."
+		return 0
+	fi
+
+	log "Installing packages..."
+	apt-get update
+	# shellcheck disable=SC2086
+	apt-get install "${APT_OPTS[@]}" $packages_list
+}
+
+setup_user() {
+	resolve_target_user
+	local u="$TARGET_USER"
+
+	log "Configuring sudo user '$u'..."
+	if ! ask_prompt "Do you want to create/configure '$u' as a sudo user?"; then
+		error "Action cancelled..."
+		return 0
+	fi
+
+	if id "$u" &>/dev/null; then
+		echo "User '$u' already exists."
+	else
+		useradd -m -s /bin/bash "$u" || {
+			error "Failed to create user '$u'."
+			return 1
+		}
+		echo "Created user '$u'. Set a password (needed for sudo):"
+		until passwd "$u"; do
+			echo "Try again."
+		done
+	fi
+
+	if ! getent group sudo &>/dev/null; then
+		error "The 'sudo' group doesn't exist - is the sudo package installed? (run -p first)"
+	elif id -nG "$u" | grep -qw sudo; then
+		echo "User '$u' is already in the sudo group."
+	else
+		usermod -aG sudo "$u"
+		echo "Added '$u' to the sudo group."
+	fi
+
+	local home ssh_dir
+	home=$(user_home "$u")
+	ssh_dir="$home/.ssh"
+	if [[ -s "$ssh_dir/authorized_keys" ]]; then
+		echo "'$u' already has authorized_keys, leaving them alone."
+	elif [[ -s /root/.ssh/authorized_keys ]]; then
+		install -d -m 700 -o "$u" -g "$u" "$ssh_dir"
+		install -m 600 -o "$u" -g "$u" /root/.ssh/authorized_keys "$ssh_dir/authorized_keys"
+		echo "Copied root's authorized_keys to $ssh_dir/authorized_keys."
+	else
+		echo "No /root/.ssh/authorized_keys to copy - add an SSH key for '$u' manually."
+	fi
+}
+
+setup_docker() {
+	resolve_target_user
+
+	log "Installing Docker (docker.io)..."
+	if ! ask_prompt "Do you want to install Docker from the distro repositories?"; then
+		error "Action cancelled..."
+		return 0
+	fi
+
+	apt-get update
+
+	local packages=(docker.io)
+	# Ubuntu ships compose v2 as docker-compose-v2; Debian as docker-compose
+	# (v1 on bookworm, v2 on trixie+).
+	if pkg_available docker-compose-v2; then
+		packages+=(docker-compose-v2)
+	elif pkg_available docker-compose; then
+		packages+=(docker-compose)
+	else
+		warn "No compose package available, installing Docker without it."
+	fi
+	pkg_available docker-buildx && packages+=(docker-buildx)
+
+	echo "Packages: ${packages[*]}"
+	apt-get install "${APT_OPTS[@]}" "${packages[@]}" || {
+		error "Docker installation failed."
+		return 1
+	}
+
+	if [[ -e "$DOCKER_DAEMON_JSON" ]]; then
+		warn "$DOCKER_DAEMON_JSON already exists, not touching it."
+	else
+		install -d -m 755 "$(dirname "$DOCKER_DAEMON_JSON")"
+		cat >"$DOCKER_DAEMON_JSON" <<-'EOF'
+			{
+			  "log-driver": "json-file",
+			  "log-opts": {
+			    "max-size": "10m",
+			    "max-file": "3"
+			  }
+			}
+		EOF
+		echo "Wrote $DOCKER_DAEMON_JSON (container log rotation)."
+	fi
+
+	systemctl enable docker.service containerd.service 2>/dev/null
+	systemctl restart docker.service && echo "Docker service enabled and (re)started."
+
+	if ! id "$TARGET_USER" &>/dev/null; then
+		warn "User '$TARGET_USER' doesn't exist - run -a first to add it to the docker group."
+	elif id -nG "$TARGET_USER" | grep -qw docker; then
+		echo "User '$TARGET_USER' is already in the docker group."
+	else
+		usermod -aG docker "$TARGET_USER"
+		echo "Added '$TARGET_USER' to the docker group. Re-login for this to take effect."
+	fi
+
+	docker --version
+	docker compose version 2>/dev/null || docker-compose version 2>/dev/null || true
+}
+
+setup_swap() {
+	log "Setting up swap..."
+	if [[ -n "$(swapon --show --noheadings 2>/dev/null)" ]]; then
+		echo "Swap is already active, skipping:"
+		swapon --show
+		return 0
+	fi
+
+	resolve_swap_size
+	if ! ask_prompt "Do you want to create a $SWAP_SIZE swapfile at $SWAP_FILE?"; then
+		error "Action cancelled..."
+		return 0
+	fi
+
+	# An existing but inactive swapfile is stale, recreate it.
+	if [[ -e "$SWAP_FILE" ]]; then
+		swapoff "$SWAP_FILE" 2>/dev/null
+		rm -f "$SWAP_FILE"
+	fi
+
+	if ! fallocate -l "$SWAP_SIZE" "$SWAP_FILE" 2>/dev/null; then
+		local mib="${SWAP_SIZE%[MG]}"
+		[[ "$SWAP_SIZE" == *G ]] && mib=$((mib * 1024))
+		echo "fallocate failed, falling back to dd (${mib} MiB)..."
+		dd if=/dev/zero of="$SWAP_FILE" bs=1M count="$mib" status=progress || {
+			rm -f "$SWAP_FILE"
+			error "Couldn't create $SWAP_FILE."
+			return 1
+		}
+	fi
+
+	chmod 600 "$SWAP_FILE"
+	mkswap "$SWAP_FILE" >/dev/null
+	if ! swapon "$SWAP_FILE"; then
+		rm -f "$SWAP_FILE"
+		error "swapon failed (OpenVZ/LXC containers usually can't use swapfiles), removed $SWAP_FILE."
+		return 1
+	fi
+
+	if ! grep -qE "^[[:space:]]*${SWAP_FILE}[[:space:]]" /etc/fstab; then
+		echo "$SWAP_FILE none swap sw 0 0" >>/etc/fstab
+		echo "Added $SWAP_FILE to /etc/fstab."
+	fi
+
+	echo "vm.swappiness=10" >/etc/sysctl.d/99-swappiness.conf
+	sysctl --system >/dev/null
+	echo "Set vm.swappiness=10."
+	swapon --show
+}
+
+setup_timezone() {
+	resolve_timezone
+
+	log "Setting timezone to $TIMEZONE..."
+	if ! ask_prompt "Do you want to set the timezone to $TIMEZONE and enable NTP?"; then
+		error "Action cancelled..."
+		return 0
+	fi
+
+	if timedatectl set-timezone "$TIMEZONE" 2>/dev/null; then
+		timedatectl set-ntp true 2>/dev/null || warn "Couldn't enable NTP via timedatectl."
+	else
+		# No systemd/timedated (e.g. containers): set it by hand.
+		ln -sf "/usr/share/zoneinfo/$TIMEZONE" /etc/localtime
+		echo "$TIMEZONE" >/etc/timezone
+		warn "timedatectl unavailable, set /etc/localtime directly (NTP not configured)."
+	fi
+	echo "Timezone: $TIMEZONE ($(date))"
+}
+
+setup_fish_shell() {
+	resolve_target_user
+
+	log "Setting up Fish shell for '$TARGET_USER'..."
+	if ! ask_prompt "Do you want to set Fish as the default shell for '$TARGET_USER'?"; then
+		error "Action cancelled..."
+		return 0
+	fi
+
+	local fish_path
+	fish_path=$(command -v fish) || {
+		error "fish isn't installed (run -p first)."
+		return 1
+	}
+	if ! id "$TARGET_USER" &>/dev/null; then
+		error "User '$TARGET_USER' doesn't exist (run -a first)."
+		return 1
+	fi
+
+	grep -qx "$fish_path" /etc/shells || echo "$fish_path" >>/etc/shells
+	chsh -s "$fish_path" "$TARGET_USER"
+	echo "Fish set as default shell for '$TARGET_USER'. Takes effect on next login."
+}
+
+# ─────────────────────────────────────────────
+#  Full setup
+# ─────────────────────────────────────────────
+
+full_setup() {
+	clear
+	log "Starting Debian VPS setup..."
+
+	# Show every step once, up front, yay-exclude style, instead of
+	# asking Y/n before each individual function.
+	local -A excluded_steps=()
+	select_exclusions STEP_NAMES "steps" excluded_steps
+
+	# Collect every input the selected steps need now, so the run
+	# itself is unattended (except the new user's password).
+	echo
+	for i in "${!STEP_FUNCS[@]}"; do
+		[[ -n "${excluded_steps[$((i + 1))]}" ]] && continue
+		case "${STEP_FUNCS[$i]}" in
+		setup_user | setup_docker | setup_fish_shell) resolve_target_user ;;
+		setup_swap) resolve_swap_size ;;
+		setup_timezone) resolve_timezone ;;
+		esac
+	done
+
+	echo
+	log "Running selected steps..."
+	ASSUME_YES=true
+
+	for i in "${!STEP_NAMES[@]}"; do
+		local idx=$((i + 1))
+		if [[ -n "${excluded_steps[$idx]}" ]]; then
+			echo -e "${C_RED}[-]${C_NC} Skipping: ${STEP_NAMES[$i]}"
+			continue
+		fi
+		"${STEP_FUNCS[$i]}"
+	done
+
+	ASSUME_YES=false
+	log "Setup completed! Log out and back in (or reboot) so group and shell changes take effect."
+}
+
+# ─────────────────────────────────────────────
+#  Main
+# ─────────────────────────────────────────────
+
+# Actions are collected first and run after parsing, so -u works in any position.
+declare -a ACTIONS=()
+
+while getopts "spadwtfu:h" opt; do
+	case $opt in
+	s) ACTIONS+=(full_setup) ;;
+	p) ACTIONS+=(setup_packages) ;;
+	a) ACTIONS+=(setup_user) ;;
+	d) ACTIONS+=(setup_docker) ;;
+	w) ACTIONS+=(setup_swap) ;;
+	t) ACTIONS+=(setup_timezone) ;;
+	f) ACTIONS+=(setup_fish_shell) ;;
+	u) TARGET_USER="$OPTARG" ;;
+	h)
+		display_help
+		exit 0
+		;;
+	*)
+		display_help
+		exit 1
+		;;
+	esac
+done
+
+if [[ ${#ACTIONS[@]} -eq 0 ]]; then
+	display_help
+	exit 0
+fi
+
+if [[ -n "$TARGET_USER" && ("$TARGET_USER" == "root" || ! "$TARGET_USER" =~ ^[a-z_][a-z0-9_-]*$) ]]; then
+	die "Invalid target user: $TARGET_USER"
+fi
+
+check_debian
+require_root "${ORIG_ARGS[@]}"
+
+for action in "${ACTIONS[@]}"; do
+	"$action"
+done

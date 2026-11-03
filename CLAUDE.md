@@ -14,6 +14,7 @@ A personal dotfiles repo for Arch/EndeavourOS + KDE Plasma. There is no build, n
 ./stow.sh -n -s       # dry run
 ./lint.sh             # bash -n + shfmt + shellcheck (if installed) + fish --no-execute; -w applies shfmt
 dotfiles/scripts/void-arch-setup -h   # provisioning script; -s full setup, -p/-a/-m/-l/-f/-g/-e per-step
+dotfiles/scripts/void-debian-vps-setup -h   # Debian/Ubuntu VPS provisioning (runs as root); -s full, -p/-a/-d/-w/-t/-f per-step, -u <user>
 
 dotfiles/apps/alacritty/themes.sh       # re-pull alacritty themes from upstream
 ```
@@ -53,7 +54,7 @@ KDE rewrites its rc files during normal desktop use and fills them with per-inst
 **Ordered profile maps.** Bash associative arrays are unordered, so scripts that present menus keep an explicit order array alongside the map. When adding an entry, update **both**:
 - `dotfiles/scripts/void-dns-changer` and `void-dnsproxy-changer`: `DNS_SERVERS`/`DNS_PROFILES` + `DNS_PROFILE_ORDER` (all three scripts)
 - `dotfiles/scripts/void-arch-zram`: `ZRAM_PROFILES` + `ZRAM_PROFILE_DESC` + `ZRAM_PROFILE_ORDER`.
-- `dotfiles/scripts/void-arch-setup`: `PACKAGES_LIST` + `ORDERS_LIST`; also `STEP_NAMES` + `STEP_FUNCS`, which are paired **by index** and must stay aligned.
+- `dotfiles/scripts/void-arch-setup` and `void-debian-vps-setup`: `PACKAGES_LIST` + `ORDERS_LIST`; also `STEP_NAMES` + `STEP_FUNCS`, which are paired **by index** and must stay aligned.
 
 **Library + thin wrapper.** Shared logic lives in a `*-lib.sh` that refuses to run when executed directly (`BASH_SOURCE[0] == $0` guard); callers source it, set config variables, then call one entry point:
 - `dotfiles/home/.vpn/ovpn-lib.sh` ← `eliteping-ovpn`, `vpnbaz-ovpn` set `VPN_CONFIG_DIR`/`VPN_AUTH_FILE`/`VPN_EXTRA_ARGS`, then `vpn_connect_interactive`.
@@ -62,7 +63,7 @@ KDE rewrites its rc files during normal desktop use and fills them with per-inst
 
 **Script conventions in `dotfiles/scripts/`:** executables are named `void-<name>` (the sourced `scripts-lib.sh` is not prefixed); `info`/`success`/`warn`/`die` helpers, `require_root` that re-execs via `exec sudo bash "$0" "$@"`, a `usage()` heredoc, `getopts` main, and box-drawing `# ─────` section separators. Interactive by default with non-interactive flags (`-p <profile>`, `-l`). These scripts are on `PATH` via `fish_add_path $HOME/.scripts` and `$HOME/.vpn` in `dotfiles/shell/fish/_env.fish`. Scripts that need repo files outside `dotfiles/scripts/` resolve their own dir with `readlink -f "${BASH_SOURCE[0]}"`, because they're usually invoked through the `~/.scripts` symlink.
 
-**Step-picker prompting model** (`void-arch-setup`, `void-kde-setup`): one up-front `select_exclusions` picker (yay-style, accepts `1 2 3`, `1-3`, `^4`) rather than per-step yes/no. It lives in `scripts-lib.sh`; it uses bash namerefs for input/output arrays so nested calls can't clobber each other. In `void-arch-setup`, `ASSUME_YES` suppresses later `ask_prompt` calls once the user has chosen. `void-kde-setup` skips the picker with `-o`/`-y` or when stdin isn't a TTY.
+**Step-picker prompting model** (`void-arch-setup`, `void-debian-vps-setup`, `void-kde-setup`): one up-front `select_exclusions` picker (yay-style, accepts `1 2 3`, `1-3`, `^4`) rather than per-step yes/no. It lives in `scripts-lib.sh`; it uses bash namerefs for input/output arrays so nested calls can't clobber each other. In `void-arch-setup` and `void-debian-vps-setup`, `ASSUME_YES` suppresses later `ask_prompt` calls once the user has chosen. `void-kde-setup` skips the picker with `-o`/`-y` or when stdin isn't a TTY.
 
 ## Fish configuration structure
 
@@ -88,4 +89,4 @@ KDE rewrites its rc files during normal desktop use and fills them with per-inst
 - Commits: Conventional Commits with a component scope — `feat(dnsproxy-changer): …`, `chore(fish): …`, `refactor(dns-scripts): …`, `fix(kde): …`.
 - Bash scripts use tabs for indentation; fish uses 4 spaces.
 - `.gitignore` excludes `**.auth` — VPN credential files are never committed; `dotfiles/home/.vpn/ovpn-servers/example.auth.txt` is the template.
-- Keep `README.md`'s structure/flag tables in sync when changing `stow.sh`, `void-arch-setup` or `void-kde-setup` flags.
+- Keep `README.md`'s structure/flag tables in sync when changing `stow.sh`, `void-arch-setup`, `void-debian-vps-setup` or `void-kde-setup` flags.
