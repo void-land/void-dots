@@ -30,6 +30,18 @@ The repo root holds only the tooling (`stow.sh`, `lint.sh`) and docs; everything
 
 ## Quick start
 
+0. **Install the basics** (git and fish, plus the tools the shell config and `lint.sh` use):
+
+   ```bash
+   # Arch / EndeavourOS (pacman)
+   sudo pacman -Syu --needed git fish base-devel curl wget unzip tmux fzf jq starship shellcheck shfmt
+
+   # Debian / Ubuntu (apt)
+   sudo apt update && sudo apt install -y git fish build-essential curl wget unzip tmux fzf jq shellcheck shfmt
+   ```
+
+   On apt, install Starship with `curl -sS https://starship.rs/install.sh | sh` if your release doesn't package it. Only the configs and `stow.sh` work on Debian/Ubuntu. `void-arch-setup` and `void-kde-setup` are Arch-only.
+
 1. **Clone** the repo:
 
    ```bash
