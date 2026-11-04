@@ -46,7 +46,9 @@ confirm() {
 # ─────────────────────────────────────────────
 
 # Generic yay-style exclude picker.
-# Usage: select_exclusions <name-of-input-array-var> <label> <name-of-output-array-var>
+# Usage: select_exclusions <name-of-input-array-var> <label> <name-of-output-array-var> [action] [note]
+#   action defaults to "executed" ("Following <label> will be <action>"),
+#   note to the partial-setup warning; pass "" to drop the note.
 # Prints a numbered list of the given array's elements, prompts once for
 # items to exclude (accepts "1 2 3", "1-3", "^4", space/comma separated,
 # "^" prefix optional), and writes the 1-based excluded indices into the
@@ -57,14 +59,16 @@ select_exclusions() {
 	local -n items_ref="$1"
 	local label="${2:-items}"
 	local -n out_ref="$3"
+	local action="${4:-executed}"
+	local note="${5-Excluding $label may result in a partial setup}"
 	local i token excl_input
 
-	echo -e "${C_BLUE}::${C_NC} Following $label will be executed:"
+	echo -e "${C_BLUE}::${C_NC} Following $label will be $action:"
 	for i in "${!items_ref[@]}"; do
 		printf "%2d  %s\n" "$((i + 1))" "${items_ref[$i]}"
 	done
 	echo -e "${C_BLUE}==>${C_NC} ${label^} to exclude: (eg: \"1 2 3\", \"1-3\", \"^4\")"
-	echo -e "${C_RED} -> Excluding $label may result in a partial setup${C_NC}"
+	[[ -n "$note" ]] && echo -e "${C_RED} -> ${note}${C_NC}"
 	read -rp "==> " excl_input
 
 	out_ref=()

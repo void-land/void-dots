@@ -1,28 +1,326 @@
 #!/bin/bash
 
+# ─────────────────────────────────────────────
+#  Steam Proton Prefix Finder
+#  Discovers Steam libraries from libraryfolders.vdf and lists each game's
+#  Proton prefix (steamapps/compatdata/<appid>)
+# ─────────────────────────────────────────────
+
 source "$(dirname "${BASH_SOURCE[0]}")/scripts-lib.sh"
 
-declare -A MANIFEST_PATHS=(
-	["Default"]="$HOME/.local/share/Steam/steamapps"
-	["SSD"]="/mnt/ssd/SteamLibrary/steamapps"
+# Steam install roots: native, flatpak, snap. Duplicates (e.g. ~/.steam/steam
+# symlinking to ~/.local/share/Steam) are collapsed by realpath.
+STEAM_ROOT_CANDIDATES=(
+	"$HOME/.local/share/Steam"
+	"$HOME/.steam/steam"
+	"$HOME/.steam/root"
+	"$HOME/.var/app/com.valvesoftware.Steam/.local/share/Steam"
+	"$HOME/snap/steam/common/.local/share/Steam"
 )
 
-display_path_list() {
-	for steam_path in "${!MANIFEST_PATHS[@]}"; do
-		echo -e "${C_RED}Steam Prefix: ${MANIFEST_PATHS[$steam_path]}:${C_NC} \n"
+# Non-Steam shortcuts get compatdata ids with the top bit set; they have no
+# appmanifest, so they can't be told apart from leftovers by manifest alone.
+SHORTCUT_APPID_MIN=2147483648
 
-		for file in "${MANIFEST_PATHS[$steam_path]}"/appmanifest_*.acf; do
-			appid=$(awk -F'"' '/"appid"[[:space:]]+"[0-9]+"/ {print $4}' "$file")
-			name=$(awk -F'"' '/"name"[[:space:]]+"[^"]+"/ {print $4}' "$file")
+SHOW_ALL=false
+LIST_ONLY=false
+SHOW_UNUSED=false
+CLEAN_UNUSED=false
+ASSUME_YES=false
 
-			# Check if both values are non-empty
-			if [[ -n "$appid" && -n "$name" ]]; then
-				echo -e "Game: $name"
-				echo -e "${C_BLUE}Prefix${C_NC}: ${MANIFEST_PATHS[$steam_path]}/compatdata/$appid"
-				echo -e "${C_GREEN}Prefix User${C_NC}: ${MANIFEST_PATHS[$steam_path]}/compatdata/$appid/pfx/drive_c/users/steamuser\n"
-			fi
+# Filled by find_unused: compatdata dirs with no manifest in any library,
+# split into leftovers and non-Steam shortcut prefixes. Sizes are du -s KiB.
+UNUSED_PREFIXES=()
+SHORTCUT_PREFIXES=()
+declare -A PREFIX_SIZES=()
+
+usage() {
+	cat <<EOF
+Usage: $(basename "$0") [-a] [-u] [-c [-y]] [-l] [-h] [library_path...]
+
+List Proton prefixes for every game in every Steam library.
+Libraries are discovered from libraryfolders.vdf; extra library
+paths (the dir containing steamapps/) can be passed as arguments.
+
+Options:
+  -a    Show all installed apps, including ones without a prefix
+        (native Linux games, Proton/runtime tools). With -c, also
+        offer non-Steam shortcut prefixes for deletion
+  -u    Show unused prefixes: compatdata dirs whose app is no longer
+        installed in any library (safe to delete), with their size
+  -c    Clean unused prefixes: pick which to keep, confirm, delete
+  -y    With -c, delete without the picker and confirmation
+  -l    Only list the discovered library paths
+  -h    Show this help
+EOF
+}
+
+# ─────────────────────────────────────────────
+#  Discovery
+# ─────────────────────────────────────────────
+
+# Prints every Steam library path (one per line, deduplicated, existing only).
+find_library_paths() {
+	local -A seen=()
+	local root vdf path real
+	local -a paths=()
+
+	for root in "${STEAM_ROOT_CANDIDATES[@]}"; do
+		[[ -d "$root" ]] || continue
+		paths+=("$root")
+
+		for vdf in "$root/steamapps/libraryfolders.vdf" "$root/config/libraryfolders.vdf"; do
+			[[ -f "$vdf" ]] || continue
+			while IFS= read -r path; do
+				paths+=("$path")
+			done < <(awk -F'"' '$2 == "path" { gsub(/\\\\/, "\\", $4); print $4 }' "$vdf")
 		done
+	done
+
+	paths+=("$@")
+
+	for path in "${paths[@]}"; do
+		real=$(realpath -q "$path") || real="$path"
+		[[ -n "${seen[$real]}" ]] && continue
+		seen[$real]=1
+
+		if [[ ! -d "$real/steamapps" ]]; then
+			warn "Library not found (unmounted?): $path"
+			continue
+		fi
+		echo "$real"
 	done
 }
 
-display_path_list
+# ─────────────────────────────────────────────
+#  Display
+# ─────────────────────────────────────────────
+
+# Prints "name<TAB>appid" for each manifest in a library, sorted by name.
+read_manifests() {
+	local steamapps="$1" file
+	shopt -s nullglob
+	for file in "$steamapps"/appmanifest_*.acf; do
+		awk -F'"' '
+			$2 == "appid" && !appid { appid = $4 }
+			$2 == "name"  && !name  { name = $4 }
+			END { if (appid && name) print name "\t" appid }
+		' "$file"
+	done | sort -f
+	shopt -u nullglob
+}
+
+display_library() {
+	local library="$1"
+	local steamapps="$library/steamapps"
+	local name appid prefix shown=0
+
+	echo -e "${C_RED}Steam Library: ${library}${C_NC}\n"
+
+	while IFS=$'\t' read -r name appid; do
+		prefix="$steamapps/compatdata/$appid"
+
+		if [[ -d "$prefix/pfx" ]]; then
+			echo -e "Game: $name ${C_BLUE}($appid)${C_NC}"
+			echo -e "${C_BLUE}Prefix${C_NC}: $prefix"
+			echo -e "${C_GREEN}Prefix User${C_NC}: $prefix/pfx/drive_c/users/steamuser\n"
+		elif $SHOW_ALL; then
+			echo -e "Game: $name ${C_BLUE}($appid)${C_NC}"
+			echo -e "${C_BLUE}Prefix${C_NC}: (none)\n"
+		else
+			continue
+		fi
+		((shown++))
+	done < <(read_manifests "$steamapps")
+
+	((shown == 0)) && echo -e "No prefixes found.\n"
+}
+
+# ─────────────────────────────────────────────
+#  Unused prefixes
+# ─────────────────────────────────────────────
+
+# Fills UNUSED_PREFIXES / SHORTCUT_PREFIXES / PREFIX_SIZES with compatdata
+# dirs whose appid has no manifest in any library.
+find_unused() {
+	local -a libraries=("$@")
+	local -A installed=()
+	local library dir appid name size
+
+	for library in "${libraries[@]}"; do
+		while IFS=$'\t' read -r name appid; do
+			installed[$appid]=1
+		done < <(read_manifests "$library/steamapps")
+	done
+
+	shopt -s nullglob
+	for library in "${libraries[@]}"; do
+		for dir in "$library/steamapps/compatdata"/*/; do
+			dir=${dir%/}
+			appid=${dir##*/}
+			[[ "$appid" =~ ^[0-9]+$ ]] || continue
+			[[ -n "${installed[$appid]}" ]] && continue
+
+			if ((appid >= SHORTCUT_APPID_MIN)); then
+				SHORTCUT_PREFIXES+=("$dir")
+			else
+				UNUSED_PREFIXES+=("$dir")
+			fi
+		done
+	done
+	shopt -u nullglob
+
+	for dir in "${UNUSED_PREFIXES[@]}" "${SHORTCUT_PREFIXES[@]}"; do
+		size=$(du -sk "$dir" 2>/dev/null | cut -f1)
+		PREFIX_SIZES[$dir]=${size:-0}
+	done
+}
+
+# human_size KIB
+human_size() {
+	numfmt --from-unit=1024 --to=iec "$1"
+}
+
+# sum_sizes DIR... — total KiB of the given prefixes
+sum_sizes() {
+	local dir total=0
+	for dir in "$@"; do
+		((total += PREFIX_SIZES[$dir]))
+	done
+	echo "$total"
+}
+
+# print_prefixes DIR...
+print_prefixes() {
+	local dir
+	for dir in "$@"; do
+		printf '%8s  %s\n' "$(human_size "${PREFIX_SIZES[$dir]}")" "$dir"
+	done
+}
+
+display_unused() {
+	echo -e "${C_RED}Unused prefixes (app not installed in any library):${C_NC}\n"
+	if ((${#UNUSED_PREFIXES[@]})); then
+		print_prefixes "${UNUSED_PREFIXES[@]}"
+		echo -e "\n${C_GREEN}Total${C_NC}: $(human_size "$(sum_sizes "${UNUSED_PREFIXES[@]}")") in ${#UNUSED_PREFIXES[@]} prefixes"
+	else
+		echo "None."
+	fi
+
+	if ((${#SHORTCUT_PREFIXES[@]})); then
+		echo -e "\n${C_BLUE}Non-Steam shortcut prefixes (check before deleting, may still be in use):${C_NC}\n"
+		print_prefixes "${SHORTCUT_PREFIXES[@]}"
+	fi
+}
+
+clean_unused() {
+	local -a candidates=("${UNUSED_PREFIXES[@]}") labels=() targets=() failed=()
+	local -A excluded=()
+	local i dir freed
+
+	$SHOW_ALL && candidates+=("${SHORTCUT_PREFIXES[@]}")
+
+	if ((${#candidates[@]} == 0)); then
+		success "No unused prefixes to clean"
+		return 0
+	fi
+
+	if $ASSUME_YES; then
+		targets=("${candidates[@]}")
+	else
+		[[ -t 0 ]] || die "stdin is not a TTY; use -y to clean non-interactively"
+
+		for dir in "${candidates[@]}"; do
+			labels+=("$(printf '%8s  %s' "$(human_size "${PREFIX_SIZES[$dir]}")" "$dir")")
+		done
+		select_exclusions labels "prefixes" excluded "deleted" "Exclude any prefix you want to keep"
+
+		for i in "${!candidates[@]}"; do
+			[[ -n "${excluded[$((i + 1))]}" ]] || targets+=("${candidates[$i]}")
+		done
+
+		if ((${#targets[@]} == 0)); then
+			info "Nothing selected"
+			return 0
+		fi
+
+		echo ""
+		confirm "Delete ${#targets[@]} prefixes ($(human_size "$(sum_sizes "${targets[@]}")"))?" ||
+			{
+				info "Aborted"
+				return 0
+			}
+	fi
+
+	for dir in "${targets[@]}"; do
+		# Guard against ever deleting anything but steamapps/compatdata/<appid>
+		[[ "$dir" =~ /steamapps/compatdata/[0-9]+$ && -d "$dir" ]] || {
+			warn "Skipping unexpected path: $dir"
+			failed+=("$dir")
+			continue
+		}
+		if rm -rf -- "$dir"; then
+			info "Deleted $dir"
+		else
+			warn "Failed to delete $dir"
+			failed+=("$dir")
+		fi
+	done
+
+	freed=0
+	for dir in "${targets[@]}"; do
+		[[ -e "$dir" ]] || ((freed += PREFIX_SIZES[$dir]))
+	done
+	success "Freed $(human_size "$freed")"
+	((${#failed[@]} == 0)) || die "${#failed[@]} prefixes could not be deleted"
+}
+
+main() {
+	local opt library
+	local -a libraries
+
+	while getopts ":auclyh" opt; do
+		case "$opt" in
+		a) SHOW_ALL=true ;;
+		u) SHOW_UNUSED=true ;;
+		c) CLEAN_UNUSED=true ;;
+		y) ASSUME_YES=true ;;
+		l) LIST_ONLY=true ;;
+		h)
+			usage
+			exit 0
+			;;
+		*)
+			usage >&2
+			exit 1
+			;;
+		esac
+	done
+	shift $((OPTIND - 1))
+
+	mapfile -t libraries < <(find_library_paths "$@")
+	((${#libraries[@]})) || die "No Steam libraries found"
+
+	if $LIST_ONLY; then
+		printf '%s\n' "${libraries[@]}"
+		exit 0
+	fi
+
+	if $CLEAN_UNUSED; then
+		find_unused "${libraries[@]}"
+		clean_unused
+		exit 0
+	fi
+
+	if $SHOW_UNUSED; then
+		find_unused "${libraries[@]}"
+		display_unused
+		exit 0
+	fi
+
+	for library in "${libraries[@]}"; do
+		display_library "$library"
+	done
+}
+
+main "$@"
