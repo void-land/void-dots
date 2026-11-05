@@ -1,7 +1,5 @@
 set -g fish_greeting
 
-set hydro_multiline false
-
 set --global nvm_default_version lts/krypton
 
 set -x ZELLIJ_AUTO_START false
@@ -23,7 +21,8 @@ set -x PNPM_HOME $HOME/.local/share/pnpm
 
 fish_add_path $HOME/.cargo/bin
 fish_add_path $HOME/go/bin
-# fish_add_path $HOME/.local/bin
+fish_add_path $HOME/.lmstudio/bin
+fish_add_path $HOME/.local/bin
 fish_add_path $HOME/.scripts
 fish_add_path $HOME/.vpn
 fish_add_path $HOME/.umu-launchers
