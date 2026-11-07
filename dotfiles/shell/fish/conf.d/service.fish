@@ -1,4 +1,4 @@
-set --query sysu_helper_commands || set --global sysu_helper_commands \
+set --query service_helper_commands || set --global service_helper_commands \
     "services:List all systemd service unit files" \
     "active:List active systemd services" \
     "failed:List failed systemd services" \
