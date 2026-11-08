@@ -22,7 +22,7 @@ The repo root holds only the tooling (`stow.sh`, `lint.sh`) and docs; everything
 | Path | Description |
 | --- | --- |
 | `dotfiles/apps/` | Application configs (`~/.config/`). Theme sets for **Alacritty** and **btop**, **Kitty** and **Rio** terminal setups, **Pipewire** audio routing, and **MangoHud** performance overlay. |
-| `dotfiles/shell/` | Shell configuration centered on **Fish** — modularized aliases, custom completions, `fzf` plugins via `fisher`, plus **Tmux** and **Zellij** multiplexer setups (`~/.config/`). |
+| `dotfiles/shell/` | Shell configuration centered on **Fish** — modularized aliases, custom completions, `fzf` plugins via `fisher`, plus a **Tmux** multiplexer setup (`~/.config/`). |
 | `dotfiles/editors/` | Editor setups for **VS Code / VSCodium** (settings, TS snippets, and an Open VSX extension manager — see [`dotfiles/editors/vscode`](dotfiles/editors/vscode/README.md)), **Zed** (custom TSX/C snippets and themes), and standard **Vim**. |
 | `dotfiles/kde/` | **KDE Plasma** settings in one file, `settings.conf`: shortcuts, effects (magic lamp, blur), virtual desktops, keyboard layouts, power, default apps, panel, and session env vars. Applied by `void-kde-setup`, not symlinked. |
 | `dotfiles/home/` | Directories linked straight into `~` — `~/.vpn` (OpenVPN/OpenConnect wrappers) and `~/.ucu` (umu/Proton game launchers). |
@@ -223,7 +223,7 @@ After changing something in System Settings that you want to keep, run `void-kde
 | --- | --- |
 | **Shell & Prompt** | Fish Shell, Starship Prompt, Bash |
 | **Terminals** | Alacritty, Kitty, Rio |
-| **Multiplexers** | Tmux, Zellij |
+| **Multiplexers** | Tmux |
 | **Editors** | VsCode, Zed, Vim |
 | **System & Monitoring** | btop, htop, MangoHud |
 | **Desktop Suite** | KDE Plasma (KWin, Dolphin, Baloo, PowerDevil) |

@@ -2,9 +2,6 @@ set -g fish_greeting
 
 set --global nvm_default_version lts/krypton
 
-set -x ZELLIJ_AUTO_START false
-set -x ZELLIJ_AUTO_ATTACH true
-set -x ZELLIJ_AUTO_EXIT false
 set -x DBIN_INSTALL_DIR $HOME/.local/dbin
 
 set -x PODMAN_IGNORE_CGROUPSV1_WARNING false
