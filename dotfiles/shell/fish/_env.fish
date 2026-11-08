@@ -6,7 +6,7 @@ set -x DBIN_INSTALL_DIR $HOME/.local/dbin
 
 set -x PODMAN_IGNORE_CGROUPSV1_WARNING false
 
-set -x STARSHIP_AUTO_START false
+set -x STARSHIP_AUTO_START true
 set -x STARSHIP_CONFIG $HOME/.config/starship/config.toml
 
 # Repo root, derived from the ~/.config/fish symlink so it follows wherever the repo is cloned
