@@ -1,0 +1,4 @@
+---
+- name: Refresh pacman databases
+  void_pacman:
+    update_cache: true

@@ -1,0 +1,86 @@
+---
+- name: Check ansible-core version
+  ansible.builtin.assert:
+    that: ansible_version.full is version(void_min_ansible_version, '>=')
+    fail_msg: "ansible-core {{ ansible_version.full }} is too old; need >= {{ void_min_ansible_version }}."
+    quiet: true
+
+- name: Check the profile is known
+  ansible.builtin.assert:
+    that: void_profile in preflight_profile_facts
+    fail_msg: "Unknown profile '{{ void_profile }}' (expected one of {{ preflight_profile_facts.keys() | list | join(', ') }})."
+    quiet: true
+
+- name: Check the distribution matches the profile
+  vars:
+    preflight_expect: "{{ preflight_profile_facts[void_profile] }}"
+  ansible.builtin.assert:
+    that: ansible_facts[preflight_expect.fact] == preflight_expect.value
+    fail_msg: >-
+      Profile '{{ void_profile }}' needs {{ preflight_expect.label }}, but this host runs
+      {{ ansible_facts['distribution'] }} {{ ansible_facts['distribution_version'] }}.
+    quiet: true
+
+- name: Check the release is supported
+  when: preflight_min_release | length > 0
+  ansible.builtin.assert:
+    that: ansible_facts['distribution_version'] is version(preflight_min_release, '>=')
+    fail_msg: >-
+      {{ ansible_facts['distribution'] }} {{ ansible_facts['distribution_version'] }} is not supported by
+      '{{ void_profile }}' (need {{ preflight_min_release }} or newer).
+    quiet: true
+
+- name: Check the target user
+  when: preflight_selected_steps | intersect(preflight_user_steps) | length > 0
+  ansible.builtin.assert:
+    that:
+      - void_target_user | length > 0
+      - void_target_user != 'root'
+      - void_target_user is match(preflight_username_regex)
+    fail_msg: >-
+      void_target_user must be set to a non-root lowercase username
+      (got '{{ void_target_user }}'); pass -u <user> to bootstrap.sh or -e void_target_user=<user>.
+    quiet: true
+
+- name: Check the timezone exists
+  when:
+    - "'timezone' in preflight_selected_steps"
+    - timezone_name | default('') | length > 0
+  block:
+    - name: Look up the timezone in zoneinfo
+      ansible.builtin.stat:
+        path: "/usr/share/zoneinfo/{{ timezone_name }}"
+      register: preflight_tz
+
+    - name: Fail on unknown timezone
+      ansible.builtin.assert:
+        that:
+          - preflight_tz.stat.exists
+          - preflight_tz.stat.isreg or preflight_tz.stat.islnk
+          - "'..' not in timezone_name"
+        fail_msg: "Unknown timezone '{{ timezone_name }}' (not in /usr/share/zoneinfo)."
+        quiet: true
+
+- name: Check a new user has a password
+  when: "'user' in preflight_selected_steps"
+  block:
+    - name: Look up the target user
+      ansible.builtin.getent:
+        database: passwd
+        key: "{{ void_target_user }}"
+        fail_key: false
+
+    - name: Fail when creating a user without a password hash
+      ansible.builtin.assert:
+        that: >-
+          ansible_facts.getent_passwd[void_target_user] is not none
+          or (user_password_hash | default('') | length > 0)
+        fail_msg: >-
+          User '{{ void_target_user }}' doesn't exist and no user_password_hash was given.
+          bootstrap.sh asks for a password; for remote runs put a hash
+          (openssl passwd -6) in vaulted host_vars as user_password_hash.
+        quiet: true
+
+- name: Show the run plan
+  ansible.builtin.debug:
+    msg: "Profile {{ void_profile }} | steps: {{ preflight_selected_steps | join(', ') }}{{ ' | target user: ' + void_target_user if void_target_user | length > 0 else '' }}"

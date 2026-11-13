@@ -1,0 +1,19 @@
+---
+argument_specs:
+  main:
+    short_description: Install ordered package groups
+    options:
+      packages_groups:
+        type: list
+        elements: dict
+        default: []
+        description: Ordered groups, each with C(name) and a C(packages) list.
+      packages_exclude_groups:
+        type: list
+        elements: str
+        default: []
+        description: Names of groups to skip.
+      packages_apt_cache_valid_time:
+        type: int
+        default: 3600
+        description: Seconds an apt cache refresh stays valid.

@@ -1,0 +1,5 @@
+---
+- name: Sync databases and upgrade all packages
+  void_pacman:
+    update_cache: true
+    upgrade: true

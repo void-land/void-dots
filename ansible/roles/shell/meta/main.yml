@@ -1,0 +1,7 @@
+---
+galaxy_info:
+  author: void-dots
+  description: Make fish the target user's login shell
+  license: MIT
+  min_ansible_version: "2.14"
+dependencies: []

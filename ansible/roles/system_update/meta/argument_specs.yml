@@ -1,0 +1,9 @@
+---
+argument_specs:
+  main:
+    short_description: Full system upgrade
+    options:
+      system_update_apt_cache_valid_time:
+        type: int
+        default: 3600
+        description: Seconds an apt cache refresh stays valid.

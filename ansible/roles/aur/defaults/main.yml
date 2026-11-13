@@ -1,0 +1,6 @@
+---
+aur_packages: []
+# Package names to leave out.
+aur_exclude: []
+# Defaults to ~<void_target_user>/.cache/void-dots/aur inside the module.
+aur_build_dir: ""

@@ -1,0 +1,85 @@
+---
+- name: Check for active swap
+  ansible.builtin.command: swapon --show --noheadings
+  register: swap_active
+  changed_when: false
+  check_mode: false
+
+- name: Report existing swap
+  when: swap_active.stdout | length > 0
+  ansible.builtin.debug:
+    msg: "Swap is already active, skipping: {{ swap_active.stdout_lines }}"
+
+- name: Create the swapfile
+  when: swap_active.stdout | length == 0
+  block:
+    - name: Validate the swap size
+      ansible.builtin.assert:
+        that: swap_size is match('^[0-9]+[MG]$')
+        fail_msg: "swap_size must be a number followed by M or G (got '{{ swap_size }}')."
+        quiet: true
+
+    # An existing but inactive swapfile is stale; recreate it.
+    - name: Remove a stale swapfile
+      ansible.builtin.file:
+        path: "{{ swap_file }}"
+        state: absent
+
+    - name: Allocate the swapfile
+      ansible.builtin.command: fallocate -l {{ swap_size }} {{ swap_file | quote }}
+      args:
+        creates: "{{ swap_file }}"
+      register: swap_fallocate
+      failed_when: false
+
+    - name: Allocate with dd when fallocate isn't supported
+      when:
+        - not ansible_check_mode
+        - swap_fallocate.rc | default(0) != 0
+      vars:
+        swap_mib: "{{ (swap_size[:-1] | int) * (1024 if swap_size.endswith('G') else 1) }}"
+      ansible.builtin.command: dd if=/dev/zero of={{ swap_file | quote }} bs=1M count={{ swap_mib }}
+      changed_when: true
+
+    - name: Activate the swapfile
+      when: not ansible_check_mode
+      block:
+        - name: Restrict swapfile permissions
+          ansible.builtin.file:
+            path: "{{ swap_file }}"
+            owner: root
+            group: root
+            mode: "0600"
+
+        - name: Format the swapfile
+          ansible.builtin.command: mkswap {{ swap_file | quote }}
+          changed_when: true
+
+        - name: Enable the swapfile
+          ansible.builtin.command: swapon {{ swap_file | quote }}
+          changed_when: true
+
+      rescue:
+        - name: Remove the unusable swapfile
+          ansible.builtin.file:
+            path: "{{ swap_file }}"
+            state: absent
+
+        - name: Fail with the reason
+          ansible.builtin.fail:
+            msg: "Couldn't activate {{ swap_file }} (OpenVZ/LXC containers usually can't use swapfiles); removed it."
+
+    - name: Persist the swapfile in fstab
+      ansible.builtin.lineinfile:
+        path: /etc/fstab
+        regexp: '^\s*{{ swap_file | regex_escape }}\s'
+        line: "{{ swap_file }} none swap sw 0 0"
+
+    - name: Set vm.swappiness
+      ansible.builtin.copy:
+        content: "vm.swappiness={{ swap_swappiness }}\n"
+        dest: "{{ swap_sysctl_file }}"
+        owner: root
+        group: root
+        mode: "0644"
+      notify: Apply sysctl

@@ -1,0 +1,7 @@
+---
+galaxy_info:
+  author: void-dots
+  description: Sudo user with SSH keys
+  license: MIT
+  min_ansible_version: "2.14"
+dependencies: []

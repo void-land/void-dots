@@ -1,0 +1,9 @@
+---
+- name: Install apt packages
+  when: packages_selected | length > 0
+  ansible.builtin.apt:
+    name: "{{ packages_selected }}"
+    state: present
+    update_cache: true
+    cache_valid_time: "{{ packages_apt_cache_valid_time }}"
+    dpkg_options: force-confdef,force-confold

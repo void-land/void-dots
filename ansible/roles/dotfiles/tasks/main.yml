@@ -1,0 +1,94 @@
+---
+- name: Look up the target user
+  ansible.builtin.getent:
+    database: passwd
+    key: "{{ void_target_user }}"
+    fail_key: false
+
+- name: Fail when the target user is missing
+  when: not ansible_check_mode
+  ansible.builtin.assert:
+    that: ansible_facts.getent_passwd[void_target_user] is not none
+    fail_msg: "User '{{ void_target_user }}' doesn't exist (run the user step first)."
+    quiet: true
+
+- name: Clone and link the dotfiles
+  when: ansible_facts.getent_passwd[void_target_user] is not none
+  vars:
+    dotfiles_home: "{{ ansible_facts.getent_passwd[void_target_user][4] }}"
+    dotfiles_dest: "{{ dotfiles_home }}/{{ dotfiles_dest_name }}"
+  become_user: "{{ void_target_user }}"
+  environment:
+    HOME: "{{ dotfiles_home }}"
+  block:
+    - name: Look for an existing clone
+      ansible.builtin.stat:
+        path: "{{ dotfiles_dest }}/.git"
+      register: dotfiles_git
+
+    - name: Clone the repository
+      when: not dotfiles_git.stat.exists
+      ansible.builtin.git:
+        repo: "{{ dotfiles_repo_url }}"
+        dest: "{{ dotfiles_dest }}"
+        version: "{{ dotfiles_repo_branch }}"
+
+    - name: Inspect the existing clone
+      when: dotfiles_git.stat.exists
+      ansible.builtin.command: git -C {{ dotfiles_dest | quote }} status --porcelain --branch
+      register: dotfiles_status
+      changed_when: false
+      check_mode: false
+
+    - name: Update the existing clone
+      when:
+        - dotfiles_git.stat.exists
+        - dotfiles_update | bool
+      vars:
+        dotfiles_dirty: "{{ dotfiles_status.stdout_lines[1:] | length > 0 }}"
+        dotfiles_on_branch: "{{ dotfiles_status.stdout_lines[0] is match('## ' + dotfiles_repo_branch + '(\\.\\.\\.|$)') }}"
+      block:
+        - name: Warn that the clone is left alone
+          when: dotfiles_dirty or not dotfiles_on_branch
+          ansible.builtin.debug:
+            msg: >-
+              WARNING: {{ dotfiles_dest }} {{ 'has local changes' if dotfiles_dirty else 'is not on ' + dotfiles_repo_branch }};
+              not updating it, linking from the current tree.
+
+        - name: Read HEAD before the update
+          when: not dotfiles_dirty and dotfiles_on_branch
+          ansible.builtin.command: git -C {{ dotfiles_dest | quote }} rev-parse HEAD
+          register: dotfiles_head_before
+          changed_when: false
+          check_mode: false
+
+        - name: Fast-forward the clone
+          when: not dotfiles_dirty and dotfiles_on_branch
+          ansible.builtin.command: git -C {{ dotfiles_dest | quote }} pull --ff-only --quiet
+          register: dotfiles_pull
+          changed_when: false
+          failed_when: false
+
+        - name: Warn when the fast-forward failed
+          when:
+            - dotfiles_pull is not skipped
+            - dotfiles_pull.rc != 0
+          ansible.builtin.debug:
+            msg: "WARNING: git pull --ff-only failed in {{ dotfiles_dest }}: {{ dotfiles_pull.stderr | trim }}"
+
+        - name: Report whether the update moved HEAD
+          when: dotfiles_pull is not skipped
+          ansible.builtin.command: git -C {{ dotfiles_dest | quote }} rev-parse HEAD
+          register: dotfiles_head_after
+          changed_when: dotfiles_head_after.stdout != dotfiles_head_before.stdout
+          check_mode: false
+
+    - name: Link configs with stow.sh
+      # Runs in check mode too, as a dry run (-n) that changes nothing.
+      when: dotfiles_git.stat.exists or not ansible_check_mode
+      ansible.builtin.command:
+        cmd: "./stow.sh {{ '-n -s' if ansible_check_mode else '-s' }}"
+        chdir: "{{ dotfiles_dest }}"
+      register: dotfiles_stow
+      changed_when: dotfiles_stow.stdout is search(dotfiles_changed_regex)
+      check_mode: false

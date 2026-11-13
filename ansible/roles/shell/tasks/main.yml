@@ -1,0 +1,49 @@
+---
+- name: Look up the target user
+  ansible.builtin.getent:
+    database: passwd
+    key: "{{ void_target_user }}"
+    fail_key: false
+
+- name: Look up the shell binary
+  ansible.builtin.stat:
+    path: "{{ shell_path }}"
+  register: shell_bin
+
+- name: Fail when the user or shell is missing
+  vars:
+    shell_user_missing: "{{ ansible_facts.getent_passwd[void_target_user] is none }}"
+  when: not ansible_check_mode
+  ansible.builtin.assert:
+    that:
+      - not shell_user_missing
+      - shell_bin.stat.exists
+    fail_msg: >-
+      {{ ("User '" + void_target_user + "' doesn't exist (run the user step first).") if shell_user_missing
+         else (shell_path + " isn't installed (run the packages step first).") }}
+    quiet: true
+
+- name: Set the login shell
+  when: ansible_facts.getent_passwd[void_target_user] is not none
+  vars:
+    shell_current_path: "{{ ansible_facts.getent_passwd[void_target_user][5] }}"
+  block:
+    - name: List the shell in /etc/shells
+      ansible.builtin.lineinfile:
+        path: /etc/shells
+        line: "{{ shell_path }}"
+
+    # /bin/fish and /usr/bin/fish are the same file on usrmerged systems.
+    - name: Look up the current login shell
+      ansible.builtin.stat:
+        path: "{{ shell_current_path }}"
+      register: shell_current
+
+    - name: Make it the target user's login shell
+      when: >-
+        not (shell_current.stat.exists and shell_bin.stat.exists
+             and shell_current.stat.inode == shell_bin.stat.inode
+             and shell_current.stat.dev == shell_bin.stat.dev)
+      ansible.builtin.user:
+        name: "{{ void_target_user }}"
+        shell: "{{ shell_path }}"

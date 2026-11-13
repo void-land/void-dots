@@ -1,0 +1,30 @@
+---
+# Arch Linux / EndeavourOS desktop. Each role is one step; its tag is the
+# step id listed in inventory/group_vars/arch_desktop.yml (void_profile_steps).
+- name: Provision Arch desktop
+  hosts: arch_desktop
+  become: true
+  gather_facts: true
+  roles:
+    - role: preflight
+      tags: [always]
+    - role: pacman_config
+      tags: [pacman_config]
+    - role: system_update
+      tags: [system_update]
+    - role: packages
+      tags: [packages]
+    - role: services
+      tags: [services]
+    - role: display_manager
+      tags: [display_manager]
+    - role: aur
+      tags: [aur]
+    - role: locale
+      tags: [locale]
+    - role: shell
+      tags: [shell]
+    - role: gaming
+      tags: [gaming]
+    - role: dotfiles
+      tags: [dotfiles]

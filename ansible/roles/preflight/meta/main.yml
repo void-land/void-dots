@@ -1,0 +1,7 @@
+---
+galaxy_info:
+  author: void-dots
+  description: Validate distro, versions and inputs before any change
+  license: MIT
+  min_ansible_version: "2.14"
+dependencies: []

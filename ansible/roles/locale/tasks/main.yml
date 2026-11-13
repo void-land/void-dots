@@ -1,0 +1,26 @@
+---
+- name: Uncomment locales in locale.gen
+  loop: "{{ locale_enabled }}"
+  ansible.builtin.replace:
+    path: "{{ locale_gen_path }}"
+    regexp: "^#\\s*({{ item | regex_escape }})\\s*$"
+    replace: "\\1"
+  register: locale_uncomment
+  notify: Generate locales
+
+- name: Read locale.gen
+  ansible.builtin.slurp:
+    path: "{{ locale_gen_path }}"
+  register: locale_gen_file
+
+- name: Add locales that are missing entirely
+  loop: "{{ locale_uncomment.results }}"
+  loop_control:
+    label: "{{ item.item }}"
+  when:
+    - item is not changed
+    - not (locale_gen_file.content | b64decode) is search('(?m)^\\s*' ~ (item.item | regex_escape) ~ '\\s*$')
+  ansible.builtin.lineinfile:
+    path: "{{ locale_gen_path }}"
+    line: "{{ item.item }}"
+  notify: Generate locales

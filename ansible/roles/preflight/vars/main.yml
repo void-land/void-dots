@@ -1,0 +1,13 @@
+---
+# Distribution checks per profile: ansible_facts key -> expected value.
+preflight_profile_facts:
+  arch_desktop: {fact: os_family, value: Archlinux, label: "Arch Linux (or a derivative)"}
+  debian_vps: {fact: distribution, value: Debian, label: Debian}
+  ubuntu_vps: {fact: distribution, value: Ubuntu, label: Ubuntu}
+
+# Steps selected for this run (honours --tags / --skip-tags).
+preflight_all_steps: "{{ void_profile_steps | default([]) | map(attribute='id') | list }}"
+preflight_selected_steps: >-
+  {{ (preflight_all_steps if 'all' in ansible_run_tags
+      else preflight_all_steps | select('in', ansible_run_tags) | list)
+     | reject('in', ansible_skip_tags) | list }}

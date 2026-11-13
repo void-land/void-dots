@@ -1,0 +1,109 @@
+---
+- name: Refresh the apt cache
+  ansible.builtin.apt:
+    update_cache: true
+    cache_valid_time: "{{ docker_apt_cache_valid_time }}"
+
+- name: Probe optional Docker packages
+  loop: "{{ docker_compose_candidates + [docker_buildx_package] }}"
+  ansible.builtin.command: apt-cache policy {{ item | quote }}
+  register: docker_policy
+  changed_when: false
+  check_mode: false
+
+- name: Choose Docker packages
+  vars:
+    docker_available: >-
+      {{ docker_policy.results
+         | selectattr('stdout', 'search', 'Candidate: (?!\(none\))')
+         | map(attribute='item') | list }}
+    docker_compose: "{{ docker_compose_candidates | select('in', docker_available) | first | default('') }}"
+  ansible.builtin.set_fact:
+    docker_packages: >-
+      {{ ['docker.io']
+         + ([docker_compose] if docker_compose | length > 0 else [])
+         + ([docker_buildx_package] if docker_buildx_package in docker_available else []) }}
+    docker_has_compose: "{{ docker_compose | length > 0 }}"
+
+- name: Warn when no compose package is available
+  when: not docker_has_compose
+  ansible.builtin.debug:
+    msg: "WARNING: no compose package available, installing Docker without it."
+
+- name: Install Docker
+  ansible.builtin.apt:
+    name: "{{ docker_packages }}"
+    state: present
+    dpkg_options: force-confdef,force-confold
+
+- name: Create /etc/docker
+  ansible.builtin.file:
+    path: "{{ docker_daemon_json_path | dirname }}"
+    state: directory
+    owner: root
+    group: root
+    mode: "0755"
+  register: docker_etc
+
+- name: Write daemon.json log rotation (only if absent)
+  # Under --check a brand-new /etc/docker doesn't exist yet to copy into.
+  when: not (ansible_check_mode and docker_etc is changed)
+  ansible.builtin.copy:
+    content: "{{ docker_daemon_config | to_nice_json }}\n"
+    dest: "{{ docker_daemon_json_path }}"
+    force: false
+    owner: root
+    group: root
+    mode: "0644"
+  notify: Restart docker
+
+- name: Gather service facts
+  ansible.builtin.service_facts:
+
+- name: Enable Docker services
+  loop: [containerd, docker]
+  when: not ansible_check_mode or (item + '.service') in ansible_facts.services
+  ansible.builtin.systemd_service:
+    name: "{{ item }}.service"
+    enabled: true
+    state: started
+
+- name: Apply a daemon.json change now
+  ansible.builtin.meta: flush_handlers
+
+- name: Read the group database
+  ansible.builtin.getent:
+    database: group
+
+- name: Look up the target user
+  ansible.builtin.getent:
+    database: passwd
+    key: "{{ void_target_user }}"
+    fail_key: false
+
+- name: Warn when the target user doesn't exist
+  when: ansible_facts.getent_passwd[void_target_user] is none
+  ansible.builtin.debug:
+    msg: "WARNING: user '{{ void_target_user }}' doesn't exist - run the user step to add it to the docker group."
+
+- name: Add the target user to the docker group
+  when:
+    - ansible_facts.getent_passwd[void_target_user] is not none
+    - "'docker' in ansible_facts.getent_group"
+  ansible.builtin.user:
+    name: "{{ void_target_user }}"
+    groups: docker
+    append: true
+
+- name: Show Docker versions
+  when: not ansible_check_mode or 'docker.service' in ansible_facts.services
+  ansible.builtin.shell: docker --version && (docker compose version 2>/dev/null || docker-compose version 2>/dev/null || true)
+  register: docker_versions
+  changed_when: false
+  failed_when: false
+  check_mode: false
+
+- name: Report Docker versions
+  when: docker_versions is not skipped
+  ansible.builtin.debug:
+    msg: "{{ docker_versions.stdout_lines }}"

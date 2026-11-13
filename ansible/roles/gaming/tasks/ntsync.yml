@@ -1,0 +1,68 @@
+---
+- name: Check the kernel version for NTSync
+  vars:
+    gaming_kernel: "{{ ansible_facts['kernel'] | regex_search('^[0-9]+\\.[0-9]+') }}"
+  ansible.builtin.set_fact:
+    gaming_ntsync_kernel_ok: "{{ gaming_kernel is version(gaming_ntsync_min_kernel, '>=') }}"
+
+- name: Look for the kernel config
+  when: gaming_ntsync_kernel_ok | bool
+  ansible.builtin.stat:
+    path: "{{ item }}"
+  loop:
+    - "/boot/config-{{ ansible_facts['kernel'] }}"
+    - /proc/config.gz
+  register: gaming_kconfig
+
+- name: Check the kernel was built with NTSync
+  when: gaming_ntsync_kernel_ok | bool
+  vars:
+    gaming_kconfig_files: "{{ gaming_kconfig.results | selectattr('stat.exists') | map(attribute='item') | list }}"
+  ansible.builtin.command:
+    argv: >-
+      {{ (['zgrep' if gaming_kconfig_files[0].endswith('.gz') else 'grep', '-qE', '^CONFIG_NTSYNC=[ym]', gaming_kconfig_files[0]])
+         if gaming_kconfig_files | length > 0 else ['modinfo', 'ntsync'] }}
+  register: gaming_ntsync_kconfig
+  changed_when: false
+  failed_when: false
+  check_mode: false
+
+- name: Report missing NTSync support
+  when: not (gaming_ntsync_kernel_ok | bool) or gaming_ntsync_kconfig.rc != 0
+  ansible.builtin.debug:
+    msg: >-
+      Kernel {{ ansible_facts['kernel'] }}
+      {{ 'is older than ' + gaming_ntsync_min_kernel if not (gaming_ntsync_kernel_ok | bool) else "wasn't built with CONFIG_NTSYNC" }}
+      - NTSync isn't available, skipping.
+
+- name: Enable NTSync
+  when:
+    - gaming_ntsync_kernel_ok | bool
+    - gaming_ntsync_kconfig.rc == 0
+  block:
+    - name: Load ntsync at every boot
+      ansible.builtin.copy:
+        content: "ntsync\n"
+        dest: "{{ gaming_ntsync_conf }}"
+        owner: root
+        group: root
+        mode: "0644"
+
+    - name: Check whether ntsync is loaded
+      ansible.builtin.stat:
+        path: /dev/ntsync
+      register: gaming_ntsync_dev
+
+    - name: Load ntsync now
+      when: not gaming_ntsync_dev.stat.exists
+      ansible.builtin.command: modprobe ntsync
+      register: gaming_modprobe
+      changed_when: gaming_modprobe.rc == 0
+      failed_when: false
+
+    - name: Warn when ntsync couldn't be loaded now
+      when:
+        - gaming_modprobe is not skipped
+        - gaming_modprobe.rc | default(0) != 0
+      ansible.builtin.debug:
+        msg: "WARNING: couldn't load ntsync now ({{ gaming_modprobe.stderr | default('') | trim }}); it loads automatically at next boot."

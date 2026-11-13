@@ -1,0 +1,3 @@
+---
+- name: Run the distro-specific upgrade
+  ansible.builtin.include_tasks: "{{ ansible_facts['os_family'] }}.yml"

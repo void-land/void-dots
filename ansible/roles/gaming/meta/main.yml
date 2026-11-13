@@ -1,0 +1,7 @@
+---
+galaxy_info:
+  author: void-dots
+  description: GameMode group and NTSync module
+  license: MIT
+  min_ansible_version: "2.14"
+dependencies: []

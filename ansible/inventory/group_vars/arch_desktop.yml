@@ -1,0 +1,66 @@
+---
+# Arch Linux / EndeavourOS desktop profile.
+
+void_profile: arch_desktop
+
+# Remote pushes use the SSH user; local runs use whoever started the run.
+void_target_user: "{{ ansible_user | default(lookup('ansible.builtin.env', 'USER'), true) }}"
+
+# Step ids (= playbook tags) in run order, with picker labels for bootstrap.sh.
+# Must match the tagged roles in playbooks/arch_desktop.yml (lint.sh checks).
+void_profile_steps:
+  - id: pacman_config
+    desc: "Pacman config (ParallelDownloads, Color, multilib)"
+  - id: system_update
+    desc: "Update system"
+  - id: packages
+    desc: "Install pacman package groups"
+  - id: services
+    desc: "Enable system and user services"
+  - id: display_manager
+    desc: "Enable emptty display manager (disables SDDM/others)"
+  - id: aur
+    desc: "Install AUR packages"
+  - id: locale
+    desc: "Setup Persian locale (fa_IR UTF-8)"
+  - id: shell
+    desc: "Set Fish as default shell"
+  - id: gaming
+    desc: "Configure gaming environment (GameMode group, NTSync)"
+  - id: dotfiles
+    desc: "Clone repo and link dotfiles (stow.sh)"
+
+packages_groups:
+  - name: base
+    packages: [base-devel, emptty, fish, tmux, jq, git, curl, axel, xz, zstd, fzf, bandwhich, vortix, net-tools, dnsproxy, networkmanager, bluez, bluez-utils, xdg-utils, wl-clipboard, alacritty, kitty, evince]
+  - name: audio
+    packages: [pipewire, wireplumber, pipewire-pulse, pipewire-alsa, pipewire-jack, pavucontrol]
+  - name: gpu
+    packages: [mesa, lib32-mesa, vulkan-radeon, lib32-vulkan-radeon, vulkan-icd-loader, lib32-vulkan-icd-loader, vulkan-mesa-layers, vulkan-extra-layers, vulkan-tools, xf86-video-amdgpu]
+  - name: gaming
+    packages: [steam, umu-launcher, gamescope, mangohud, gamemode, lib32-mangohud, lib32-gamemode, goverlay]
+  - name: utilities
+    packages: [turbostat, iotop-c, glances, htop, btop, nvtop, amdgpu_top, stress-ng, cpu-x]
+  - name: fonts
+    packages: [ttf-jetbrains-mono-nerd, noto-fonts, noto-fonts-emoji, ttf-liberation]
+
+aur_packages:
+  - yay
+  - vscodium-bin
+  - google-chrome
+  - vazirmatn-fonts
+
+services_system:
+  - NetworkManager
+  - bluetooth
+
+services_user:
+  - pipewire
+  - wireplumber
+  - pipewire-pulse
+
+display_manager_name: emptty
+display_manager_conflicts: [sddm, gdm, lightdm, ly, lxdm, greetd]
+
+locale_enabled:
+  - fa_IR UTF-8

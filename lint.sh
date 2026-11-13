@@ -85,6 +85,38 @@ if command -v fish &>/dev/null; then
 	done
 fi
 
+if [[ -d ansible ]]; then
+	echo "==> ansible: builtin-only modules + profile steps"
+	python3 ansible/tools/lint_ansible.py || fail "ansible static checks"
+
+	echo "==> ansible: python modules compile"
+	mapfile -t PY_FILES < <(git ls-files --cached --others --exclude-standard -- 'ansible/*.py')
+	python3 - "${PY_FILES[@]}" <<-'EOF' || fail "ansible python modules"
+		import sys
+		for path in sys.argv[1:]:
+		    with open(path, encoding="utf-8") as fh:
+		        compile(fh.read(), path, "exec")
+	EOF
+
+	if command -v ansible-playbook &>/dev/null; then
+		echo "==> ansible-playbook --syntax-check"
+		for f in ansible/site.yml ansible/playbooks/*.yml; do
+			ANSIBLE_CONFIG="$REPO_DIR/ansible/ansible.cfg" ansible-playbook \
+				-i ansible/inventory/local.yml --syntax-check "$f" >/dev/null ||
+				fail "syntax: $f"
+		done
+	else
+		echo "==> ansible-playbook not installed, skipping syntax checks (pacman -S ansible-core)"
+	fi
+
+	if command -v ansible-lint &>/dev/null; then
+		echo "==> ansible-lint"
+		(cd ansible && ANSIBLE_CONFIG="$REPO_DIR/ansible/ansible.cfg" ansible-lint) || fail "ansible-lint"
+	else
+		echo "==> ansible-lint not installed, skipping (pacman -S ansible-lint)"
+	fi
+fi
+
 if ((failed)); then
 	echo "Lint failed."
 	exit 1

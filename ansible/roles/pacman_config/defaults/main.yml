@@ -1,0 +1,5 @@
+---
+pacman_config_path: /etc/pacman.conf
+pacman_config_parallel_downloads: 12
+pacman_config_color: true
+pacman_config_multilib: true

@@ -1,0 +1,45 @@
+---
+- name: Set ParallelDownloads
+  ansible.builtin.lineinfile:
+    path: "{{ pacman_config_path }}"
+    regexp: '^#?\s*ParallelDownloads\s*='
+    line: "ParallelDownloads = {{ pacman_config_parallel_downloads }}"
+    insertafter: '^\[options\]'
+  notify: Refresh pacman databases
+
+- name: Enable Color
+  when: pacman_config_color | bool
+  ansible.builtin.lineinfile:
+    path: "{{ pacman_config_path }}"
+    regexp: '^#?\s*Color\s*$'
+    line: Color
+    insertafter: '^\[options\]'
+
+- name: Enable the multilib repository
+  when: pacman_config_multilib | bool
+  ansible.builtin.replace:
+    path: "{{ pacman_config_path }}"
+    regexp: '^#\s*\[multilib\]\s*\n#\s*Include\s*=\s*/etc/pacman\.d/mirrorlist'
+    replace: "[multilib]\nInclude = /etc/pacman.d/mirrorlist"
+  register: pacman_config_multilib_result
+  notify: Refresh pacman databases
+
+- name: Verify multilib is enabled
+  when:
+    - pacman_config_multilib | bool
+    - not ansible_check_mode
+  ansible.builtin.command: grep -q '^\[multilib\]' {{ pacman_config_path | quote }}
+  changed_when: false
+  register: pacman_config_multilib_check
+  failed_when: pacman_config_multilib_check.rc > 1
+
+- name: Warn when multilib is still missing
+  when:
+    - pacman_config_multilib_check is not skipped
+    - pacman_config_multilib_check.rc == 1
+  ansible.builtin.debug:
+    msg: "WARNING: no [multilib] section found in {{ pacman_config_path }}; add it by hand."
+
+# The packages step needs the refreshed databases (lib32-* from multilib).
+- name: Apply pending database refresh now
+  ansible.builtin.meta: flush_handlers

@@ -1,0 +1,4 @@
+---
+# Entries of /etc/locale.gen to enable, e.g. "fa_IR UTF-8".
+locale_enabled: []
+locale_gen_path: /etc/locale.gen

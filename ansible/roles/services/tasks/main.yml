@@ -1,0 +1,28 @@
+---
+- name: Gather service facts
+  ansible.builtin.service_facts:
+
+- name: Enable and start system services
+  loop: "{{ services_system }}"
+  # In check mode a unit from a not-yet-installed package can't be queried.
+  when: not ansible_check_mode or (item + '.service') in ansible_facts.services
+  ansible.builtin.systemd_service:
+    name: "{{ item }}"
+    enabled: true
+    state: started
+
+- name: Look up user unit files
+  loop: "{{ services_user }}"
+  ansible.builtin.stat:
+    path: "/usr/lib/systemd/user/{{ item }}.service"
+  register: services_user_units
+
+- name: Enable user services for all users
+  loop: "{{ services_user_units.results }}"
+  loop_control:
+    label: "{{ item.item }}"
+  when: not ansible_check_mode or item.stat.exists
+  ansible.builtin.systemd_service:
+    name: "{{ item.item }}"
+    enabled: true
+    scope: global

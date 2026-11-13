@@ -1,0 +1,5 @@
+---
+gaming_group: gamemode
+gaming_ntsync: true
+gaming_ntsync_min_kernel: "6.14"
+gaming_ntsync_conf: /etc/modules-load.d/ntsync.conf

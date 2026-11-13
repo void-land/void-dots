@@ -51,6 +51,12 @@ create_link() {
 		return 1
 	fi
 
+	# Already linked correctly: stay silent so callers (Ansible's dotfiles
+	# role) can treat any "===>"/"Backing up"/"Pruned" line as a change.
+	if [[ -L "$target" && "$(readlink "$target")" == "$source" ]]; then
+		return 0
+	fi
+
 	[[ -d "$(dirname "$target")" ]] || run mkdir -p "$(dirname "$target")"
 
 	if [[ -e "$target" && ! -L "$target" ]]; then

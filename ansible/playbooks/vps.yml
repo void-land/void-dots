@@ -1,0 +1,27 @@
+---
+# Debian and Ubuntu VPS. Both distros share these roles and differ only in
+# inventory/group_vars/{debian,ubuntu}_vps.yml. Each role is one step; its tag
+# is the step id listed in inventory/group_vars/vps.yml (void_profile_steps).
+- name: Provision Debian/Ubuntu VPS
+  hosts: vps
+  become: true
+  gather_facts: true
+  roles:
+    - role: preflight
+      tags: [always]
+    - role: system_update
+      tags: [system_update]
+    - role: packages
+      tags: [packages]
+    - role: user
+      tags: [user]
+    - role: docker
+      tags: [docker]
+    - role: swap
+      tags: [swap]
+    - role: timezone
+      tags: [timezone]
+    - role: shell
+      tags: [shell]
+    - role: dotfiles
+      tags: [dotfiles]

@@ -1,0 +1,6 @@
+---
+swap_file: /swapfile
+# <number>M or <number>G
+swap_size: 2G
+swap_swappiness: 10
+swap_sysctl_file: /etc/sysctl.d/99-swappiness.conf

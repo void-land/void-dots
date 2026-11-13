@@ -1,0 +1,4 @@
+---
+- name: Display manager switched
+  ansible.builtin.debug:
+    msg: "{{ display_manager_name }} is enabled and takes over at the next boot."

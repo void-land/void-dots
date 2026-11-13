@@ -1,0 +1,5 @@
+---
+void_profile: debian_vps
+
+# Oldest supported release (Debian 12 bookworm); preflight rejects older.
+preflight_min_release: "12"

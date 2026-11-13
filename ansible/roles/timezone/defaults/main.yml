@@ -1,0 +1,4 @@
+---
+# Empty = keep the current timezone.
+timezone_name: ""
+timezone_ntp: true

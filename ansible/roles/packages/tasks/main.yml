@@ -1,0 +1,15 @@
+---
+- name: Warn about unknown excluded groups
+  vars:
+    packages_unknown: "{{ packages_exclude_groups | difference(packages_groups | map(attribute='name')) }}"
+  when: packages_unknown | length > 0
+  ansible.builtin.debug:
+    msg: "WARNING: excluded package group(s) not defined in this profile: {{ packages_unknown | join(', ') }}"
+
+- name: Install the selected package groups
+  vars:
+    packages_selected: >-
+      {{ packages_groups
+         | rejectattr('name', 'in', packages_exclude_groups)
+         | map(attribute='packages') | flatten | unique }}
+  ansible.builtin.include_tasks: "{{ ansible_facts['os_family'] }}.yml"

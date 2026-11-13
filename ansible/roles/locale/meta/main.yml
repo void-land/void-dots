@@ -1,0 +1,7 @@
+---
+galaxy_info:
+  author: void-dots
+  description: Enable locales in /etc/locale.gen and regenerate
+  license: MIT
+  min_ansible_version: "2.14"
+dependencies: []

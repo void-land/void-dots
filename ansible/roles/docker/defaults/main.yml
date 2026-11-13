@@ -1,0 +1,13 @@
+---
+# First available wins: Ubuntu ships compose v2 as docker-compose-v2, Debian as
+# docker-compose (v1 on bookworm, v2 on trixie+).
+docker_compose_candidates: [docker-compose-v2, docker-compose]
+docker_buildx_package: docker-buildx
+docker_daemon_json_path: /etc/docker/daemon.json
+# Written only if daemon.json doesn't exist yet.
+docker_daemon_config:
+  log-driver: json-file
+  log-opts:
+    max-size: 10m
+    max-file: "3"
+docker_apt_cache_valid_time: 3600

@@ -1,0 +1,3 @@
+---
+display_manager_name: emptty
+display_manager_conflicts: [sddm, gdm, lightdm, ly, lxdm, greetd]

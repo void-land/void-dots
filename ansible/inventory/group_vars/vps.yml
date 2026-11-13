@@ -1,0 +1,38 @@
+---
+# Shared by the debian_vps and ubuntu_vps profiles. Distro-specific
+# overrides live in debian_vps.yml / ubuntu_vps.yml.
+
+# Step ids (= playbook tags) in run order, with picker labels for bootstrap.sh.
+# Must match the tagged roles in playbooks/vps.yml (lint.sh checks).
+void_profile_steps:
+  - id: system_update
+    desc: "Update system"
+  - id: packages
+    desc: "Install apt package groups"
+  - id: user
+    desc: "Create/configure sudo user (+ SSH keys)"
+  - id: docker
+    desc: "Install Docker (docker.io + compose)"
+  - id: swap
+    desc: "Create swapfile"
+  - id: timezone
+    desc: "Set timezone + enable NTP"
+  - id: shell
+    desc: "Set Fish as default shell"
+  - id: dotfiles
+    desc: "Clone repo and link dotfiles (stow.sh)"
+
+packages_groups:
+  - name: base
+    packages: [sudo, ca-certificates, curl, wget, git, gnupg, fish, tmux, vim, jq, fzf, rsync, unzip, xz-utils, zstd, bash-completion, acl]
+  - name: utilities
+    packages: [htop, btop, ncdu, iotop-c, glances, lsof]
+  - name: network
+    packages: [net-tools, dnsutils, iproute2, iputils-ping, traceroute, mtr-tiny, tcpdump]
+
+swap_size: 2G
+swap_file: /swapfile
+swap_swappiness: 10
+
+# Empty = keep the machine's current timezone.
+timezone_name: ""

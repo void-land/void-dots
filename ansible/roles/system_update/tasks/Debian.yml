@@ -1,0 +1,7 @@
+---
+- name: Refresh apt cache and dist-upgrade (keep modified config files)
+  ansible.builtin.apt:
+    update_cache: true
+    cache_valid_time: "{{ system_update_apt_cache_valid_time }}"
+    upgrade: dist
+    dpkg_options: force-confdef,force-confold

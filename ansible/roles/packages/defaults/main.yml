@@ -1,0 +1,6 @@
+---
+# Ordered groups: [{name: <group>, packages: [<pkg>, ...]}, ...]
+packages_groups: []
+# Group names to leave out (bootstrap.sh fills this from its picker).
+packages_exclude_groups: []
+packages_apt_cache_valid_time: 3600

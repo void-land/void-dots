@@ -1,0 +1,72 @@
+---
+- name: Re-read the user entry
+  ansible.builtin.getent:
+    database: passwd
+    key: "{{ void_target_user }}"
+
+- name: Set SSH paths
+  ansible.builtin.set_fact:
+    user_ssh_dir: "{{ ansible_facts.getent_passwd[void_target_user][4] }}/.ssh"
+
+- name: Create ~/.ssh
+  ansible.builtin.file:
+    path: "{{ user_ssh_dir }}"
+    state: directory
+    owner: "{{ void_target_user }}"
+    group: "{{ ansible_facts.getent_passwd[void_target_user][2] }}"
+    mode: "0700"
+
+- name: Add configured public keys
+  loop: "{{ user_ssh_keys }}"
+  loop_control:
+    label: "{{ item.split()[:2] | join(' ') | truncate(40) }}"
+  ansible.builtin.lineinfile:
+    path: "{{ user_ssh_dir }}/authorized_keys"
+    line: "{{ item }}"
+    create: true
+    owner: "{{ void_target_user }}"
+    group: "{{ ansible_facts.getent_passwd[void_target_user][2] }}"
+    mode: "0600"
+
+- name: Copy root's keys when none are configured
+  when: user_ssh_keys | length == 0
+  block:
+    - name: Look up existing authorized_keys
+      loop:
+        - "{{ user_ssh_dir }}/authorized_keys"
+        - /root/.ssh/authorized_keys
+      ansible.builtin.stat:
+        path: "{{ item }}"
+      register: user_keys_stat
+
+    - name: Copy root's authorized_keys
+      when:
+        - (user_keys_stat.results[0].stat.size | default(0)) == 0
+        - (user_keys_stat.results[1].stat.size | default(0)) > 0
+      ansible.builtin.copy:
+        src: /root/.ssh/authorized_keys
+        dest: "{{ user_ssh_dir }}/authorized_keys"
+        remote_src: true
+        owner: "{{ void_target_user }}"
+        group: "{{ ansible_facts.getent_passwd[void_target_user][2] }}"
+        mode: "0600"
+
+    - name: Note there were no keys to copy
+      when:
+        - (user_keys_stat.results[0].stat.size | default(0)) == 0
+        - (user_keys_stat.results[1].stat.size | default(0)) == 0
+      ansible.builtin.debug:
+        msg: "WARNING: no /root/.ssh/authorized_keys to copy - add an SSH key for '{{ void_target_user }}' (user_ssh_keys)."
+
+- name: Look up authorized_keys
+  ansible.builtin.stat:
+    path: "{{ user_ssh_dir }}/authorized_keys"
+  register: user_keys_final
+
+- name: Enforce authorized_keys permissions
+  when: user_keys_final.stat.exists
+  ansible.builtin.file:
+    path: "{{ user_ssh_dir }}/authorized_keys"
+    owner: "{{ void_target_user }}"
+    group: "{{ ansible_facts.getent_passwd[void_target_user][2] }}"
+    mode: "0600"

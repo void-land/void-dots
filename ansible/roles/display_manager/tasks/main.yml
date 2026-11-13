@@ -1,0 +1,22 @@
+---
+- name: Gather service facts
+  ansible.builtin.service_facts:
+
+# Disabled but deliberately not stopped: stopping the running display
+# manager would kill the session this run may be executing in.
+- name: Disable conflicting display managers
+  loop: "{{ display_manager_conflicts }}"
+  when: ansible_facts.services[item + '.service'].status | default('') == 'enabled'
+  ansible.builtin.systemd_service:
+    name: "{{ item }}.service"
+    enabled: false
+
+- name: Enable the display manager
+  when: not ansible_check_mode or (display_manager_name + '.service') in ansible_facts.services
+  ansible.builtin.systemd_service:
+    name: "{{ display_manager_name }}.service"
+    enabled: true
+  notify: Display manager switched
+
+- name: Remind that the switch applies at boot
+  ansible.builtin.meta: flush_handlers

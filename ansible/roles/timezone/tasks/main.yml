@@ -1,0 +1,65 @@
+---
+- name: Read the current timezone (timedatectl)
+  ansible.builtin.command: timedatectl show -p Timezone --value
+  register: timezone_current
+  changed_when: false
+  failed_when: false
+  check_mode: false
+
+- name: Set the timezone with systemd
+  when: timezone_current.rc == 0
+  block:
+    - name: Set the timezone
+      when:
+        - timezone_name | length > 0
+        - timezone_current.stdout != timezone_name
+      # Under --check this reports the pending change without running it.
+      ansible.builtin.command: "{{ 'true' if ansible_check_mode else 'timedatectl set-timezone ' + (timezone_name | quote) }}"
+      changed_when: true
+      check_mode: false
+
+    - name: Read the NTP setting
+      when: timezone_ntp | bool
+      ansible.builtin.command: timedatectl show -p NTP --value
+      register: timezone_ntp_state
+      changed_when: false
+      check_mode: false
+
+    - name: Enable NTP
+      when:
+        - timezone_ntp | bool
+        - timezone_ntp_state.stdout != 'yes'
+      ansible.builtin.command: "{{ 'true' if ansible_check_mode else 'timedatectl set-ntp true' }}"
+      register: timezone_set_ntp
+      changed_when: timezone_set_ntp.rc == 0
+      failed_when: false
+      check_mode: false
+
+    - name: Warn when NTP couldn't be enabled
+      when:
+        - timezone_set_ntp is not skipped
+        - timezone_set_ntp.rc | default(0) != 0
+      ansible.builtin.debug:
+        msg: "WARNING: couldn't enable NTP ({{ timezone_set_ntp.stderr | default('') | trim }}); install systemd-timesyncd or chrony."
+
+- name: Set the timezone without systemd (e.g. containers)
+  when:
+    - timezone_current.rc != 0
+    - timezone_name | length > 0
+  block:
+    - name: Point /etc/localtime at the zone
+      ansible.builtin.file:
+        src: "/usr/share/zoneinfo/{{ timezone_name }}"
+        dest: /etc/localtime
+        state: link
+        force: true
+
+    - name: Write /etc/timezone
+      ansible.builtin.copy:
+        content: "{{ timezone_name }}\n"
+        dest: /etc/timezone
+        mode: "0644"
+
+    - name: Warn that NTP is not configured
+      ansible.builtin.debug:
+        msg: "WARNING: timedatectl unavailable; set /etc/localtime directly (NTP not configured)."

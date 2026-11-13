@@ -98,7 +98,7 @@ warn_box() {
 	echo ""
 }
 
-# Shared color vars (select_exclusions, void-arch-setup, void-steam-prefixes).
+# Shared color vars (select_exclusions, bootstrap.sh, void-steam-prefixes).
 C_RED='\033[0;31m'
 C_GREEN='\033[0;32m'
 C_BLUE='\033[0;34m'

@@ -1,0 +1,3 @@
+---
+# apt: skip the cache refresh if it is younger than this (seconds).
+system_update_apt_cache_valid_time: 3600

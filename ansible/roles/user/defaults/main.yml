@@ -1,0 +1,10 @@
+---
+# SHA-512 crypt hash ($6$...) for a NEW user; bootstrap.sh fills it from a
+# prompt, remote runs from vaulted host_vars. Never logged.
+user_password_hash: ""
+# Also re-apply the hash to an existing user.
+user_update_password: false
+user_groups: [sudo]
+# Public keys to add to authorized_keys. When empty and the user has no
+# authorized_keys yet, root's are copied instead.
+user_ssh_keys: []

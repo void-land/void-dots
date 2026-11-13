@@ -1,0 +1,26 @@
+---
+- name: Look up the GameMode group
+  ansible.builtin.getent:
+    database: group
+    key: "{{ gaming_group }}"
+    fail_key: false
+
+- name: Fail when the GameMode group is missing
+  when: not ansible_check_mode
+  ansible.builtin.assert:
+    that: ansible_facts.getent_group[gaming_group] is not none
+    fail_msg: >-
+      The '{{ gaming_group }}' group doesn't exist - is the gamemode package installed?
+      (run the packages step with the gaming group first)
+    quiet: true
+
+- name: Add the target user to the GameMode group
+  when: ansible_facts.getent_group[gaming_group] is not none
+  ansible.builtin.user:
+    name: "{{ void_target_user }}"
+    groups: "{{ gaming_group }}"
+    append: true
+
+- name: Configure NTSync
+  when: gaming_ntsync | bool
+  ansible.builtin.include_tasks: ntsync.yml

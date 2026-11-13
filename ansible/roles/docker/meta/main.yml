@@ -1,0 +1,7 @@
+---
+galaxy_info:
+  author: void-dots
+  description: Docker from distro repos with log rotation
+  license: MIT
+  min_ansible_version: "2.14"
+dependencies: []

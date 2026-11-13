@@ -1,0 +1,53 @@
+---
+- name: Look up the target user
+  ansible.builtin.getent:
+    database: passwd
+    key: "{{ void_target_user }}"
+    fail_key: false
+
+- name: Note whether the user is new
+  ansible.builtin.set_fact:
+    user_is_new: "{{ ansible_facts.getent_passwd[void_target_user] is none }}"
+
+- name: Fail when creating a user without a password hash
+  when: user_is_new and user_password_hash | length == 0
+  ansible.builtin.fail:
+    msg: >-
+      User '{{ void_target_user }}' doesn't exist and no user_password_hash was given
+      (bootstrap.sh asks for one; remote runs: put an `openssl passwd -6` hash in vaulted host_vars).
+
+- name: Create or update the user
+  ansible.builtin.user:
+    name: "{{ void_target_user }}"
+    create_home: true
+    # Only on creation: the shell step owns the login shell afterwards.
+    shell: "{{ '/bin/bash' if user_is_new else omit }}"
+    password: "{{ user_password_hash if user_password_hash | length > 0 else omit }}"
+    update_password: "{{ 'always' if user_update_password | bool else 'on_create' }}"
+  no_log: true
+
+- name: Read the group database
+  ansible.builtin.getent:
+    database: group
+
+- name: Fail when a group is missing
+  loop: "{{ user_groups }}"
+  when:
+    - not ansible_check_mode
+    - item not in ansible_facts.getent_group
+  ansible.builtin.fail:
+    msg: "The '{{ item }}' group doesn't exist - is the sudo package installed? (run the packages step first)"
+
+- name: Add the user to its groups
+  vars:
+    user_existing_groups: "{{ user_groups | select('in', ansible_facts.getent_group) | list }}"
+  when: user_existing_groups | length > 0
+  ansible.builtin.user:
+    name: "{{ void_target_user }}"
+    groups: "{{ user_existing_groups }}"
+    append: true
+
+# A brand-new user doesn't exist yet in check mode, so skip the key setup there.
+- name: Install SSH keys
+  when: not (ansible_check_mode and user_is_new)
+  ansible.builtin.include_tasks: ssh_keys.yml

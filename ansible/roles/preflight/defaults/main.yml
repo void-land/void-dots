@@ -1,0 +1,8 @@
+---
+# Profile name, set by inventory/group_vars/<profile>.yml.
+void_profile: ""
+# Oldest supported release for VPS profiles (empty = no check).
+preflight_min_release: ""
+preflight_username_regex: "^[a-z_][a-z0-9_-]*$"
+# Steps that act on void_target_user and therefore need it set.
+preflight_user_steps: [user, docker, shell, dotfiles, aur, gaming]

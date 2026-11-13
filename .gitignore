@@ -1,3 +1,8 @@
 **/__pycache__/
 **.auth
 dotfiles/shell/fish/completions/copilot.fish
+
+# Ansible: remote inventory and per-host secrets stay local
+ansible/inventory/hosts.yml
+ansible/inventory/host_vars/*
+!ansible/inventory/host_vars/README.md

@@ -1,0 +1,6 @@
+---
+# System units (without .service) to enable and start.
+services_system: []
+# User units enabled globally (systemctl --global): active at each user's next
+# login, no user D-Bus session needed during the run.
+services_user: []

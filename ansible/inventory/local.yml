@@ -1,0 +1,18 @@
+# Local inventory: one localhost entry per profile. Apply a profile to the
+# machine running Ansible by limiting to its entry, e.g.
+#   ansible-playbook -i inventory/local.yml -l local-arch playbooks/arch_desktop.yml
+all:
+  children:
+    arch_desktop:
+      hosts:
+        local-arch:
+    vps:
+      children:
+        debian_vps:
+          hosts:
+            local-debian:
+        ubuntu_vps:
+          hosts:
+            local-ubuntu:
+  vars:
+    ansible_connection: local

@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## What this repo is
 
-A personal dotfiles repo for Arch/EndeavourOS + KDE Plasma. There is no build, no test suite, and no package manager — the "product" is a tree of config files plus bash/fish scripts that get symlinked into `$HOME`. The root holds only tooling (`stow.sh`, `lint.sh`) and docs; everything deployable lives under `dotfiles/` (`apps/`, `shell/`, `editors/`, `kde/`, `home/`, `scripts/`). Verification means running `./lint.sh` and re-running the linker, not running tests.
+A personal dotfiles repo for Arch/EndeavourOS + KDE Plasma. There is no build, no test suite, and no package manager — the "product" is a tree of config files plus bash/fish scripts that get symlinked into `$HOME`. The root holds only tooling (`bootstrap.sh`, `stow.sh`, `lint.sh`, `ansible/`) and docs; everything deployable lives under `dotfiles/` (`apps/`, `shell/`, `editors/`, `kde/`, `home/`, `scripts/`). Verification means running `./lint.sh`, re-running the linker, and `--check` runs of the Ansible profiles, not running tests.
 
 ## Commands
 
@@ -13,8 +13,13 @@ A personal dotfiles repo for Arch/EndeavourOS + KDE Plasma. There is no build, n
 ./stow.sh -u          # remove those symlinks (only ones pointing back into the repo)
 ./stow.sh -n -s       # dry run
 ./lint.sh             # bash -n + shfmt + shellcheck (if installed) + fish --no-execute; -w applies shfmt
-dotfiles/scripts/void-arch-setup -h   # provisioning script; -s full setup, -p/-a/-m/-l/-f/-g/-e per-step
-dotfiles/scripts/void-debian-vps-setup -h   # Debian/Ubuntu VPS provisioning (runs as root); -s full, -p/-a/-d/-w/-t/-f per-step, -u <user>
+./bootstrap.sh -h     # provisioning entry point: detects distro, installs ansible-core, runs the profile
+./bootstrap.sh -n     # dry run (--check) with step/package-group pickers; -y unattended, -t/-x steps, -u user, -e vars, -- passthrough
+
+# Ansible by hand (from ansible/; ANSIBLE_CONFIG is required for the builtin-only policy)
+export ANSIBLE_CONFIG=$PWD/ansible.cfg
+ansible-playbook -i inventory/local.yml -l local-arch playbooks/arch_desktop.yml -K --check
+ansible-playbook -i inventory/hosts.yml playbooks/vps.yml -l <host>     # push to a VPS (hosts.yml is git-ignored)
 
 dotfiles/apps/alacritty/themes.sh       # re-pull alacritty themes from upstream
 ```
@@ -54,7 +59,7 @@ KDE rewrites its rc files during normal desktop use and fills them with per-inst
 **Ordered profile maps.** Bash associative arrays are unordered, so scripts that present menus keep an explicit order array alongside the map. When adding an entry, update **both**:
 - `dotfiles/scripts/void-dns-changer` and `void-dnsproxy-changer`: `DNS_SERVERS`/`DNS_PROFILES` + `DNS_PROFILE_ORDER` (all three scripts)
 - `dotfiles/scripts/void-arch-zram`: `ZRAM_PROFILES` + `ZRAM_PROFILE_DESC` + `ZRAM_PROFILE_ORDER`.
-- `dotfiles/scripts/void-arch-setup` and `void-debian-vps-setup`: `PACKAGES_LIST` + `ORDERS_LIST`; also `STEP_NAMES` + `STEP_FUNCS`, which are paired **by index** and must stay aligned.
+- Ansible profiles need no order arrays: package groups are ordered YAML lists (`packages_groups: [{name, packages}]`). But each profile's `void_profile_steps` (in `ansible/inventory/group_vars/`) must list the same step ids, in the same order, as the tagged roles in its playbook (`./lint.sh` checks).
 
 **Library + thin wrapper.** Shared logic lives in a `*-lib.sh` that refuses to run when executed directly (`BASH_SOURCE[0] == $0` guard); callers source it, set config variables, then call one entry point:
 - `dotfiles/home/.vpn/ovpn-lib.sh` ← `eliteping-ovpn`, `vpnbaz-ovpn` set `VPN_CONFIG_DIR`/`VPN_AUTH_FILE`/`VPN_EXTRA_ARGS`, then `vpn_connect_interactive`.
@@ -63,7 +68,17 @@ KDE rewrites its rc files during normal desktop use and fills them with per-inst
 
 **Script conventions in `dotfiles/scripts/`:** executables are named `void-<name>` (the sourced `scripts-lib.sh` is not prefixed); `info`/`success`/`warn`/`die` helpers, `require_root` that re-execs via `exec sudo bash "$0" "$@"`, a `usage()` heredoc, `getopts` main, and box-drawing `# ─────` section separators. Interactive by default with non-interactive flags (`-p <profile>`, `-l`). These scripts are on `PATH` via `fish_add_path $HOME/.scripts` and `$HOME/.vpn` in `dotfiles/shell/fish/_env.fish`. Scripts that need repo files outside `dotfiles/scripts/` resolve their own dir with `readlink -f "${BASH_SOURCE[0]}"`, because they're usually invoked through the `~/.scripts` symlink.
 
-**Step-picker prompting model** (`void-arch-setup`, `void-debian-vps-setup`, `void-kde-setup`): one up-front `select_exclusions` picker (yay-style, accepts `1 2 3`, `1-3`, `^4`) rather than per-step yes/no. It lives in `scripts-lib.sh`; it uses bash namerefs for input/output arrays so nested calls can't clobber each other. In `void-arch-setup` and `void-debian-vps-setup`, `ASSUME_YES` suppresses later `ask_prompt` calls once the user has chosen. `void-kde-setup` skips the picker with `-o`/`-y` or when stdin isn't a TTY.
+**Step-picker prompting model** (`bootstrap.sh`, `void-kde-setup`): one up-front `select_exclusions` picker (yay-style, accepts `1 2 3`, `1-3`, `^4`) rather than per-step yes/no. It lives in `scripts-lib.sh`; it uses bash namerefs for input/output arrays so nested calls can't clobber each other. `bootstrap.sh` sources it from the clone, turns step exclusions into `--skip-tags` and package-group exclusions into `packages_exclude_groups`, asks for every input before the run, and skips pickers with `-y`, `-t`/`-x`, or a non-TTY stdin. `void-kde-setup` skips the picker with `-o`/`-y` or when stdin isn't a TTY.
+
+## Ansible provisioning (`ansible/`)
+
+`bootstrap.sh` (root) replaces the old `void-arch-setup`/`void-debian-vps-setup` scripts. Profiles are inventory groups: `arch_desktop`, and `debian_vps` + `ubuntu_vps` (children of `vps`, sharing `playbooks/vps.yml`). Each step is one role tagged with its step id; `preflight` is tagged `always`.
+
+- **Builtin-only, enforced.** Use only `ansible.builtin.*` (FQCN) or the repo's own modules: `library/void_pacman.py` (pacman) and `library/void_aur.py` (makepkg as the target user via `runuser`, then `pacman -U`; no yay or sudo during the build). Shared helpers live in `module_utils/void_common.py`. `ansible.cfg` sets `collections_scan_sys_path = False` and points `collections_path` at a directory that doesn't exist. `ansible/tools/lint_ansible.py` (run by `lint.sh`) rejects any other module, `collections:`, and `requirements.yml`. When a builtin is missing (sysctl, timezone, authorized_key, mount, modprobe), compose builtins (`lineinfile`, `copy`, `command` with handlers) before writing a new `void_*` module.
+- **Variables.** `inventory/group_vars/` is next to the inventory, so every playbook dir loads it: `all` < `vps` < `debian_vps`/`ubuntu_vps`, plus `arch_desktop`. `host_vars/` is git-ignored apart from its README. Globals use the `void_` prefix (`void_target_user`, `void_repo_*`, `void_profile_steps`); role vars use the role name as prefix. Debian/Ubuntu must not override `void_profile_steps`.
+- **Role contract.** Idempotent: a second run is `changed=0`. Check-mode safe: read-only probes use `changed_when: false` and `check_mode: false`; tasks that depend on something an earlier step would create are guarded with `not ansible_check_mode or <exists>`. Use `ansible_facts[...]`, not injected `ansible_*` fact vars, and real boolean conditionals (ansible-core 2.19+ is strict). Secrets get `no_log: true`. Content must work on ansible-core 2.14 through 2.22.
+- **`dotfiles` role** runs `stow.sh` as the target user and detects changes from ` ===> `/`Backing up `/`Pruned dangling` lines. So `stow.sh` must stay silent for links that are already correct. Existing clones are only updated with `git pull --ff-only`, never with `ansible.builtin.git` (its update path can reset away local commits).
+- **Testing without sudo:** `-e ansible_become=false --check`. VPS roles can run on the Arch box with `-l local-debian -e void_profile=arch_desktop -e preflight_min_release=`.
 
 ## Fish configuration structure
 
@@ -89,4 +104,4 @@ KDE rewrites its rc files during normal desktop use and fills them with per-inst
 - Commits: Conventional Commits with a component scope — `feat(dnsproxy-changer): …`, `chore(fish): …`, `refactor(dns-scripts): …`, `fix(kde): …`.
 - Bash scripts use tabs for indentation; fish uses 4 spaces.
 - `.gitignore` excludes `**.auth` — VPN credential files are never committed; `dotfiles/home/.vpn/ovpn-servers/example.auth.txt` is the template.
-- Keep `README.md`'s structure/flag tables in sync when changing `stow.sh`, `void-arch-setup`, `void-debian-vps-setup` or `void-kde-setup` flags.
+- Keep `README.md`'s structure/flag/profile tables in sync when changing `stow.sh`, `bootstrap.sh` flags, Ansible profile steps, or `void-kde-setup` flags.

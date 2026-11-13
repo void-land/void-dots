@@ -1,0 +1,5 @@
+---
+void_profile: ubuntu_vps
+
+# Oldest supported release (Ubuntu 22.04 jammy); preflight rejects older.
+preflight_min_release: "22.04"

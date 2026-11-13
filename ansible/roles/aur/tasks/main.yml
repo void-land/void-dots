@@ -1,0 +1,13 @@
+---
+- name: Install AUR build prerequisites
+  void_pacman:
+    name: [base-devel, git]
+
+- name: Build and install AUR packages
+  vars:
+    aur_selected: "{{ aur_packages | difference(aur_exclude) }}"
+  when: aur_selected | length > 0
+  void_aur:
+    name: "{{ aur_selected }}"
+    build_user: "{{ void_target_user }}"
+    build_dir: "{{ aur_build_dir if aur_build_dir | length > 0 else omit }}"

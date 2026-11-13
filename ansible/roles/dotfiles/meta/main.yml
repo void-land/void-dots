@@ -1,0 +1,7 @@
+---
+galaxy_info:
+  author: void-dots
+  description: Clone the repo for the target user and link it with stow.sh
+  license: MIT
+  min_ansible_version: "2.14"
+dependencies: []

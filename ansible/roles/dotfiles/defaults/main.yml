@@ -1,0 +1,8 @@
+---
+dotfiles_repo_url: "{{ void_repo_url }}"
+dotfiles_repo_branch: "{{ void_repo_branch }}"
+# Relative to the target user's home.
+dotfiles_dest_name: "{{ void_repo_dest_name }}"
+# Fast-forward an existing clone (only when clean and on dotfiles_repo_branch).
+dotfiles_update: true
+dotfiles_changed_regex: " ===> |Backing up |Pruned dangling"

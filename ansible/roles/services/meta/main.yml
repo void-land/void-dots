@@ -1,0 +1,7 @@
+---
+galaxy_info:
+  author: void-dots
+  description: Enable system services and global user services
+  license: MIT
+  min_ansible_version: "2.14"
+dependencies: []

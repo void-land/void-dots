@@ -1,0 +1,7 @@
+---
+galaxy_info:
+  author: void-dots
+  description: Install ordered package groups (pacman or apt), minus excluded groups
+  license: MIT
+  min_ansible_version: "2.14"
+dependencies: []

@@ -1,0 +1,8 @@
+---
+# Apply the right profile to every host in the inventory:
+#   ansible-playbook -i inventory/hosts.yml site.yml
+- name: Arch desktop profile
+  ansible.builtin.import_playbook: playbooks/arch_desktop.yml
+
+- name: Debian/Ubuntu VPS profiles
+  ansible.builtin.import_playbook: playbooks/vps.yml

@@ -1,0 +1,14 @@
+---
+# Shared by every profile. Cross-role globals use the void_ prefix.
+
+void_repo_url: https://github.com/void-land/void-dots.git
+void_repo_branch: main
+# Clone location, relative to the target user's home directory.
+void_repo_dest_name: .void-dots
+
+void_min_ansible_version: "2.14"
+
+# Non-root user that user-scoped steps (shell, groups, dotfiles, AUR builds)
+# act on. The Arch profile defaults it to the invoking user; VPS profiles
+# require it explicitly.
+void_target_user: ""

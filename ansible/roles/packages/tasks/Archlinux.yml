@@ -1,0 +1,6 @@
+---
+- name: Install pacman packages
+  when: packages_selected | length > 0
+  void_pacman:
+    name: "{{ packages_selected }}"
+    state: present

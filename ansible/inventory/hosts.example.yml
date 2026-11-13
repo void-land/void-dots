@@ -1,0 +1,27 @@
+# Remote inventory template. Copy to inventory/hosts.yml (git-ignored):
+#   cp inventory/hosts.example.yml inventory/hosts.yml
+# then push a profile from this machine over SSH:
+#   ansible-playbook -i inventory/hosts.yml playbooks/vps.yml -l my-debian-vps
+#
+# Per-host settings and secrets go in inventory/host_vars/<host>.yml
+# (git-ignored), ideally encrypted: ansible-vault encrypt inventory/host_vars/<host>.yml
+all:
+  children:
+    vps:
+      children:
+        debian_vps:
+          hosts:
+            my-debian-vps:
+              ansible_host: 203.0.113.10
+              ansible_user: root
+              void_target_user: deploy
+        ubuntu_vps:
+          hosts:
+            my-ubuntu-vps:
+              ansible_host: 203.0.113.20
+              # Connect as an existing sudo user instead of root; put
+              # ansible_become_password in vaulted host_vars (or pass -K).
+              ansible_user: ubuntu
+              void_target_user: deploy
+    arch_desktop:
+      hosts: {}
