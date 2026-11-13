@@ -5,9 +5,12 @@ abbr dip "dig +short myip.opendns.com @resolver1.opendns.com -4"
 abbr dci "sudo chattr -i /etc/resolv.conf"
 abbr dcp "sudo chattr +i /etc/resolv.conf"
 
+# Ping to google dns
 abbr pg "ping -c 10 -i 0.002 -v 8.8.8.8"
 abbr pgr "ping -c 100 -i 0.002 -v 8.8.8.8"
-abbr pgi "ping -c 100 -i 0.002 -v digikala.com"
+
+# Ping to iranian shelter dns
+abbr pgi "ping -c 100 -i 0.002 -v 178.22.122.100"
 
 abbr mtru "mtr --udp -P 53"
 abbr mtrt "mtr --tcp -P 443"
