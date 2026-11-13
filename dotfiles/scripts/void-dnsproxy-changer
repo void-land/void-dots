@@ -23,6 +23,7 @@ declare -A DNS_PROFILES=(
 	["JoinDNS4"]="udp://86.54.11.100:53|udp://86.54.11.200:53"
 
 	["MCI"]="udp://10.185.68.114:53|udp://10.185.68.113:53"
+	["Samantel"]="udp://10.201.112.252:53|udp://217.218.127.127:53"
 	["Irancell"]="udp://10.255.255.254:53|udp://10.10.10.10:53"
 
 	["ShelterPrimary"]="udp://95.38.140.45:53|udp://95.38.140.44:53"
@@ -38,7 +39,7 @@ declare -A DNS_PROFILES=(
 
 DNS_PROFILE_ORDER=(
 	Google CloudFlare JoinDNS4
-	MCI Irancell
+	MCI Samantel Irancell
 	ShelterPrimary ShelterSecondary FireOps Shecan SteamDL
 	JoinDNS4-DOH XboxDNS-DOH GeoHide-DOH
 )
