@@ -4,11 +4,17 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## What this repo is
 
-A personal dotfiles repo for Arch/EndeavourOS + KDE Plasma. There is no build, no test suite, and no package manager — the "product" is a tree of config files plus bash/fish scripts that get symlinked into `$HOME`. The root holds only tooling (`bootstrap.sh`, `stow.sh`, `lint.sh`, `ansible/`) and docs; everything deployable lives under `dotfiles/` (`apps/`, `shell/`, `editors/`, `kde/`, `home/`, `scripts/`). Verification means running `./lint.sh`, re-running the linker, and `--check` runs of the Ansible profiles, not running tests.
+A personal dotfiles repo for Arch/EndeavourOS + KDE Plasma. There is no build, no test suite, and no package manager — the "product" is a tree of config files plus bash/fish scripts that get symlinked into `$HOME`. The root holds only tooling (`Makefile`, `bootstrap.sh`, `stow.sh`, `lint.sh`, `ansible/`) and docs; everything deployable lives under `dotfiles/` (`apps/`, `shell/`, `editors/`, `kde/`, `home/`, `scripts/`). Verification means running `./lint.sh`, re-running the linker, and `--check` runs of the Ansible profiles, not running tests.
 
 ## Commands
 
 ```bash
+make help             # Makefile: thin wrappers over the commands below
+make stow             # stow.sh -s; also unstow, restow (-u then -s); DRY=1 adds -n
+make lint             # lint.sh; lint-fix = lint.sh -w
+make arch CHECK=1     # local profile (arch|debian|ubuntu); TAGS= SKIP= TARGET_USER= ARGS= BECOME=
+make vps HOST=<host>  # playbooks/vps.yml via inventory/hosts.yml; fails early without HOST or hosts.yml
+
 ./stow.sh -s          # symlink everything into ~ and ~/.config
 ./stow.sh -u          # remove those symlinks (only ones pointing back into the repo)
 ./stow.sh -n -s       # dry run
@@ -23,6 +29,8 @@ ansible-playbook -i inventory/hosts.yml playbooks/vps.yml -l <host>     # push t
 
 dotfiles/apps/alacritty/themes.sh       # re-pull alacritty themes from upstream
 ```
+
+The Makefile resolves the repo from its own path and passes `ANSIBLE_CONFIG` inline on every `ansible-playbook` call, so an exported `ANSIBLE_CONFIG` can't bypass the builtin-only policy. The target-user variable is `TARGET_USER`, not `USER`: `USER` is always in the environment and would silently become `void_target_user`. When adding a target, give it a `## description` comment (that's what `make help` lists), add it to `.PHONY` and to README's Makefile table.
 
 ## How stowing works (read before adding files)
 

@@ -18,7 +18,7 @@
 
 | Path | Description |
 | --- | --- |
-The repo root holds only the tooling (`bootstrap.sh`, `stow.sh`, `lint.sh`, `ansible/`) and docs; everything that gets deployed lives under `dotfiles/`:
+The repo root holds only the tooling (`Makefile`, `bootstrap.sh`, `stow.sh`, `lint.sh`, `ansible/`) and docs; everything that gets deployed lives under `dotfiles/`:
 
 | Path | Description |
 | --- | --- |
@@ -89,6 +89,37 @@ To work on the repo itself, install the tools `lint.sh` uses: `shellcheck`, `shf
 
 ---
 
+## 🛠️ Makefile
+
+Once the repo is cloned and `ansible-core` is installed (by `bootstrap.sh` or by hand), the root `Makefile` gives the everyday commands short names. It's a thin wrapper: every target calls `stow.sh`, `lint.sh` or `ansible-playbook` (always with the repo's `ansible/ansible.cfg`). It works from any directory with `make -C ~/.void-dots <target>`. `bootstrap.sh` is still the first-run path; minimal Debian/Ubuntu images may need `apt install make` first.
+
+| Target | Runs |
+| --- | --- |
+| `make` / `make help` | List targets and variables |
+| `make stow` / `unstow` / `restow` | `stow.sh -s` / `-u` / `-u` then `-s` |
+| `make lint` / `lint-fix` | `lint.sh` / `lint.sh -w` |
+| `make arch` / `debian` / `ubuntu` | That profile on this machine (`inventory/local.yml`, hosts `local-arch` / `local-debian` / `local-ubuntu`) |
+| `make vps HOST=<host>` | `playbooks/vps.yml` against `<host>` in `ansible/inventory/hosts.yml`; fails early if `HOST` or `hosts.yml` is missing |
+
+| Variable | Effect |
+| --- | --- |
+| `DRY=1` | Stow targets: dry run (`stow.sh -n`) |
+| `CHECK=1` | Ansible: dry run (`--check`) |
+| `TAGS=a,b` / `SKIP=a,b` | Ansible: only / skip these step ids (`--tags` / `--skip-tags`) |
+| `TARGET_USER=<user>` | Ansible: user to configure (`void_target_user`; required by `debian`/`ubuntu`/`vps` unless set in host_vars). Not `USER`, which your shell always sets |
+| `HOST=<host>` | `vps`: inventory host to push to |
+| `BECOME=` | Local Ansible: don't ask for the sudo password (asked by default unless you're root; `vps` never asks, use `ARGS=-K`) |
+| `ARGS='...'` | Ansible: extra `ansible-playbook` arguments, passed as typed |
+
+```bash
+make restow DRY=1                               # preview unlink + relink
+make arch CHECK=1 TAGS=aur,gaming               # dry run of two steps
+make debian TARGET_USER=deploy SKIP=docker      # on the VPS itself
+make vps HOST=my-debian-vps ARGS='--ask-vault-pass -e swap_size=4G'
+```
+
+---
+
 ## ⚙️ Ansible Provisioning (`ansible/`)
 
 Provisioning is a self-contained Ansible project that only needs **`ansible-core`**. No Galaxy roles or collections are used: tasks use `ansible.builtin.*`, plus two modules written in this repo (`ansible/library/void_pacman.py` for pacman, `void_aur.py` for AUR builds via `makepkg`). `ansible.cfg` stops Ansible from finding installed collections, and `./lint.sh` rejects any other module.
@@ -118,7 +149,7 @@ Everything a profile does is data in `inventory/group_vars/`: package groups (or
 
 ### Run locally
 
-`bootstrap.sh` (see Quick start) handles this for you. By hand, from `ansible/`:
+`bootstrap.sh` (see Quick start) handles this for you, and `make arch` / `make debian` / `make ubuntu` run the same playbooks (see Makefile). By hand, from `ansible/`:
 
 ```bash
 export ANSIBLE_CONFIG=$PWD/ansible.cfg
@@ -138,6 +169,8 @@ ansible-playbook -i inventory/hosts.yml playbooks/vps.yml --list-tasks          
 ansible-playbook -i inventory/hosts.yml playbooks/vps.yml -l my-debian-vps --ask-vault-pass --check
 ansible-playbook -i inventory/hosts.yml playbooks/vps.yml -l my-debian-vps --ask-vault-pass
 ```
+
+Or from the repo root: `make vps HOST=my-debian-vps ARGS=--ask-vault-pass` (add `CHECK=1` for a dry run).
 
 Generate the password hash with `openssl passwd -6`. If `ansible_user` isn't root, it needs sudo: put `ansible_become_password` in the vaulted host_vars, or pass `-K`. A new user's password is only set when the user is created. To change an existing user's password, set `user_update_password: true`.
 
@@ -159,7 +192,7 @@ Symlinks the contents of `dotfiles/home/`, `dotfiles/apps/`, `dotfiles/shell/`, 
 **Link (stow) configurations:**
 
 ```bash
-./stow.sh -s
+./stow.sh -s      # or: make stow
 ```
 
 *Creates the necessary directories under `~/.config/` and symlinks every tracked file back into this repo. Works from any directory. An existing real file or directory at a target is moved aside to `<name>.bak.<timestamp>` rather than overwritten. Symlinks that point into the repo at files that no longer exist are pruned first. Links that already point at the right place are skipped silently, so a re-run only prints what it actually changed.*
@@ -169,12 +202,12 @@ Symlinks the contents of `dotfiles/home/`, `dotfiles/apps/`, `dotfiles/shell/`, 
 **Unlink (unstow) configurations:**
 
 ```bash
-./stow.sh -u
+./stow.sh -u      # or: make unstow
 ```
 
 *Removes only the symlinks that point back into this repo, detaching your system without deleting the source files. Anything else at a target path is left untouched.*
 
-**Preview without changing anything:** add `-n` (dry run) to either command, e.g. `./stow.sh -n -s`.
+**Preview without changing anything:** add `-n` (dry run) to either command, e.g. `./stow.sh -n -s` (`make stow DRY=1`). `make restow` unlinks and then links again.
 
 ---
 
