@@ -6,11 +6,9 @@ VPN_EXTRA_ARGS="--no-dtls"
 
 TciProfiles=(
 	"TCI.apibaz.org"
-	"TCIS1.apibaz.org"
-	"TCIS2.apibaz.org"
-	"TCIS3.apibaz.org"
-	"TCIS4.apibaz.org"
 	"mcipower1.apibaz.org"
+	"shatel1.apibaz.org"
+	"nlwin.apibaz.org"
 )
 
 vpn_connect_interactive
